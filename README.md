@@ -1,16 +1,18 @@
-_________________
+<!-- ######################################################################## -->
+
+***
 # MTWSPy
-_________________
+***
 
 MTWSPy is a Python implementation of the Morphological Time Window Selection (MTWS) method first published in _Geophysical Journal International_ by Lei Li et al., ([2023](https://doi.org/10.1093/gji/ggad338)), including preceeding data processing workflow.
 
+<!-- ######################################################################## -->
+
+***
+## Description
 ***
 
-_________________
-## Description
-_________________
-
-This package includes codes to download and process seismic data, create corresponding synthetics and measure travel times using MTWSPy.
+This package includes codes to download and process seismic data, create corresponding synthetics and measure travel times using MTWSPy and cross correlation.
 
 * We use [obspyDMT](https://kasra-hosseini.github.io/obspyDMT/) for download of seismic data.
 * We use [SPECFEM3D_GLOBE](https://specfem.org/) v8.0.0 available [here](https://github.com/SPECFEM/specfem3d_globe/releases/tag/v8.0.0) for calculation of global synthetic seismograms.
@@ -18,25 +20,20 @@ This package includes codes to download and process seismic data, create corresp
 
 The codes are designed to be run on a year-by-year basis to build up a travel time database progressively, thereby avoiding data storage issues where possible.
 
-HPC operations are setup using an example from the PSMN cluster at ENS Lyon (France) using the SLURM batch scheduler.
+HPC operations are setup using an example from the PSMN cluster at ENS Lyon, France (96 cores per node) using the SLURM batch scheduler.
 
 Parallelisation is used to speed up post-processing of observed and synthetic data (GNU parallel) and arrival time picking (python concurrent.futures) using the MTWS algorithm.
 
-<!-- 
-## Table of Contents
 
-__This will also be bold__
-_This will also be italic_ -->
+<!-- ######################################################################## -->
 
 ***
-
-_________________
 ## Installation
-_________________
+***
 
 1. Create a fresh python3 environment (used 3.12) with the following pacakges available ('obspy','numpy', 'scipy', 'pandas', 'matplotlib', 'sys', 'glob', 'shutil', 'os', 'time', 'warnings', 'datetime', 'inspect', 'yaml'). Obspy 1.4 installed using pip.
 2. Ensure obspyDMT is installed and active on the system used for data download. (Version 2.2.11 available using pip)
-3. Ensure SPECFEM3D_GLOBE can be compiled and run using parameters appropriate to the system used to compute synthetics (typically HPC). v8.0.0 installed fresh from Github
+3. Ensure SPECFEM3D_GLOBE can be compiled and run using parameters appropriate to the system used to compute synthetics (typically HPC). v8.0.0 installed fresh from Github.
 4. Ensure GNU parallel, SAC, saclst and ttimes are available on system used for data processing. Small programs are available in the utils directory.
 5. Ensure the following 10 files are copied into a local bin directory and are available on your PATH:
     * get_julday.py
@@ -50,31 +47,34 @@ _________________
     * check_obspyDMT_SPECFEM_install.sh
     * check_obspyDMT_SPECFEM_install.py
 
-***
+<!-- ######################################################################## -->
 
-_________________
+***
 ## Usage
-_________________
+***
 
 ### Data Download
 
 navigate to `dmt`
-get_obspy_data.sh
-proc_obspy_data.sh
-mk_SPECFEM_STATIONS_dmt.py __OR__ mk_SPECFEM_STATIONS_obspy.py
+
+* `get_obspy_data.sh` &rarr; launches obspyDMT via batch scheduler for given year.
+* `proc_obspy_data.sh` &rarr; launches post processing of observed data using GNU parallel.
+* `python mk_SPECFEM_STATIONS_dmt.py` &rarr; Creates station file for specfem if obspyDMT database is prepared.
+__OR__ 
+* `python mk_SPECFEM_STATIONS_obspy.py` &rarr; Creates station file for Specfem using datacenter quieries (often more frequently used).
 
 ### Generate Synthetics
 
 navigate to `gcmt`
 
-download_cmtsolutions.py
+* `python download_cmtsolutions.py` &rarr; Download from gcmt catalog CMT solutions in Specfem format for 0-700km depth, 5.5-7.5Mw for given year.
 
 navigate to `specfem`
 
-Par file
-Station file
-get_specfem_synthetics.sh
-proc_specfem_synthetics.sh
+* Par file  &rarr; Verify parameters chosen are appropirate for your system (e.g., minimum period). Normally using 2hrs seismogram length.
+* Station file &rarr; Using workflow below, the STATION file will be updated from the dmt directory described above.
+* `get_specfem_synthetics.sh` &rarr; Launches all SPECFEM simulations for CMT solutions in gcmt directory using batch scheduler. May need modification to suit local resources.
+* `proc_specfem_synthetics.sh` &rarr; Launches post processing of SPECFEM simulation data using GNU parallel and batch scheduler.
 
 ### MTWSPy _Main_
 
@@ -116,8 +116,6 @@ All steps of the code that utilise parallelisation (also written to work in seri
 * __params_in__ &rarr; Loaded parameter file (_dict_)
 * __phases__ &rarr; Loaded phase file (_dict_)
 
-
-
 #### Detailed description:
 
 __params_in.yaml__ &rarr; Parameter file containing all variables that can be changed within the code.
@@ -134,58 +132,30 @@ __find_twin_syn.py__ &rarr; For synth data: get travel times, detect time window
 
 __match_twin_files.py__ &rarr; Find matching twin files between observed and synth data, save to file
 
-__phase_association_obs.py__ &rarr; Associate observed twin with a phase within a given limit of each time window, save to twin file
+__phase_association_obs.py__ &rarr; Associate unique observed twin with unique phase within a given limit of each time window, save to twin file
 
-__phase_association_syn.py__ &rarr; Associate synth twin with a phase within a given limit of each time window, save to twin file
+__phase_association_syn.py__ &rarr; Associate unique synth twin with unique phase within a given limit of each time window, save to twin file
 
-__correlate_twin.py__ &rarr; Correlate observed and synth time windows, select windows based on given quality criteria, save time delay files.
+__correlate_twin.py__ &rarr; Correlate observed and synth time windows using cross-correlation of Zaroli et al (2010) formulation, select windows based on given quality criteria, save time delay files.
 
-__MTWSPy_main.py__ &rarr; Execute main code in sequence.
-
-
-
-Execute using batch scheduler? 1 node 96 cores...?
+__MTWSPy_main.py__ &rarr; Execute main code sequentially using params_in.yaml
 
 
+<!-- Execute using batch scheduler? 1 node 96 cores...? -->
 
-
-<!-- 
-## Installation
-
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
-
-```bash
-pip install foobar
-```
-
-## Usage
-
-```python
-import foobar
-
-# returns 'words'
-foobar.pluralize('word')
-
-# returns 'geese'
-foobar.pluralize('goose')
-
-# returns 'phenomenon'
-foobar.singularize('phenomena')
-``` -->
+<!-- ######################################################################## -->
 
 ***
-
-_________________
 ## Credits
-_________________
+***
 
 The original serial code written in __matlab__ by Lei Li is available on request to stephanie.durand@ens-lyon.fr
 
-***
+<!-- ######################################################################## -->
 
-_________________
+***
 ## License
-_________________
+***
 
 MIT License
 

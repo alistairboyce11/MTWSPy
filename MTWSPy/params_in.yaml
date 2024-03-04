@@ -1,0 +1,193 @@
+# YAML Document starts with ---
+# Comments start with #
+# Parameter file for MTWSPy module
+# ABOYCE 09/01/2023
+#
+# Some definitions
+#
+---
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+#                                                                                     #
+#                                   MTWSPy_main.py                                    #
+#                                                                                     # 
+# ---                                                                             --- # 
+
+home: '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code' # Location where MTWSPy code is installed
+code_loc: 'MTWSPy' # Main code location
+log_loc: 'log' # Log location
+twin_loc: 'twin' # Time Window (twin) file location
+tdelay_loc: 'tdelay' # Time delay (tdelay) file location
+
+# File paths
+data_loc: /Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code/dmt # requires "dmt" in path
+synth_loc: /Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code/specfem/IASP91_CRUST1 # requires "specfem" in path
+fmt_data_loc: '/formatted/TEMP' # file path suffix after data_loc or synth_loc
+
+year: 2008 # year of data to process
+parallel: True # Run parallel processing
+cores: 8 # Number of cores to execute parallel
+verbose: False # Print progress to terminal, otherwise just to logfile.
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+#                                                                                     #
+#                                   mk_events_csv.py                                  #
+#                                                                                     # 
+# ---                                                                             --- # 
+min_year: 2008
+max_year: 2008 # Just used to make a csv file with more than one year (not entirely necessary)
+cmt_infile: 'gcmt/gcmt_catalog.csv'
+cmt_outfile: 'cmt-events.csv'
+match_error_time: 5 # seconds
+match_error_lat: 0.5 # degrees
+match_error_lon: 0.5 # degrees
+match_error_dep: 20 # km
+match_error_mag: 0.5 # Mw (probably)
+match_cat_outcols: ['evtm','evla','evlo','evdp','mag','id_cmt','id_ctm','id_dmt', 'id_fmt_ctm','id_fmt_htm'] # Output columns
+
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+#                                                                                     #
+#                                   find_twin_obs.py                                  #
+#                                                                                     # 
+# ---                                                                             --- #
+
+twin_obs_out_loc: 'raw/obs/OS' # observed twin file out location
+twin_obs_pic_loc: 'pic/obs/OS' # observed twin image out location
+# observed twin outfile formatting parameters (do not change)
+twin_obs_outcols: ['nslc','latitude','longitude','elevation','t_left','t_peak','t_right','A_left','A_peak','A_right','A_noise']
+twin_outfmt: '{0:s},{1:.4f},{2:.4f},{3:.4f},{4:.2f},{5:.2f},{6:.2f},{7:.3e},{8:.3e},{9:.3e},{10:.3e}' # '%s,%.4f,%.4f,%.4f,%.2f,%.2f,%.2f,%.2e,%.2e,%.2e,%.2e\n'
+
+component: 'T' # Z,R,T instrument component on which to pick phases
+twin_plot_pic: False # Plot pic, otherwise skip plotting.
+twin_save_pic: False # Force to save pictures to file, otherwise just show.
+phases_key: 'Master' # dict key in v01_phasenames
+taup_model_name: 'iasp91' # taup_model to use in arrival time calcs.
+
+T1: 20.0 #  min period
+Tc: 26.7 #  central period
+T2: 40.0 #  max period
+sig_win_ext: 45 # seconds to extend signal window (ref. max_tshift)
+sig_win_type: 1 # 0, no limits, use full trace, 1, first to last arrival; 2, first arrival to end
+min_snr_P: 1.5 # min var(sig_win)/var(nois_win)
+min_snr_A: 3.5 # min max(|sig_win|)/(2*std(nois_win))
+min_snr: 4 # min_snr A_peak/mean(env(nois_win))
+npow: 1 # 1 for amplitude envelope; 2 for power envelope
+
+mxf_win_f: 0.75   # movmax window factor, where: mxf_win = mxf_win_f*Tc (in sec); 50-100s
+walkaway_f: 5 # the line tilt factor away from the peak, where walkaway = walkaway_f*Tc; in seconds 
+min_win_span_f: [1.5, 30.0] # min time window size factor, where min_win_span = max(min_win_span_f[0]*T1,min_win_span_f[1])
+min_sig_win_f: 5 # min whole sigwin length factor, where min_sig_win = min_sig_win_f*T2 (in sec)
+min_nois_win_f: 2 #  min noiswin length factor, where min_nois_win = min_nois_win_f*T2 (in sec)
+
+filttwin: 1 # 1: filter time windows, else 0 : skip
+min_amp_obs: 8e-9 #  min A_peak (ref. NLNM): min peak amp
+# min_snr: 4; % min A_peak/A_noise
+wsz_lim_obs: [40,220] # [lo,hi] of time window size in sec : window size limits [s]
+bnd2pk_t_obs: [12, 200] # [min,max] of peak-to-edge tshift:  edge to peak tshift limits [s]
+bnd2pk_A_obs: [0.5,1.0] # max [A_left|A_right,A_left+A_right]/A_peak: edge to peak Aratio limits [l|r/pk,(l+r)/pk]
+
+# Plotting:
+cm: 0.3937007874 # = 1/2.54
+twin_plot_width: 40 # cm
+twin_plot_height: 25 # cm
+twin_sf_width: 0.85 # Plotting specifics (not likely to be changed)
+twin_upper_height: 0.30 # Plotting specifics (not likely to be changed)
+twin_upper_pos: 0.6 # Plotting specifics (not likely to be changed)
+twin_lower_height: 0.50 # Plotting specifics (not likely to be changed)
+twin_lower_pos: 0.10 # Plotting specifics (not likely to be changed)
+twin_x_minor: 100 # Plotting specifics (not likely to be changed)
+twin_x_major: 500 # Plotting specifics (not likely to be changed)
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+#                                                                                     #
+#                                   find_twin_syn.py                                  #
+#                                                                                     # 
+# ---                                                                             --- #
+twin_syn_out_loc: 'raw/syn/MX' # synth twin file out location
+twin_syn_pic_loc: 'pic/syn/MX' # synth twin image out location
+# synth twin outfile formatting parameters (do not change)
+twin_syn_outcols: ['nslc','latitude','longitude','elevation','t_left','t_peak','t_right','A_left','A_peak','A_right','A_median']
+# sig_win_ext: Tc # CHANGED TO Tc in main script... manually
+# sig_win_type: 0 # CHANGED TO 0 in main script... manually
+k_em: 0 # k_em*median(env(sigwin)) as hard threshold
+
+min_amp_syn: 1e-9 # min A_peak (ref. NLNM)
+min_snr_syn: 0 # min A_peak/A_median
+wsz_lim_syn: [40,200] # [lo,hi] of time window size in sec
+bnd2pk_t_syn: [12, 160] # [min,max] of peak-to-edge tshift
+bnd2pk_A_syn: [0.5,0.8] # max [A_left|A_right,A_left+A_right]/A_peak
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+#                                                                                     #
+#                                 match_twin_files.py                                 #
+#                                                                                     # 
+# ---                                                                             --- #
+
+mtf_prefix: 'EVID' # Prefix for matched twin file
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+#                                                                                     #
+#                              phase_association_obs.py                               #
+#                                                                                     # 
+# ---                                                                             --- #
+phase_a_obs_out_loc: 'phs/obs/OS' # phase associated observed twin file out location
+# phase associated twin outfile formatting parameters (do not change)
+phase_a_outcols: ['nslc','latitude','longitude','elevation','t_left','t_peak','t_right','A_left','A_peak','A_right','A_noise','phase','n_depth_phase','t_taup']
+phase_a_outfmt: '{0:s},{1:.4f},{2:.4f},{3:.4f},{4:.2f},{5:.2f},{6:.2f},{7:.3e},{8:.3e},{9:.3e},{10:.3e},{11:s},{12:d},{13:.2f}' # '%s,%.4f,%.4f,%.4f,%.2f,%.2f,%.2f,%.2e,%.2e,%.2e,%.2e,%s,%d,%.2f\n'
+
+max_tshift: 45 # Peak of tw is less than this value from the predicted travel time.
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+#                                                                                     #
+#                              phase_association_syn.py                               #
+#                                                                                     # 
+# ---                                                                             --- #
+phase_a_syn_out_loc: 'phs/syn/MX' # phase associated synth twin file out location
+
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+#                                                                                     #
+#                                 correlate_twin.py                                   #
+#                                                                                     # 
+# ---                                                                             --- #
+
+interp_delta: 0.05 # interpolate all waveforms to this sample rate.
+use_velocity: True # Differential displacement seismograms to velocity
+normalise_traces: True # Normalise traces prior to cross correlation
+taper_windows: True # Taper the time windows prior to cross correlation
+taper_alpha: 0.1 # Fraction of time window affected by tapering
+
+max_tpeak_delay: 60  # max delay between two tpeaks in windows for correlation
+max_twin_len_diff: 60 # max difference in time window length
+limit_corr_window: True # Limit length of correlation window and Zaroli F3 based on max_lag
+XC_max_lag: 30 # Maximum lag in cross correlation
+
+XC_min_peak_search: 0.05 # Minimum amplitude in peak search of Normed XC, [0-1]
+XC_min_main_peak: 0.50 # Minimum amplitude of Normed XC main peak classified as pick [0-1]
+XC_max_secondary_peak_percentage: 0.99 # Maximum percentage of Normed XC main peak amplitude allowed in secondary peak, [0-1]
+XC_min_peak_distance: 10 # min number of samples between selected peaks of Normed XC
+
+tw_max_f_diff: 0.5 # percentage [0-1] difference of max amplitude of freqency spectra between syn and obs
+
+## Zaroli delay time calculation ** RECOMMENDED: ``limit_corr_window'' == True for speed
+Zaroli: False # Use Zaroli et al 2010 GJI EQs 3-8 for TT calculation.
+XC_Zaroli_diff: 0.5 # Discrepancy allowed between Cross correlation and Zaroli derived TT picks [s]
+F3_min_peak_search: 0.05 # Minimum amplitude in peak search of F3, [0-1]
+F3_min_main_peak: 0.25 # Minimum amplitude of F3 main peak classified as pick [0-1]
+F3_max_secondary_peak_percentage: 0.9 # Maximum percentage of F3 main peak amplitude allowed in secondary peak, [0-1]
+F3_min_peak_distance: 10 # min number of samples between selected peaks of Normed XC
+
+corr_plot_pic: False # Plot a pic of correlated window
+corr_save_pic: False # Save a pic of correlated window
+
+max_tdelay: 25 # +/- time delay cut-off for difference in envelope peaks & correlation shift [s]
+max_tderr: 6 # Maximum travel time delay error predicted from Chevrot 2002
+min_xcc: 0.6 # minimum XC or Zaroli F3 coeff (could be lower if using Zaroli)
+
+# tdelay outfile formatting parameters (do not change)
+correlate_outcols: ['nslc','stla','stlo','stel','phase','tdelay','tderr','ccmx','ttaup','tp_obs','tp_syn','Ap_obs','Ap_syn']
+correlate_outfmt: '{0:s},{1:.4f},{2:.4f},{3:.4f},{4:s},{5:.2f},{6:.2f},{7:.2f},{8:.2f},{9:.2f},{10:.2f},{11:.2e},{12:.2e}'   #   '%s,%.4f,%.4f,%.4f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2e,%.2e';
+
+
+
+...
