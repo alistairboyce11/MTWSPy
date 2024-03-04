@@ -21,10 +21,10 @@ def check_files(loc, year, component):
     specified year and component
     Otherwise quit the code...
     '''
-    check_name=str(loc)+'/'+str(year)+'*/'+str(year)+'*'+str(component)
-    filelist=glob.glob(check_name)
+    check_name = str(loc)+'/'+str(year)+'*/'+str(year)+'*'+str(component)
+    filelist = glob.glob(check_name)
     
-    numfiles=len(filelist)
+    numfiles = len(filelist)
 
     if numfiles > 0:
         print(f'Found: {str(numfiles):s} files\n')
@@ -44,10 +44,10 @@ def get_params(params_filename):
     Get input parameters from yaml file
     '''
     with open(params_filename) as f:
-        params = yaml.load(f, Loader=SafeLoader)
+        params = yaml.load(f, Loader = SafeLoader)
     # add the starttime of the code
     now = datetime.now()
-    params['code_start_time']=now.strftime("%Y%m%d%H%M%S")
+    params['code_start_time'] = now.strftime("%Y%m%d%H%M%S")
 
     cha_obs, cha_syn = str(params['twin_obs_out_loc'][-2:])+str(params['component']), str(params['twin_syn_out_loc'][-2:])+str(params['component'])
     params['mtf_outfilename'] = params['home']+'/'+params['code_loc']+'/'+str(params['mtf_prefix']) + '.' + cha_obs + '-' + cha_syn
@@ -59,7 +59,7 @@ def get_event_id_table(cmt_outfile):
     '''
     Get event id table as pandas data frame
     '''
-    tab=pd.read_csv(cmt_outfile)
+    tab = pd.read_csv(cmt_outfile)
 
     return tab
 
@@ -68,8 +68,8 @@ def get_log_statement(event_id, filename):
     '''
     Return statement for logfile 
     '''
-    filename_p=filename.split('/')[-1]
-    statement=str(event_id)+', '+str(filename_p)
+    filename_p = filename.split('/')[-1]
+    statement = str(event_id)+', '+str(filename_p)
 
     return statement
 
@@ -139,8 +139,8 @@ def get_input_dicts(input_directory, evt_id_tab, functions, params_in, phases):
     '''
 
     # Finds files, makes input dictionary of files, functions, inputs
-    events=sorted(glob.glob(input_directory+'/'+str(params_in['year'])+'*'))
-    input_dicts=[]
+    events = sorted(glob.glob(input_directory+'/'+str(params_in['year'])+'*'))
+    input_dicts = []
 
     if len(events) == 0:
         # No events found...
@@ -162,29 +162,29 @@ def get_input_dicts(input_directory, evt_id_tab, functions, params_in, phases):
 
         for event in events:
             # First check we have the event in the cmt-event-table
-            id_fmt_ctm=int(event.split('/')[-1])
-            ind=np.where( np.array(evt_id_tab['id_fmt_ctm']) == id_fmt_ctm )[0]
+            id_fmt_ctm = int(event.split('/')[-1])
+            ind = np.where( np.array(evt_id_tab['id_fmt_ctm']) == id_fmt_ctm )[0]
 
             # Should only be one unique event...
             if len(ind) == 1: 
                 print(str(ind[0])+', '+str(event))
-                input_dict={}
-                input_dict['event']=event
-                input_dict['event_id']=ind[0]
-                input_dict['evtm']=evt_id_tab['evtm'][ind[0]]
-                input_dict['evla']=evt_id_tab['evla'][ind[0]]
-                input_dict['evlo']=evt_id_tab['evlo'][ind[0]]
-                input_dict['evdp']=evt_id_tab['evdp'][ind[0]]
-                input_dict['mag']=evt_id_tab['mag'][ind[0]]
-                input_dict['id_cmt']=evt_id_tab['id_cmt'][ind[0]]
-                input_dict['id_ctm']=evt_id_tab['id_ctm'][ind[0]]
-                input_dict['id_fmt_ctm']=id_fmt_ctm
-                input_dict['phases']=phases
-                input_dict['functions']=functions
-                input_dict['params_in']=params_in
+                input_dict = {}
+                input_dict['event'] = event
+                input_dict['event_id'] = ind[0]
+                input_dict['evtm'] = evt_id_tab['evtm'][ind[0]]
+                input_dict['evla'] = evt_id_tab['evla'][ind[0]]
+                input_dict['evlo'] = evt_id_tab['evlo'][ind[0]]
+                input_dict['evdp'] = evt_id_tab['evdp'][ind[0]]
+                input_dict['mag'] = evt_id_tab['mag'][ind[0]]
+                input_dict['id_cmt'] = evt_id_tab['id_cmt'][ind[0]]
+                input_dict['id_ctm'] = evt_id_tab['id_ctm'][ind[0]]
+                input_dict['id_fmt_ctm'] = id_fmt_ctm
+                input_dict['phases'] = phases
+                input_dict['functions'] = functions
+                input_dict['params_in'] = params_in
                 try: 
                     if len(match_twin_files) > 0:
-                        input_dict['match_twin_files']=match_twin_files
+                        input_dict['match_twin_files'] = match_twin_files
                 except:
                     pass
                 input_dicts.append(input_dict)
@@ -204,10 +204,10 @@ def execute(main_function, input_directory, evt_id_tab, functions, params_in, ph
     '''
     if params_in['parallel']:
         # Execute in parallel
-        apply_parallel(main_function,input_directory,evt_id_tab,functions,params_in,phases)
+        apply_parallel(main_function, input_directory, evt_id_tab, functions, params_in, phases)
     else:
         # Execute in series
-        apply_serial(main_function,input_directory,evt_id_tab,functions,params_in,phases)
+        apply_serial(main_function, input_directory, evt_id_tab, functions, params_in, phases)
     return
 
 
@@ -251,14 +251,14 @@ def apply_serial(main_function, input_directory, evt_id_tab, functions, params_i
     '''
 
     # get input dicts
-    input_dicts=get_input_dicts(input_directory, evt_id_tab, functions, params_in, phases)
+    input_dicts = get_input_dicts(input_directory, evt_id_tab, functions, params_in, phases)
     
     if input_dicts:
         # Serial processing
         for input_dict in input_dicts:
     
             for main_f in main_function:
-                res=main_f(input_dict)
+                res = main_f(input_dict)
     
         return
     else:
@@ -304,13 +304,13 @@ def apply_parallel(main_function, input_directory, evt_id_tab, functions, params
     '''
 
     # get input dicts
-    input_dicts=get_input_dicts(input_directory, evt_id_tab, functions, params_in, phases)
+    input_dicts = get_input_dicts(input_directory, evt_id_tab, functions, params_in, phases)
 
     if input_dicts:
         # Parallel processing
         for main_f in main_function:
 
-            with concurrent.futures.ProcessPoolExecutor(max_workers=params_in['cores']) as executor:
+            with concurrent.futures.ProcessPoolExecutor(max_workers = params_in['cores']) as executor:
                 results = executor.map(main_f, input_dicts)
 
             return
@@ -329,12 +329,12 @@ def read_twin_file(file_path):
         try:
             header = 1
             while header:
-                fline=file.readline()
+                fline = file.readline()
                 if 'columns format' in fline:
                     header = 0
 
             # Read data into DataFrame
-            df = pd.read_csv(file, delimiter=',')
+            df = pd.read_csv(file, delimiter = ',')
         except:
             #Return empy dataframe if not possible.
             df = pd.DataFrame()

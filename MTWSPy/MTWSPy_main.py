@@ -17,12 +17,12 @@ def main():
 
     start_time = time.time()
     # Params go here.
-    params_in=toolkit.get_params('params_in.yaml')
+    params_in = toolkit.get_params('params_in.yaml')
 
     # Define observed data input directory
-    obs_input_directory=str(params_in['data_loc'])+'/e'+str(params_in['year'])+str(params_in['fmt_data_loc'])
+    obs_input_directory = str(params_in['data_loc']) + '/e'+str(params_in['year']) + str(params_in['fmt_data_loc'])
     # Define synthetic data input directory
-    syn_input_directory=str(params_in['synth_loc'])+'/e'+str(params_in['year'])+str(params_in['fmt_data_loc'])
+    syn_input_directory = str(params_in['synth_loc']) + '/e'+str(params_in['year']) + str(params_in['fmt_data_loc'])
 
 
     ######### Check for presence of Data files #########
@@ -46,10 +46,10 @@ def main():
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     #########     find_twin_obs.py           ##########
     # Data: get travel times, primary quality control (snr_pow, snr_amp), detect time windows, filter time windows, plot time windows
-    main_function=[find_twin_obs.process_one_event]
+    main_function = [find_twin_obs.process_one_event]
 
     # Functions to perform on observed data 
-    functions=[find_twin_obs.get_tt_times, find_twin_obs.primary_qc, find_twin_obs.detect_window_peaks, find_twin_obs.filter_window_peaks, find_twin_obs.plot_waveform_envelope_peaks_windows]
+    functions = [find_twin_obs.get_tt_times, find_twin_obs.primary_qc, find_twin_obs.detect_window_peaks, find_twin_obs.filter_window_peaks, find_twin_obs.plot_waveform_envelope_peaks_windows]
     
     toolkit.execute(main_function, obs_input_directory, evt_id_tab, functions, params_in, phases)
 
@@ -62,9 +62,9 @@ def main():
     params_in['sig_win_ext'] = params_in['Tc'] 
     # params_in['sig_win_type'] = 0 
     
-    main_function=[find_twin_syn.process_one_event]
+    main_function = [find_twin_syn.process_one_event]
     # Functions to perform on synthetic data 
-    functions=[find_twin_obs.get_tt_times, find_twin_obs.filter_seis, find_twin_obs.detect_window_peaks, find_twin_obs.filter_window_peaks, find_twin_obs.plot_waveform_envelope_peaks_windows]
+    functions = [find_twin_obs.get_tt_times, find_twin_obs.filter_seis, find_twin_obs.detect_window_peaks, find_twin_obs.filter_window_peaks, find_twin_obs.plot_waveform_envelope_peaks_windows]
         
     toolkit.execute(main_function, syn_input_directory, evt_id_tab, functions, params_in, phases)
     
@@ -81,9 +81,9 @@ def main():
     # Data: Phase association s|w40_phase_association.m 
     # Associate time window with a given phase
 
-    main_function=[phase_association_obs.process_one_event]
+    main_function = [phase_association_obs.process_one_event]
     # Functions to perform on observed data 
-    functions=[phase_association_obs.associate_twin_phase] # 
+    functions = [phase_association_obs.associate_twin_phase] # 
 
     toolkit.execute(main_function, obs_input_directory, evt_id_tab, functions, params_in, phases)
 
@@ -93,9 +93,9 @@ def main():
     # Synth: Phase association s|w40_phase_association.m
     # Associate time window with a given phase
 
-    main_function=[phase_association_syn.process_one_event]
+    main_function = [phase_association_syn.process_one_event]
     # Functions to perform on synthetic data 
-    functions=[phase_association_obs.associate_twin_phase] # 
+    functions = [phase_association_obs.associate_twin_phase] # 
 
     toolkit.execute(main_function, syn_input_directory, evt_id_tab, functions, params_in, phases)
 
@@ -106,8 +106,8 @@ def main():
     # Select high quality results....
     # (s|w10_twin_corr.m)
 
-    main_function=[correlate_twin.process_one_event]
-    functions=[correlate_twin.correlate_windows, correlate_twin.select_windows, correlate_twin.save_tdelay_files]
+    main_function = [correlate_twin.process_one_event]
+    functions = [correlate_twin.correlate_windows, correlate_twin.select_windows, correlate_twin.save_tdelay_files]
 
     toolkit.execute(main_function, syn_input_directory, evt_id_tab, functions, params_in, phases)
 
