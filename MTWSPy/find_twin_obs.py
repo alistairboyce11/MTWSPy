@@ -41,37 +41,37 @@ def process_one_event(input_dict):
     ----------
     Nothing: None
     '''
-    event=input_dict['event']
-    event_id=input_dict['event_id']
-    functions=input_dict['functions']
-    params_in=input_dict['params_in']
+    event = input_dict['event']
+    event_id = input_dict['event_id']
+    functions = input_dict['functions']
+    params_in = input_dict['params_in']
 
     # Initiate logfile
-    logfile=open_log_file(input_dict)
-    logfile=write_params_logfile(input_dict, logfile)
+    logfile = open_log_file(input_dict)
+    logfile = write_params_logfile(input_dict, logfile)
 
     # Initiate outfile
-    outfile=open_outfile_file(input_dict)
-    outfile=write_params_outfile(input_dict, outfile)
+    outfile = open_outfile_file(input_dict)
+    outfile = write_params_outfile(input_dict, outfile)
 
     # List of files in the event
-    files=sorted(glob.glob(event+'/'+str(params_in['year'])+'*'+str(params_in['component'])))
+    files = sorted(glob.glob(event + '/' + str(params_in['year']) + '*' + str(params_in['component'])))
 
-    num_files=len(files)
-    if num_files == 0:
+    num_files = len(files)
+    if num_files ==  0:
         # No files found...
         ###
-        toolkit.print_log(params_in, logfile, f'----------////   NO-FILES-IN: '+str(event)+'    ////----------')
+        toolkit.print_log(params_in, logfile, f'----------////   NO-FILES-IN: ' + str(event) + '    ////----------')
         ###
 
     else:
         ###
-        toolkit.print_log(params_in, logfile, f'----------////    WORKING ON: '+str(event)+'    ////----------')
+        toolkit.print_log(params_in, logfile, f'----------////    WORKING ON: ' + str(event) + '    ////----------')
         ###
 
         # Loop through file list and apply functions to each
         for k, file in enumerate(files):
-            log_statement=toolkit.get_log_statement(event_id, file)+', ['+str(k+1)+'/'+str(num_files)+']'
+            log_statement = toolkit.get_log_statement(event_id, file) + ', [' + str(k + 1) + '/' + str(num_files) + ']'
 
             ###
             toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  PROCESSING.....')
@@ -89,7 +89,7 @@ def process_one_event(input_dict):
 
                 continue
             
-            if len(functions) == 0: 
+            if len(functions) ==  0: 
                 ###
                 toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  NO_FUNCTIONS_TO_APPLY.....')
                 ###
@@ -97,7 +97,7 @@ def process_one_event(input_dict):
             else:
                 # apply functions, only executed when fail = 0
                 for function in functions:
-                    input_dict,file,seis,logfile,outfile,fail = function(input_dict,file,seis,logfile,outfile,fail)
+                    input_dict, file, seis, logfile, outfile, fail = function(input_dict, file, seis, logfile, outfile, fail)
             
             ###
             toolkit.print_log(params_in, logfile, f'{log_statement:s}  , FINISHED.....')
@@ -112,47 +112,47 @@ def write_params_logfile(input_dict, logfile):
     '''
     write key params to logfile. To be changed for each script
     '''
-    justify=30
+    justify = 30
 
-    params_in=input_dict['params_in']
-    phases=input_dict['phases']
+    params_in = input_dict['params_in']
+    phases = input_dict['phases']
 
     logfile.write(' ')
     logfile.write('----------////               INPUT PARAMETERS                ////----------\n')
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('id_fmt_ctm',' : ',str(input_dict['id_fmt_ctm']), x=justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('id_fmt_ctm',' : ',str(input_dict['id_fmt_ctm']), x = justify) )
 
-    params_list=['data_loc','component', 'twin_plot_pic', 'twin_save_pic', 'T1', 'Tc', 'T2','sig_win_ext', 'sig_win_type', 'min_snr_P', 'min_snr_A', 'npow']
+    params_list = ['data_loc','component', 'twin_plot_pic', 'twin_save_pic', 'T1', 'Tc', 'T2','sig_win_ext', 'sig_win_type', 'min_snr_P', 'min_snr_A', 'npow']
     for k, param in enumerate(params_list):
-        logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format(param,' : ',str(params_in[param]), x=justify) )
+        logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format(param,' : ',str(params_in[param]), x = justify) )
 
     # Complex parameters where multiplication factors are used...  
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('movmax window [s]',' : ',str(params_in['mxf_win_f']*params_in['Tc']), x=justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('walk away [s]',' : ',str(params_in['walkaway_f']*params_in['Tc']), x=justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min signal window length [s]',' : ',str(params_in['min_sig_win_f']*params_in['T2']), x=justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min noise window length [s]',' : ',str(params_in['min_nois_win_f']*params_in['T2']), x=justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min window size [s]',' : ', str(max(params_in['min_win_span_f'][0]*params_in['T1'],params_in['min_win_span_f'][1])), x=justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('taup phases',' : ',str(phases[str(params_in['phases_key'])][str(params_in['component'])]), x=justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output loc',' : ',str(params_in['home']+'/'+params_in['twin_obs_out_loc']+params_in['component']), x=justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('movmax window [s]',' : ',str(params_in['mxf_win_f']*params_in['Tc']), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('walk away [s]',' : ',str(params_in['walkaway_f']*params_in['Tc']), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min signal window length [s]',' : ',str(params_in['min_sig_win_f']*params_in['T2']), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min noise window length [s]',' : ',str(params_in['min_nois_win_f']*params_in['T2']), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min window size [s]',' : ', str(max(params_in['min_win_span_f'][0]*params_in['T1'],params_in['min_win_span_f'][1])), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('taup phases',' : ',str(phases[str(params_in['phases_key'])][str(params_in['component'])]), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output loc',' : ',str(params_in['home'] + '/' + params_in['twin_obs_out_loc'] + params_in['component']), x = justify) )
     logfile.write('')
     if '/specfem/' in input_dict['event']:
-        min_amp=float(params_in['min_amp_syn'])
+        min_amp = float(params_in['min_amp_syn'])
         min_snr = float(params_in['min_snr_syn'])
         wsz_lim = params_in['wsz_lim_syn']
         bnd2pk_t = params_in['bnd2pk_t_syn']
         bnd2pk_A = params_in['bnd2pk_A_syn']
 
     else:
-        min_amp=float(params_in['min_amp_obs'])
+        min_amp = float(params_in['min_amp_obs'])
         min_snr = params_in['min_snr']
         wsz_lim = params_in['wsz_lim_obs']
         bnd2pk_t = params_in['bnd2pk_t_obs']
         bnd2pk_A = params_in['bnd2pk_A_obs']
 
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min peak amp',' : ',str(min_amp), x=justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min snr',' : ',str(min_snr), x=justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('wsz_lim [s]',' : ',str(wsz_lim), x=justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('bnd2pk_t [s]',' : ',str(bnd2pk_t), x=justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('bnd2pk_A',' : ',str(bnd2pk_A), x=justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min peak amp',' : ',str(min_amp), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min snr',' : ',str(min_snr), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('wsz_lim [s]',' : ',str(wsz_lim), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('bnd2pk_t [s]',' : ',str(bnd2pk_t), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('bnd2pk_A',' : ',str(bnd2pk_A), x = justify) )
     logfile.write('----------////               INPUT PARAMETERS                ////----------\n')
 
     return logfile
@@ -163,47 +163,47 @@ def write_params_outfile(input_dict, outfile):
     write key params to outfile. To be changed for each script
     '''
     justify = 30
-    params_in=input_dict['params_in']
+    params_in = input_dict['params_in']
 
     outfile.write(' ')
     outfile.write('----------////               EVENT PARAMETERS                ////----------\n')
-    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('event_name',' : ',str(input_dict['id_cmt']), x=justify) )
-    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('date_time',' : ',str(input_dict['evtm']), x=justify) )
-    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('latitude',' : ',str(input_dict['evla']), x=justify) )
-    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('longitude',' : ',str(input_dict['evlo']), x=justify) )
-    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('depth',' : ',str(input_dict['evdp']), x=justify) )
-    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Mw',' : ',str(input_dict['mag']), x=justify) )
+    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('event_name',' : ',str(input_dict['id_cmt']), x = justify) )
+    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('date_time',' : ',str(input_dict['evtm']), x = justify) )
+    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('latitude',' : ',str(input_dict['evla']), x = justify) )
+    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('longitude',' : ',str(input_dict['evlo']), x = justify) )
+    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('depth',' : ',str(input_dict['evdp']), x = justify) )
+    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Mw',' : ',str(input_dict['mag']), x = justify) )
     outfile.write('----------////               EVENT PARAMETERS                ////----------\n')
     outfile.write('----------\n')
     if params_in['filttwin']:
         if '/specfem/' in input_dict['event']:
-            min_amp=float(params_in['min_amp_syn'])
+            min_amp = float(params_in['min_amp_syn'])
             min_snr = float(params_in['min_snr_syn'])
             wsz_lim = params_in['wsz_lim_syn']
             bnd2pk_t = params_in['bnd2pk_t_syn']
             bnd2pk_A = params_in['bnd2pk_A_syn']
 
         else:
-            min_amp=float(params_in['min_amp_obs'])
+            min_amp = float(params_in['min_amp_obs'])
             min_snr = params_in['min_snr']
             wsz_lim = params_in['wsz_lim_obs']
             bnd2pk_t = params_in['bnd2pk_t_obs']
             bnd2pk_A = params_in['bnd2pk_A_obs']
 
         outfile.write('----------////              FILTTWIN PARAMETERS               ////----------\n')
-        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min peak amp',' : ',str(min_amp), x=justify) )
-        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min snr [peak/noise]',' : ',str(min_snr), x=justify) )
-        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('window size limits [s]',' : ',str(wsz_lim), x=justify) )
-        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('edge to peak tshift limits [s]',' : ',str(bnd2pk_t), x=justify) )
-        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('edge to peak Aratio limits',' : ',str(bnd2pk_A), x=justify) )
+        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min peak amp',' : ',str(min_amp), x = justify) )
+        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min snr [peak/noise]',' : ',str(min_snr), x = justify) )
+        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('window size limits [s]',' : ',str(wsz_lim), x = justify) )
+        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('edge to peak tshift limits [s]',' : ',str(bnd2pk_t), x = justify) )
+        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('edge to peak Aratio limits',' : ',str(bnd2pk_A), x = justify) )
         outfile.write('----------\n')
 
     outfile.write('{0:<20s} {1:s} {2:s}\n'.format('columns format',' : ',params_in['twin_outfmt']))
     for h,header in enumerate(params_in['twin_obs_outcols']):
         if h < len(params_in['twin_obs_outcols']) - 1:
-            outfile.write('{0:s}'.format(header+','))
+            outfile.write('{0:s}'.format(header + ','))
         else:
-            outfile.write('{0:s}'.format(header+'\n'))
+            outfile.write('{0:s}'.format(header + '\n'))
     
     return outfile
 
@@ -224,8 +224,8 @@ def get_tt_times(input_dict, filename, seis, logfile, outfile, fail):
     '''
 
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement=toolkit.get_log_statement(input_dict['event_id'], filename)+', '+str(inspect.stack()[0][3])
-    params_in=input_dict['params_in']
+    log_statement = toolkit.get_log_statement(input_dict['event_id'], filename) + ', ' + str(inspect.stack()[0][3])
+    params_in = input_dict['params_in']
 
     if fail:
         ###
@@ -236,26 +236,26 @@ def get_tt_times(input_dict, filename, seis, logfile, outfile, fail):
         toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -EXECUTING-')
         ###
 
-        phases=input_dict['phases']
+        phases = input_dict['phases']
 
         #### Determine Taup Travel times ######
-        model = TauPyModel(model=params_in['taup_model_name'])
-        phs=phases[str(params_in['phases_key'])][str(params_in['component'])]
-        evdp=float(seis[0].stats['sac']['evdp']) # Event depth
-        gcarc=float(seis[0].stats['sac']['gcarc']) # Great circle arc distance
-        stdp=float(seis[0].stats['sac']['stdp'])/1000 # Station depth in Km
+        model = TauPyModel(model = params_in['taup_model_name'])
+        phs = phases[str(params_in['phases_key'])][str(params_in['component'])]
+        evdp = float(seis[0].stats['sac']['evdp']) # Event depth
+        gcarc = float(seis[0].stats['sac']['gcarc']) # Great circle arc distance
+        stdp = float(seis[0].stats['sac']['stdp'])/1000 # Station depth in Km
 
-        ttimes=[]; ttt={}
+        ttimes = []; ttt = {}
         if not hasattr(seis[0].stats, 'traveltimes'):
             seis[0].stats.traveltimes = dict()
 
         for ph in range(len(phs)):
             # extract only first time value, else NaN
             try:
-                arrivals = model.get_travel_times(source_depth_in_km=evdp,distance_in_degree=gcarc,receiver_depth_in_km=stdp,phase_list=[phs[ph]])
+                arrivals = model.get_travel_times(source_depth_in_km = evdp,distance_in_degree = gcarc,receiver_depth_in_km = stdp,phase_list = [phs[ph]])
                 ttime = arrivals[0].time
             except:
-                ttime =np.NaN
+                ttime  = np.NaN
             ttimes.append(ttime)
             seis[0].stats.traveltimes[phs[ph]] = ttime
             ttt[phs[ph]] = ttime
@@ -289,8 +289,8 @@ def primary_qc(input_dict, filename, seis, logfile, outfile, fail):
     '''
         
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement=toolkit.get_log_statement(input_dict['event_id'], filename)+', '+str(inspect.stack()[0][3])
-    params_in=input_dict['params_in']
+    log_statement = toolkit.get_log_statement(input_dict['event_id'], filename) + ', ' + str(inspect.stack()[0][3])
+    params_in = input_dict['params_in']
 
     if fail:
         ###
@@ -301,14 +301,14 @@ def primary_qc(input_dict, filename, seis, logfile, outfile, fail):
         toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -EXECUTING-')
         ###
 
-        dt=seis[0].stats['delta'] # 1/sample-rate
-        npts=seis[0].stats['npts']
+        dt = seis[0].stats['delta'] # 1/sample-rate
+        npts = seis[0].stats['npts']
            
         # Recover from input_dict values for the specified keys: tlim
         tlim = read_from_dict(input_dict,['tlim'])[0]
 
         ### Determine time axis for obspy trace, time axis relative to ev time
-        t = seis[0].times(reftime=UTCDateTime(str(input_dict['evtm'])))
+        t = seis[0].times(reftime = UTCDateTime(str(input_dict['evtm'])))
 
         # Run check on minimum signal window length
         min_sig_win = params_in['min_sig_win_f']*params_in['T2']
@@ -316,49 +316,65 @@ def primary_qc(input_dict, filename, seis, logfile, outfile, fail):
             fail = 1
 
             ###
-            toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  **too short [t={t[0]:.1f}-{t[-1]:.1f}s; sigwin={tlim[0]:.1f}-{tlim[1]:.1f}s -FAILED- ]')
+            toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  **too short [t = {t[0]:.1f}-{t[-1]:.1f}s; sigwin = {tlim[0]:.1f}-{tlim[1]:.1f}s -FAILED- ]')
             ###
 
             return input_dict, filename, seis, logfile, outfile, fail
 
         # slice time axis to get signal window indices and array
-        xb = [tlim[0],np.max([tlim[0]+1800,min_sig_win])]
-        id_sig = np.arange(np.argmax(t >= xb[0]), np.argmin(t <= xb[1]) + 1)
+        xb = [tlim[0],np.max([tlim[0] + 1800,min_sig_win])]
+        id_sig = np.arange(np.argmax(t >=  xb[0]), np.argmin(t <=  xb[1]) + 1)
          
         if params_in['sig_win_type'] > 1:
             tlim[1] = t[-1] # extend to the end
 
         # determine noise window (20min length) for snr evaluation
-        min_nois_win=params_in['min_nois_win_f']*params_in['T2']
+        min_nois_win = params_in['min_nois_win_f']*params_in['T2']
         xb = [max(t[round(params_in['T2']/dt)], tlim[0] - params_in['sig_win_ext'] - 1200), tlim[0] - params_in['sig_win_ext']]
-        id_noise = np.arange(np.argmax(t >= xb[0]), np.argmin(t <= xb[1]) + 1)
+        id_noise = np.arange(np.argmax(t >=  xb[0]), np.argmin(t <=  xb[1]) + 1)
 
-        if len(id_noise)*dt <= min_nois_win: # use last quarter for snr
+        if len(id_noise)*dt <=  min_nois_win: # use last quarter for snr
             # evaluation if pre-signal noise is insufficient
             id_noise = np.arange(int(npts * 0.75), npts)
 
             ###
-            toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  **use last quarter ({t[id_noise][0]:.1f}-{t[id_noise][-1]:.1f}s) as noiswin [t={t[0]:.1f}-{t[-1]:.1f}s, first arrival={t[0]:.1f}s]')
+            toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  **use last quarter ({t[id_noise][0]:.1f}-{t[id_noise][-1]:.1f}s) as noiswin [t = {t[0]:.1f}-{t[-1]:.1f}s, first arrival = {t[0]:.1f}s]')
             ###
 
         # Pre-process seismograms
         seis.detrend()
-        seis.taper(max_percentage=0.05, type='cosine')
-        seis.filter('bandpass',freqmin=1/params_in['T2']*2*dt,freqmax=1/params_in['T1']*2*dt,corners=4,zerophase=True)
+        seis.taper(max_percentage = 0.05, type = 'cosine')
+        seis.filter('bandpass',freqmin = 1/params_in['T2']*2*dt,freqmax = 1/params_in['T1']*2*dt,corners = 4,zerophase = True)
+
+
+        if len(id_sig) ==  0 or len(id_noise) ==  0:
+            fail = 1
+            ###
+            toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  **poor sig/noise win selection: skip -FAILED- ]')
+            ###
+            return input_dict, filename, seis, logfile, outfile, fail
 
         # Get Signal-to-noise properties
         sig_pow = np.var(seis[0].data[id_sig]) 
         nois_pow = np.var(seis[0].data[id_noise])
+
+        if nois_pow ==  0 or nois_pow ==  np.nan:
+            fail = 1
+            ###
+            toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  **poor noise variance: skip -FAILED- ]')
+            ###
+            return input_dict, filename, seis, logfile, outfile, fail
+        
         snr_pow = sig_pow / nois_pow
         sig_max = np.max(np.abs(seis[0].data[id_sig]))
         snr_amp = sig_max / np.sqrt(nois_pow) / 2
 
         ###
-        toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  nois_std={np.sqrt(nois_pow):.2e}, sig_max={sig_max:.2e}')
-        toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  snr_P={snr_pow:.2f}, snr_A={snr_amp:.2f}')
+        toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  nois_std = {np.sqrt(nois_pow):.2e}, sig_max = {sig_max:.2e}')
+        toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  snr_P = {snr_pow:.2f}, snr_A = {snr_amp:.2f}')
         ###
 
-        if sig_pow <= params_in['min_snr_P'] * nois_pow or snr_amp <= params_in['min_snr_A']:
+        if sig_pow <=  params_in['min_snr_P'] * nois_pow or snr_amp <=  params_in['min_snr_A']:
             fail = 1
             
             ###
@@ -387,8 +403,8 @@ def filter_seis(input_dict, filename, seis, logfile, outfile, fail):
     '''
         
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement=toolkit.get_log_statement(input_dict['event_id'], filename)+', '+str(inspect.stack()[0][3])
-    params_in=input_dict['params_in']
+    log_statement = toolkit.get_log_statement(input_dict['event_id'], filename) + ', ' + str(inspect.stack()[0][3])
+    params_in = input_dict['params_in']
 
     if fail:
         ###
@@ -400,10 +416,10 @@ def filter_seis(input_dict, filename, seis, logfile, outfile, fail):
         ###
 
         # Pre-process seismograms
-        dt=seis[0].stats['delta']
+        dt = seis[0].stats['delta']
         seis.detrend()
-        seis.taper(max_percentage=0.05, type='cosine')
-        seis.filter('bandpass',freqmin=1/params_in['T2']*2*dt,freqmax=1/params_in['T1']*2*dt,corners=4,zerophase=True)
+        seis.taper(max_percentage = 0.05, type = 'cosine')
+        seis.filter('bandpass',freqmin = 1/params_in['T2']*2*dt,freqmax = 1/params_in['T1']*2*dt,corners = 4,zerophase = True)
 
         ###
         toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  Filtered synthetic to match observed')
@@ -432,8 +448,8 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
     '''
 
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement=toolkit.get_log_statement(input_dict['event_id'], filename)+', '+str(inspect.stack()[0][3])
-    params_in=input_dict['params_in']
+    log_statement = toolkit.get_log_statement(input_dict['event_id'], filename) + ', ' + str(inspect.stack()[0][3])
+    params_in = input_dict['params_in']
 
     if fail:
         ###
@@ -444,26 +460,28 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
         toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -EXECUTING-')
         ###
 
-        dt=seis[0].stats['delta']
-        stel=float(seis[0].stats['sac']['stel']) # Station elevation in meters
-        stla=float(seis[0].stats['sac']['stla']) # Station latitude
-        stlo=float(seis[0].stats['sac']['stlo']) # Station longitude
+        dt = seis[0].stats['delta']
+        stel = float(seis[0].stats['sac']['stel']) # Station elevation in meters
+        stla = float(seis[0].stats['sac']['stla']) # Station latitude
+        stlo = float(seis[0].stats['sac']['stlo']) # Station longitude
 
-        nslc=str(seis[0].stats['network'])+'.'+str(seis[0].stats['station'])+'.'+str(seis[0].stats['location'])+'.'+str(seis[0].stats['channel'])
+        # Change back when using reprocessed data!!!!!
+        nslc = str(seis[0].stats['network']) + '.' + str(seis[0].stats['station']) + '.' + str(seis[0].stats['location']) + '.' + str(seis[0].stats['channel'])
+        # nslc = str(seis[0].stats['network']) + '_' + str(seis[0].stats['station']) + '.00.' + str(seis[0].stats['channel'])
 
-        t = seis[0].times(reftime=UTCDateTime(str(input_dict['evtm'])))
+        t = seis[0].times(reftime = UTCDateTime(str(input_dict['evtm'])))
 
         ####### Detect window peaks on envelope ######
-        e1_h=scipy.signal.hilbert(seis[0].data) # Hilbert transform
-        e1=np.abs(e1_h) # envelope of signal
+        e1_h = scipy.signal.hilbert(seis[0].data) # Hilbert transform
+        e1 = np.abs(e1_h) # envelope of signal
         e = e1**params_in['npow'] #  n-power envelope
 
         mxf_win = params_in['mxf_win_f']*params_in['Tc']
 
         # Use Pandas dataframe.rolling to compute a rolling maximum over the n-power envelope array, e : Mirrors MATLAB MOVMAX
-        b = np.array(pd.DataFrame(e).rolling(window=int(np.floor(mxf_win/dt)), min_periods=1, center=True).max().values.flatten())
+        b = np.array(pd.DataFrame(e).rolling(window = int(np.floor(mxf_win/dt)), min_periods = 1, center = True).max().values.flatten())
         b[[0, -1]] = e[[0, -1]] + np.finfo(float).eps  # fix ends, avoid divide by zero errors
-        id = np.where(e == b)[0]  # max extrema
+        id = np.where(e ==  b)[0]  # max extrema
         
         ### Execute for observed data
         if '/dmt/' in input_dict['event']:
@@ -477,14 +495,14 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
             e_sig_sd = np.std(e[id_sig]) # std of signal window
 
             ###
-            toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  e_noi_m={e_noi_m:.2e}, e_noi_sd={e_noi_sd:.2e}')
-            toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  e_sig_m={e_sig_m:.2e}, e_sig_sd={e_sig_sd:.2e}')
+            toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  e_noi_m = {e_noi_m:.2e}, e_noi_sd = {e_noi_sd:.2e}')
+            toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  e_sig_m = {e_sig_m:.2e}, e_sig_sd = {e_sig_sd:.2e}')
             ###
 
-            id_low = e[id] <= e_noi_m * params_in['min_snr']
+            id_low = e[id] <=  e_noi_m * params_in['min_snr']
 
-            bool_1=params_in['min_snr'] is not None
-            bool_2=params_in['min_snr'] > 0
+            bool_1 = params_in['min_snr'] is not None
+            bool_2 = params_in['min_snr'] > 0
         
         ### Execute for synthetic data
         if '/specfem/' in input_dict['event']:
@@ -495,15 +513,15 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
             e_sig_m = np.median(e[id_sig]) # median of signal window
             e_sig_sd = np.std(e[id_sig]) # std of signal window
 
-            logfile.write(f'{log_statement:s}  ,  e_sig_m={e_sig_m:.2e}, e_sig_sd={e_sig_sd:.2e}\n')
+            logfile.write(f'{log_statement:s}  ,  e_sig_m = {e_sig_m:.2e}, e_sig_sd = {e_sig_sd:.2e}\n')
 
             id_low = e[id] < e_sig_m * params_in['k_em']
 
-            bool_1=params_in['k_em'] is not None
-            bool_2=params_in['k_em']  > 0
+            bool_1 = params_in['k_em'] is not None
+            bool_2 = params_in['k_em']  > 0
 
             # to write np.median(e[id_sig]) to final column of twin file instead of e_noi_m in observed case
-            e_noi_m=e_sig_m
+            e_noi_m = e_sig_m
 
         if bool_1 and bool_2:  # a hard threshold
             if np.any(id_low):
@@ -514,7 +532,7 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
 
             id = id[~id_low]
 
-        if params_in['sig_win_type'] == 0:  # use full trace
+        if params_in['sig_win_type'] ==  0:  # use full trace
             id_pks = id
         else:  # reject pre- and post-signal peaks
             id_in = (t[id] > tlim[0] - params_in['sig_win_ext']) & (t[id] < tlim[1] + params_in['sig_win_ext'])
@@ -526,8 +544,8 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
                 ###
 
         # Remove a peak at the first/last index...
-        id_pks = id_pks[id_pks != 0]
-        id_pks = id_pks[id_pks != len(t)-1]
+        id_pks = id_pks[id_pks !=  0]
+        id_pks = id_pks[id_pks !=  len(t)-1]
 
         if not id_pks.any():
             fail = 1
@@ -539,7 +557,7 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
             return input_dict, filename, seis, logfile, outfile, fail
 
         # determine the window around each peak
-        walkaway= params_in['walkaway_f']*params_in['Tc']
+        walkaway =  params_in['walkaway_f']*params_in['Tc']
         i1,i2 = tw_det(e,t,id_pks,walkaway)
 
         twin_span = (i2 - i1) * dt
@@ -550,7 +568,7 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
             tw_info = ''
             for ii in range(len(twin_span)):
                 # if twin_span[ii] < min_win_span:
-                tw_info += params_in['twin_outfmt'].format(nslc, stla, stlo, stel, t[i1[ii]], t[id_pks[ii]], t[i2[ii]], e1[i1[ii]], e1[id_pks[ii]], e1[i2[ii]], e_noi_m) + '\n' # need e_sig_m as final parameter when using synth data.
+                tw_info  +=  params_in['twin_outfmt'].format(nslc, stla, stlo, stel, t[i1[ii]], t[id_pks[ii]], t[i2[ii]], e1[i1[ii]], e1[id_pks[ii]], e1[i2[ii]], e_noi_m) + '\n' # need e_sig_m as final parameter when using synth data.
 
             ###
             toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  --- time windows --- \n' + tw_info + '---')
@@ -584,8 +602,8 @@ def filter_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
     '''
 
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement=toolkit.get_log_statement(input_dict['event_id'], filename)+', '+str(inspect.stack()[0][3])
-    params_in=input_dict['params_in']
+    log_statement = toolkit.get_log_statement(input_dict['event_id'], filename) + ', ' + str(inspect.stack()[0][3])
+    params_in = input_dict['params_in']
 
     if fail:
         ###
@@ -614,7 +632,7 @@ def filter_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
                 bnd2pk_t = params_in['bnd2pk_t_obs']
                 bnd2pk_A = params_in['bnd2pk_A_obs']
 
-            assert all(value <= 1 for value in bnd2pk_A), "Assertion failed: One or more values are not less than 1."
+            assert all(value <=  1 for value in bnd2pk_A), "Assertion failed: One or more values are not less than 1."
 
             #### reject twin too narrow or too wide
             if wsz_lim is not None:
@@ -633,7 +651,7 @@ def filter_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
             #### Check if bnd2pk_t is not empty
             if bnd2pk_t is not None:
                 p2e_span = np.column_stack([t[id_pks] - t[i1], t[i2] - t[id_pks]])
-                id_sz = (np.min(p2e_span, axis=1) < bnd2pk_t[0]) | (np.max(p2e_span, axis=1) > bnd2pk_t[1])
+                id_sz = (np.min(p2e_span, axis = 1) < bnd2pk_t[0]) | (np.max(p2e_span, axis = 1) > bnd2pk_t[1])
 
                 if np.any(id_sz):
                     ###
@@ -691,7 +709,7 @@ def filter_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
                         # ###
                         # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  **reject narrow window: {t[i1[ii]]} -- {t[i2[ii]]} = {twin_span[ii]:.1f}')
                         # ###
-                    tw_info += params_in['twin_outfmt'].format(nslc, stla, stlo, stel, t[i1[ii]], t[id_pks[ii]], t[i2[ii]], e1[i1[ii]], e1[id_pks[ii]], e1[i2[ii]], e_noi_m) + '\n' # need e_sig_m as final parameter when using synth data.
+                    tw_info  +=  params_in['twin_outfmt'].format(nslc, stla, stlo, stel, t[i1[ii]], t[id_pks[ii]], t[i2[ii]], e1[i1[ii]], e1[id_pks[ii]], e1[i2[ii]], e_noi_m) + '\n' # need e_sig_m as final parameter when using synth data.
 
                 outfile.write(tw_info)
 
@@ -724,8 +742,8 @@ def plot_waveform_envelope_peaks_windows(input_dict, filename, seis, logfile, ou
     '''
     
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement=toolkit.get_log_statement(input_dict['event_id'], filename)+', '+str(inspect.stack()[0][3])
-    params_in=input_dict['params_in']
+    log_statement = toolkit.get_log_statement(input_dict['event_id'], filename) + ', ' + str(inspect.stack()[0][3])
+    params_in = input_dict['params_in']
 
     if fail:
         ###
@@ -738,9 +756,9 @@ def plot_waveform_envelope_peaks_windows(input_dict, filename, seis, logfile, ou
 
         if params_in['twin_plot_pic']:
             # Plot pic, else, skip...
-            evdp=float(seis[0].stats['sac']['evdp'])
-            gcarc=float(seis[0].stats['sac']['gcarc']) 
-            baz=float(seis[0].stats['sac']['baz']) # Backazimuth
+            evdp = float(seis[0].stats['sac']['evdp'])
+            gcarc = float(seis[0].stats['sac']['gcarc']) 
+            baz = float(seis[0].stats['sac']['baz']) # Backazimuth
 
             # Recover from input_dict: e_noi_m,e_sig_m,min_win_span,nslc, e1, e, i1, id_pks, i2,ttt,t
             e_noi_m,e_sig_m,nslc, e1, e, i1, id_pks, i2,ttt,t,tlim = read_from_dict(input_dict,['e_noi_m','e_sig_m', 'nslc', 'e1', 'e', 'i1', 'id_pks', 'i2','ttt','t','tlim'])
@@ -748,17 +766,17 @@ def plot_waveform_envelope_peaks_windows(input_dict, filename, seis, logfile, ou
             twin_span = (i2 - i1) * dt
 
             # Only windows longer than `min_win_span`
-            id_spanfilt = twin_span >= input_dict['min_win_span']
+            id_spanfilt = twin_span >=  input_dict['min_win_span']
             i1, id_pks, i2 = i1[id_spanfilt], id_pks[id_spanfilt], i2[id_spanfilt]
             t_pks, twin_span = t[id_pks], (i2 - i1) * dt
 
             # Initialise Figure and add axes with constraints
-            fig = plt.figure(figsize =(params_in['twin_plot_width']*params_in['cm'],params_in['twin_plot_height']*params_in['cm']))
+            fig = plt.figure(figsize  = (params_in['twin_plot_width']*params_in['cm'],params_in['twin_plot_height']*params_in['cm']))
 
-            ax0 = fig.add_axes([0.1, params_in['twin_upper_pos'], params_in['twin_sf_width'], params_in['twin_upper_height']], projection=None, polar=False,facecolor='white',frame_on=True)
-            ax1 = fig.add_axes([0.1, params_in['twin_lower_pos'], params_in['twin_sf_width'], params_in['twin_lower_height']], projection=None, polar=False,facecolor='white',frame_on=True)
+            ax0 = fig.add_axes([0.1, params_in['twin_upper_pos'], params_in['twin_sf_width'], params_in['twin_upper_height']], projection = None, polar = False,facecolor = 'white',frame_on = True)
+            ax1 = fig.add_axes([0.1, params_in['twin_lower_pos'], params_in['twin_sf_width'], params_in['twin_lower_height']], projection = None, polar = False,facecolor = 'white',frame_on = True)
 
-            axes_list_all=[ax0, ax1]
+            axes_list_all = [ax0, ax1]
             for j, ax in enumerate(axes_list_all):
                 ax.set_xticks([])
                 # ax.set_yticks([])
@@ -768,60 +786,60 @@ def plot_waveform_envelope_peaks_windows(input_dict, filename, seis, logfile, ou
                 ax.spines["left"].set_linewidth(1.5)
                 ax.spines["top"].set_linewidth(1.5)
                 ax.spines["bottom"].set_linewidth(1.5)
-                ax.tick_params(labelsize=12)
+                ax.tick_params(labelsize = 12)
 
-            ax0.set_title(f'Event {input_dict['id_cmt']}; Station {nslc}\nDis {gcarc:.2f} deg; Baz {baz:.1f} deg; Depth {evdp:.1f} km',fontsize=14)
+            ax0.set_title(f'Event {input_dict['id_cmt']}; Station {nslc}\nDis {gcarc:.2f} deg; Baz {baz:.1f} deg; Depth {evdp:.1f} km',fontsize = 14)
             ax0.spines["bottom"].set_linewidth(0.2) 
             ax1.spines["top"].set_linewidth(0.2)
-            max_d=np.max(seis[0].data)
+            max_d = np.max(seis[0].data)
             ax0.set_ylim([-1*(1.2*max_d), max_d*1.2])
 
             ax1.xaxis.set_minor_locator(MultipleLocator(params_in['twin_x_minor']))
             ax1.xaxis.set_major_locator(MultipleLocator(params_in['twin_x_major']))
-            ax1.set_xlabel('Time [s]',fontsize=14)
-            max_e=np.max(e)
+            ax1.set_xlabel('Time [s]',fontsize = 14)
+            max_e = np.max(e)
             ax1.set_ylim([-1*(0.05*max_e), max_e*1.02])
             
             # Add Waveform to panel (ax0) upper subfigure
-            ax0.plot(t, seis[0].data, color=[0.2, 0.2, 0.2], lw=0.5, label=f'{params_in['component']} waveform')
-            ax0.plot(t, e1, color=[0.7, 0.3, 0.2], lw=0.5, label=f'{params_in['component']} envelope')
-            ax0.axhline(y=e_sig_m, xmin=t[0], xmax=t[-1], ls='--', lw=0.25, color=[0.2, 0.6, 0.8], label='mean(sigwin)')
-            ax0.legend(loc='upper right', fontsize=10)
+            ax0.plot(t, seis[0].data, color = [0.2, 0.2, 0.2], lw = 0.5, label = f'{params_in['component']} waveform')
+            ax0.plot(t, e1, color = [0.7, 0.3, 0.2], lw = 0.5, label = f'{params_in['component']} envelope')
+            ax0.axhline(y = e_sig_m, xmin = t[0], xmax = t[-1], ls = '--', lw = 0.25, color = [0.2, 0.6, 0.8], label = 'mean(sigwin)')
+            ax0.legend(loc = 'upper right', fontsize = 10)
 
             # Add Envelope to panel (ax1) lower subfigure
-            ax1.plot(t, e, ls='-', lw=0.5, color=[0.2, 0.2, 0.2], label=f'ord-{params_in['npow']} envelope')
-            ax1.scatter(t[id_pks], e[id_pks], s=16, color='r', label='candidate peaks')
-            b = np.array(pd.DataFrame(e).rolling(window=int(np.floor(input_dict['mxf_win']/dt)), min_periods=1, center=True).max().values.flatten())
-            ax1.plot(t, b, ls='-', lw=0.5, color=[0.1, 0.6, 0.3], label=f'{input_dict['mxf_win']:.1f} s movmax')
+            ax1.plot(t, e, ls = '-', lw = 0.5, color = [0.2, 0.2, 0.2], label = f'ord-{params_in['npow']} envelope')
+            ax1.scatter(t[id_pks], e[id_pks], s = 16, color = 'r', label = 'candidate peaks')
+            b = np.array(pd.DataFrame(e).rolling(window = int(np.floor(input_dict['mxf_win']/dt)), min_periods = 1, center = True).max().values.flatten())
+            ax1.plot(t, b, ls = '-', lw = 0.5, color = [0.1, 0.6, 0.3], label = f'{input_dict['mxf_win']:.1f} s movmax')
 
             # background SNR level
             if '/dmt/' in input_dict['event']:
-                ax1.axhline(y=e_noi_m * params_in['min_snr'], xmin=t[0], xmax=t[-1], ls='--', lw=0.25, color='c',label=f'mean(env(noise)) * [1, {params_in['min_snr']}]')
-                pic_loc=params_in['home']+'/'+params_in['twin_loc']+'/'+params_in['twin_obs_pic_loc']+params_in['component']
+                ax1.axhline(y = e_noi_m * params_in['min_snr'], xmin = t[0], xmax = t[-1], ls = '--', lw = 0.25, color = 'c',label = f'mean(env(noise)) * [1, {params_in['min_snr']}]')
+                pic_loc = params_in['home'] + '/' + params_in['twin_loc'] + '/' + params_in['twin_obs_pic_loc'] + params_in['component']
 
             if '/specfem/' in input_dict['event']:
-                ax1.axhline(y=e_sig_m, xmin=t[0], xmax=t[-1], ls='--', lw=0.25, color='c',label=f'median(env(sigwin))')
-                pic_loc=params_in['home']+'/'+params_in['twin_loc']+'/'+params_in['twin_syn_pic_loc']+params_in['component']
+                ax1.axhline(y = e_sig_m, xmin = t[0], xmax = t[-1], ls = '--', lw = 0.25, color = 'c',label = f'median(env(sigwin))')
+                pic_loc = params_in['home'] + '/' + params_in['twin_loc'] + '/' + params_in['twin_syn_pic_loc'] + params_in['component']
 
             # Add predicted times to both subfigures
             for key, value in ttt.items():
                 if  not np.isnan(value):
-                    ax0.axvline(x=value, ymin=-1.2*max_d, ymax=1.2*max_d, ls='--', lw=0.25, color=[0.5, 0.5, 0.5], clip_on=True)
-                    ax1.axvline(x=value, ymin=0, ymax=1.5*max_e, ls='--', lw=0.25, color=[0.5, 0.5, 0.5], clip_on=True)
-                    ax1.text(value, max_e*0.7, str(key), color=[0.3, 0, 0.3], fontsize=14, va='center', ha='left', rotation = 45,rotation_mode = 'anchor')
+                    ax0.axvline(x = value, ymin = -1.2*max_d, ymax = 1.2*max_d, ls = '--', lw = 0.25, color = [0.5, 0.5, 0.5], clip_on = True)
+                    ax1.axvline(x = value, ymin = 0, ymax = 1.5*max_e, ls = '--', lw = 0.25, color = [0.5, 0.5, 0.5], clip_on = True)
+                    ax1.text(value, max_e*0.7, str(key), color = [0.3, 0, 0.3], fontsize = 14, va = 'center', ha = 'left', rotation = 45,rotation_mode = 'anchor')
 
             # Add the time windows    
             for k in range(len(t_pks)):
-                ax1.axvline(x=t[i1[k]], ymin=0, ymax=1.02 - 0.15,color=generate_colors(k), lw=0.5, clip_on=True)
-                ax1.axvline(x=t[i2[k]], ymin=0, ymax=1.02 - 0.15,color=generate_colors(k), lw=0.5, clip_on=True)
+                ax1.axvline(x = t[i1[k]], ymin = 0, ymax = 1.02 - 0.15,color = generate_colors(k), lw = 0.5, clip_on = True)
+                ax1.axvline(x = t[i2[k]], ymin = 0, ymax = 1.02 - 0.15,color = generate_colors(k), lw = 0.5, clip_on = True)
             
             # Use a dummy variable for the legend
-            ax1.axvline(x=np.NaN, ymin=np.NaN, ymax=np.NaN, color='r', lw=0.5, label='time windows')
-            ax1.legend(loc='upper right', fontsize=10)
+            ax1.axvline(x = np.NaN, ymin = np.NaN, ymax = np.NaN, color = 'r', lw = 0.5, label = 'time windows')
+            ax1.legend(loc = 'upper right', fontsize = 10)
             
             # Label subfigures
-            ax0.annotate('a',(0, 1),xytext=(5,-5),xycoords='axes fraction',fontsize=12,textcoords='offset points', color='k', backgroundcolor='none',ha='left', va='top', bbox=dict(facecolor='white',edgecolor='black', pad=2.0))
-            ax1.annotate('b',(0, 1),xytext=(5,-5),xycoords='axes fraction',fontsize=12,textcoords='offset points', color='k', backgroundcolor='none',ha='left', va='top', bbox=dict(facecolor='white',edgecolor='black', pad=2.0))
+            ax0.annotate('a',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',fontsize = 12,textcoords = 'offset points', color = 'k', backgroundcolor = 'none',ha = 'left', va = 'top', bbox = dict(facecolor = 'white',edgecolor = 'black', pad = 2.0))
+            ax1.annotate('b',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',fontsize = 12,textcoords = 'offset points', color = 'k', backgroundcolor = 'none',ha = 'left', va = 'top', bbox = dict(facecolor = 'white',edgecolor = 'black', pad = 2.0))
 
             # Save or show 
             if params_in['twin_save_pic']:
@@ -832,7 +850,7 @@ def plot_waveform_envelope_peaks_windows(input_dict, filename, seis, logfile, ou
                 
                 if not os.path.exists(pic_loc):
                     os.makedirs(pic_loc)
-                plt.savefig(pic_loc+'/'+pic_filename, format='pdf')
+                plt.savefig(pic_loc + '/' + pic_filename, format = 'pdf')
                 plt.close()
             else:
                 plt.show()
@@ -857,8 +875,8 @@ def generate_colors(input_variable):
     '''
     Generate colours for time windowing plotting repeating every 20 windows.
     '''
-    num_colors=20
-    var=input_variable % num_colors
+    num_colors = 20
+    var = input_variable % num_colors
     cmap = plt.get_cmap('gnuplot2')  # You can choose a different colormap if desired
     norm = plt.Normalize(0, 20)
     colors = cmap(norm(var))
@@ -866,7 +884,7 @@ def generate_colors(input_variable):
 
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-def tw_det(e, t, ipeak, walkaway, balance=False):
+def tw_det(e, t, ipeak, walkaway, balance = False):
     """
     Determine the left and right locations of windows around peaks.
 
@@ -874,7 +892,7 @@ def tw_det(e, t, ipeak, walkaway, balance=False):
         e: Signal envelope
         t: Time axis or time interval
         ipeak: Peak locations [ipk1,...] or {wsz, base, k_med}
-        walkaway: The dip line across [t(ipk), e(ipk)] and [t(ipk) +/- walkaway, 0]
+        walkaway: The dip line across [t(ipk), e(ipk)] and [t(ipk)  + /- walkaway, 0]
         balance: Scale peak to walkaway (default, False)
 
     Returns:
@@ -890,7 +908,7 @@ def tw_det(e, t, ipeak, walkaway, balance=False):
     assert walkaway > 10 * dt, 'Wrong walkaway'
 
     ipeak = ipeak.flatten()
-    ileft, iright = np.full_like(ipeak, np.nan, dtype=float), np.full_like(ipeak, np.nan, dtype=float)
+    ileft, iright = np.full_like(ipeak, np.nan, dtype = float), np.full_like(ipeak, np.nan, dtype = float)
 
     for ii in range(len(ipeak)): #len(ipeak)
         ipk = ipeak[ii]
@@ -913,7 +931,7 @@ def tw_det(e, t, ipeak, walkaway, balance=False):
 
         if ileft[ii] < ipk and ipk < iright[ii]:
             # print('ileft[ii] < ipk and ipk < iright[ii]')
-            dummy=1
+            dummy = 1
         else:
             # Make modifications to ileft[ii] && iright[ii] so they are not included in the output
             # Should not happen really....
@@ -936,7 +954,7 @@ def point_line_distance(*args):
         projections: Projection points (optional)
     """
 
-    if len(args) == 3:  # (pt=[x, y], pt1=[x1, y1], pt2=[x2, y2])
+    if len(args) ==  3:  # (pt = [x, y], pt1 = [x1, y1], pt2 = [x2, y2])
         points, pt1, pt2 = args
         x, y = points[0], points[1]
         x1, y1 = pt1[0], pt1[1]
@@ -958,10 +976,10 @@ def point_line_distance(*args):
 
     # Projections of points onto the line (optional)
     if len(args) > 3:
-        if x1 == x2:  # Vertical line
+        if x1 ==  x2:  # Vertical line
             xp = x1 * np.ones_like(y)
             yp = y
-        elif y1 == y2:  # Horizontal line
+        elif y1 ==  y2:  # Horizontal line
             xp = x
             yp = y1 * np.ones_like(x)
         else:
@@ -983,15 +1001,15 @@ def open_log_file(input_dict):
     '''
     Return an open log file in log_loc/'code_start_time'/'filename'/event_name.log
     '''
-    params_in=input_dict['params_in']
+    params_in = input_dict['params_in']
 
-    lf_loc=params_in['home']+'/'+params_in['log_loc']+'/'+str(params_in['code_start_time'])+'/'+os.path.basename(__file__).split('.')[0]
+    lf_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time']) + '/' + os.path.basename(__file__).split('.')[0]
     if not os.path.exists(lf_loc):
         os.makedirs(lf_loc)
 
-    lf_name=lf_loc+'/'+str(input_dict['id_fmt_ctm'])+'.log'
+    lf_name = lf_loc + '/' + str(input_dict['id_fmt_ctm']) + '.log'
 
-    logfile=open(lf_name,'w')
+    logfile = open(lf_name,'w')
     
     return logfile
 
@@ -999,17 +1017,17 @@ def open_log_file(input_dict):
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 def open_outfile_file(input_dict):
     '''
-    Return an open twin file in twin_loc/filename_out_loc+component/event_name."OS/MX"+component.twin
+    Return an open twin file in twin_loc/filename_out_loc + component/event_name."OS/MX" + component.twin
     '''
-    params_in=input_dict['params_in']
+    params_in = input_dict['params_in']
 
-    of_loc=params_in['home']+'/'+params_in['twin_loc']+'/'+params_in['twin_obs_out_loc']+params_in['component']
+    of_loc = params_in['home'] + '/' + params_in['twin_loc'] + '/' + params_in['twin_obs_out_loc'] + params_in['component']
     if not os.path.exists(of_loc):
         os.makedirs(of_loc)
 
-    of_name=of_loc+'/'+str(input_dict['id_ctm'])+'.'+params_in['twin_obs_out_loc'][-2:]+params_in['component']+'.twin'
+    of_name = of_loc + '/' + str(input_dict['id_ctm']) + '.' + params_in['twin_obs_out_loc'][-2:] + params_in['component'] + '.twin'
 
-    outfile=open(of_name,'w')
+    outfile = open(of_name,'w')
 
     return outfile
 
@@ -1019,11 +1037,11 @@ def write_to_dict(dict, key_list, vals_list):
     '''
     Return the input dict with the key-value parts from the input lists added
     '''
-    if len(key_list) != len(vals_list):
+    if len(key_list) !=  len(vals_list):
         # Problem
         sys.exit('Issue with writing to dict')
     for i in range(len(key_list)):
-        dict[key_list[i]]=vals_list[i]
+        dict[key_list[i]] = vals_list[i]
 
     return dict
 
@@ -1042,12 +1060,12 @@ def main():
     start_time = time.time()
 
     # Params go here.
-    params_in=toolkit.get_params('params_in.yaml')
+    params_in = toolkit.get_params('params_in.yaml')
 
     # Define input data directory and function list.
-    input_directory=str(params_in['data_loc'])+'/e'+str(params_in['year'])+str(params_in['fmt_data_loc'])
+    input_directory = str(params_in['data_loc']) + '/e' + str(params_in['year']) + str(params_in['fmt_data_loc'])
 
-    functions=[get_tt_times, primary_qc, detect_window_peaks, filter_window_peaks, plot_waveform_envelope_peaks_windows]
+    functions = [get_tt_times, primary_qc, detect_window_peaks, filter_window_peaks, plot_waveform_envelope_peaks_windows]
 
     # Get event id table as pandas data frame
     evt_id_tab = toolkit.get_event_id_table(params_in['cmt_outfile'])
@@ -1056,13 +1074,13 @@ def main():
     import v01_phasenames
     phases = v01_phasenames.phases()
 
-    main_function=[process_one_event]
+    main_function = [process_one_event]
     
     toolkit.execute(main_function, input_directory, evt_id_tab, functions, params_in, phases)
     
     print("--- %s seconds ---" % (time.time() - start_time))
 
-if __name__ == '__main__':
+if __name__ ==  '__main__':
     main()
 
 

@@ -20,8 +20,8 @@ def find_common_events(params_in):
 
     '''
     # Initiate logfile
-    logfile=open_log_file(params_in)
-    logfile=write_params_logfile(params_in, logfile)
+    logfile = open_log_file(params_in)
+    logfile = write_params_logfile(params_in, logfile)
     log_statement = str(inspect.stack()[0][3])
 
     ###
@@ -30,8 +30,8 @@ def find_common_events(params_in):
     ###
 
     # Get root folder, channel names, outfile name
-    fold_root = params_in['home']+'/'+params_in['twin_loc']+'/raw'
-    cha_obs, cha_syn = str(params_in['twin_obs_out_loc'][-2:])+str(params_in['component']), str(params_in['twin_syn_out_loc'][-2:])+str(params_in['component'])
+    fold_root = params_in['home'] + '/' + params_in['twin_loc'] + '/raw'
+    cha_obs, cha_syn = str(params_in['twin_obs_out_loc'][-2:]) + str(params_in['component']), str(params_in['twin_syn_out_loc'][-2:]) + str(params_in['component'])
     outfile = params_in['mtf_outfilename']
 
     ###
@@ -60,8 +60,8 @@ def find_common_events(params_in):
 
 
     # Find obs and syn twin files
-    fold_obs = fold_root + '/'+ 'obs' + '/'+ cha_obs
-    fold_syn = fold_root + '/'+ 'syn' + '/'+ cha_syn
+    fold_obs = fold_root + '/' +  'obs' + '/' +  cha_obs
+    fold_syn = fold_root + '/' +  'syn' + '/' +  cha_syn
 
     files_obs = sorted(glob.glob(fold_obs + '/' + '*.' + cha_obs + '.twin'))
     files_syn = sorted(glob.glob(fold_syn + '/' + '*.' + cha_syn + '.twin'))
@@ -71,7 +71,7 @@ def find_common_events(params_in):
     # Find common event names using set.
     filenames_obs, filenames_syn = [x.split('/')[-1] for x in files_obs], [x.split('/')[-1] for x in files_syn]
     evnames_obs, evnames_syn = [x.split('.')[0] for x in filenames_obs], [x.split('.')[0] for x in filenames_syn]
-    evid_com=list(set(evnames_obs) & set(evnames_syn))
+    evid_com = list(set(evnames_obs) & set(evnames_syn))
 
     n_com = len(evid_com)
 
@@ -89,16 +89,19 @@ def find_common_events(params_in):
         toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  {n_com} after joining with existing ones')
         ###
 
+    # Sort the list:
+    evid_com = sorted(evid_com)
+
     if n_com > 0:
         # Save to file
         ###
         toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  add the evid list to {outfile}')
         ###
 
-        outfile=open(outfile,'w')
+        outfile = open(outfile,'w')
         for i in range(len(evid_com)):
             toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  adding: {evid_com[i]}')
-            outfile.write(str(evid_com[i])+'\n')
+            outfile.write(str(evid_com[i]) + '\n')
         outfile.close()
     else:
         # No common ids found
@@ -121,13 +124,13 @@ def open_log_file(params_in):
     Return an open log file in log_loc/'code_start_time'/'filename'/match_twin_files.log
     '''
     # Get location of logfile
-    lf_loc=params_in['home']+'/'+params_in['log_loc']+'/'+str(params_in['code_start_time'])+'/'+os.path.basename(__file__).split('.')[0]
+    lf_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time']) + '/' + os.path.basename(__file__).split('.')[0]
     if not os.path.exists(lf_loc):
         os.makedirs(lf_loc)
 
-    lf_name=lf_loc+'/match_twin_files.log'
+    lf_name = lf_loc + '/match_twin_files.log'
 
-    logfile=open(lf_name,'w')
+    logfile = open(lf_name,'w')
     return logfile
 
 
@@ -137,12 +140,12 @@ def write_params_logfile(params_in, logfile):
     '''
     write key params to logfile. To be changed for each script
     '''
-    justify=30
+    justify = 30
 
     logfile.write(' ')
     logfile.write('----------////               INPUT PARAMETERS                ////----------\n')
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('matched twin prefix',' : ',str(params_in['mtf_prefix']), x=justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('matched twin outfile',' : ',str(params_in['mtf_outfilename']), x=justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('matched twin prefix',' : ',str(params_in['mtf_prefix']), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('matched twin outfile',' : ',str(params_in['mtf_outfilename']), x = justify) )
     logfile.write('----------////               INPUT PARAMETERS                ////----------\n')
 
     return logfile
@@ -162,7 +165,7 @@ def main():
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
-if __name__ == '__main__':
+if __name__ ==  '__main__':
     main()
 
 
