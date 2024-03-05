@@ -31,37 +31,27 @@ module load impi/2021.9.0-intel-compilers-2023.1.0
 #
 
 HOME=`echo ~`
+CODE_HOME=`pwd`
 source ${HOME}/.bash_profile
 conda activate env3.12
 export XDG_CACHE_HOME=${HOME}/tmp
 today=`date +%Y-%m-%d`
 
-# if [ ! -d ${DIR}"/LOG_FILES" ]; then
-#     # Make log file directory
-#     mkdir -p ${DIR}"/LOG_FILES"
-# fi
-
-LOG_FILE=`echo ${DIR}"/LOG_FILES/Request_SPECFEM_MOD_"${MODEL}"_YR_"${YEAR}"_"${today}".log"`
-echo Logfile name : $LOG_FILE
-echo
-echo Logfile name : $LOG_FILE  # >> $LOG_FILE
-echo  # >> $LOG_FILE
-
 ###################################################################
 
 # First run a check to see if all modules/packages/codes are present
-echo  # >> $LOG_FILE
-echo "Starting modules/packages/code check" # >> $LOG_FILE
+echo 
+echo "Starting modules/packages/code check"
 
-${HOME}/bin/check_obspyDMT_SPECFEM_install.sh # OUTFILE = ${HOME}/tmp.check-sh
+${CODE_HOME}/bin/check_obspyDMT_SPECFEM_install.sh # OUTFILE = ${HOME}/tmp.check-sh
 mod_check=`tail -1 ${HOME}/tmp/tmp.check-sh | awk '{print $1}'`
 
 if [ $mod_check == 'YES' ]; then
-    echo "Finished modules/packages/code check" # >> $LOG_FILE
-    echo  # >> $LOG_FILE
+    echo "Finished modules/packages/code check"
+    echo 
 else
-    echo "FAILED modules/packages/code check"  # >> $LOG_FILE
-    echo "Exiting..."  # >> $LOG_FILE
+    echo "FAILED modules/packages/code check" 
+    echo "Exiting..." 
     exit
 fi
 ###################################################################
@@ -73,14 +63,14 @@ cd $SLURM_SUBMIT_DIR
 p_cores=`grep "cores: " params_in.yaml | awk '{print $2}'`
 
 if [ ${SLURM_NTASKS_PER_NODE} != ${p_cores} ]; then
-    echo "Make sure number of cores is matching"  # >> $LOG_FILE
-    echo "in params_in.yaml and run_MTWSPy.bash"  # >> $LOG_FILE
+    echo "Make sure number of cores is matching" 
+    echo "in params_in.yaml and run_MTWSPy.bash" 
     echo "Currently: "${SLURM_NTASKS_PER_NODE}" & "${p_cores}
     exit
 else
-    echo "Number of cores requested are equal"  # >> $LOG_FILE
+    echo "Number of cores requested are equal" 
     echo "Batch file: "${SLURM_NTASKS_PER_NODE}" & Params file: "${p_cores}
-    echo "Continue..."  # >> $LOG_FILE
+    echo "Continue..." 
 fi
 
 ${HOME}/anaconda3/envs/env3.12/bin/python3.12 MTWSPy_main.py
