@@ -93,6 +93,7 @@ navigate to `MTWSPy`
 * __phase_association_syn.py__ &rarr; Associate synth twin with a phase
 * __correlate_twin.py__ &rarr; Correlate observed and synth time windows
 * __MTWSPy_main.py__ &rarr; Execute main code
+* __run_MTWSPy.bash__ &rarr; Slurm batch scheduler 
 
 #### Description:
 
@@ -140,8 +141,7 @@ __correlate_twin.py__ &rarr; Correlate observed and synth time windows using cro
 
 __MTWSPy_main.py__ &rarr; Execute main code sequentially using params_in.yaml
 
-
-<!-- Execute using batch scheduler? 1 node 96 cores...? -->
+__run_MTWSPy.bash__ &rarr; Execute code on cluster using SLURM batch scheduler
 
 <!-- ######################################################################## -->
 
