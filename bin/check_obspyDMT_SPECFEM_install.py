@@ -11,7 +11,7 @@ def check_package(package_name):
 
 def main():
     # These are the pacakges required to produces processed SPECFEM and obspyDMT outputs...
-    packages_to_check = ['obspy','numpy', 'scipy', 'pandas', 'matplotlib', 'sys', 'glob', 'shutil', 'os', 'time', 'warnings', 'datetime', 'inspect', 'yaml']
+    packages_to_check = ['obspy','numpy', 'scipy', 'pandas', 'matplotlib', 'sys', 'glob', 'shutil', 'os', 'time', 'warnings', 'datetime', 'inspect', 'yaml', 'geographiclib']
 
     all_packages_installed = all(check_package(package) for package in packages_to_check)
 

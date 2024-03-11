@@ -37,7 +37,7 @@ def process_one_event(input_dict):
             functions : list of functions to execute
             params_in : input paramters
 
-    Returns
+    Returns : input_dict
     ----------
     Nothing: None
     '''
@@ -56,8 +56,13 @@ def process_one_event(input_dict):
 
     # List of files in the event
     files = sorted(glob.glob(event + '/' + str(params_in['year']) + '*' + str(params_in['component'])))
-
     num_files = len(files)
+
+    # Counting stats
+    input_dict['step_name'] = str(os.path.basename(__file__).split('.')[0])
+    input_dict['num_files_in'] = num_files
+    input_dict['num_obj_in'] = 0 # No timewindows yet
+
     if num_files ==  0:
         # No files found...
         ###
@@ -105,7 +110,7 @@ def process_one_event(input_dict):
 
     logfile.close()
     outfile.close()
-    return
+    return input_dict
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
 def write_params_logfile(input_dict, logfile):
@@ -466,8 +471,8 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
         stlo = float(seis[0].stats['sac']['stlo']) # Station longitude
 
         # Change back when using reprocessed data!!!!!
-        nslc = str(seis[0].stats['network']) + '.' + str(seis[0].stats['station']) + '.' + str(seis[0].stats['location']) + '.' + str(seis[0].stats['channel'])
-        # nslc = str(seis[0].stats['network']) + '_' + str(seis[0].stats['station']) + '.00.' + str(seis[0].stats['channel'])
+        # nslc = str(seis[0].stats['network']) + '.' + str(seis[0].stats['station']) + '.' + str(seis[0].stats['location']) + '.' + str(seis[0].stats['channel'])
+        nslc = str(seis[0].stats['network']) + '_' + str(seis[0].stats['station']) + '.00.' + str(seis[0].stats['channel'])
 
         t = seis[0].times(reftime = UTCDateTime(str(input_dict['evtm'])))
 
@@ -570,12 +575,17 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
                 # if twin_span[ii] < min_win_span:
                 tw_info  +=  params_in['twin_outfmt'].format(nslc, stla, stlo, stel, t[i1[ii]], t[id_pks[ii]], t[i2[ii]], e1[i1[ii]], e1[id_pks[ii]], e1[i2[ii]], e_noi_m) + '\n' # need e_sig_m as final parameter when using synth data.
 
+            outfile.write(tw_info)
+
             ###
             toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  --- time windows --- \n' + tw_info + '---')
             toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  Save all {len(i1)} windows to {outfile:s}')
             ###
 
-            outfile.write(tw_info)
+            # Counting stats
+            input_dict['num_obj_out']   += len(twin_span)
+            input_dict['num_files_out'] += 1
+
 
         # Save to input_dict: t,e_noi_m,e_sig_m,min_win_span, nslc, mxf_win, e1, e, i1, id_pks, i2
         write_to_dict(input_dict,['t','dt','e_noi_m','e_sig_m','min_win_span', 'nslc', 'stel', 'stla', 'stlo', 'mxf_win', 'e1', 'e', 'i1', 'id_pks', 'i2', 'twin_span'],[t,dt,e_noi_m,e_sig_m,min_win_span,nslc,stel,stla,stlo,mxf_win, e1, e, i1, id_pks, i2,twin_span])
@@ -717,6 +727,10 @@ def filter_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
                 toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  --- time windows --- \n' + tw_info + '---\n')
                 toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  Save filtered {len(i1)} windows to {outfile}')
                 ###
+
+                # Counting stats
+                input_dict['num_obj_out']   += len(twin_span)
+                input_dict['num_files_out'] += 1
 
                 # Save to input_dict: 
                 write_to_dict(input_dict,['i1', 'id_pks', 'i2', 'twin_span'],[i1, id_pks, i2,twin_span])

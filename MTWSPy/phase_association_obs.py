@@ -42,6 +42,7 @@ def process_one_event(input_dict):
     # Initiate logfile
     logfile = open_log_file(input_dict)
     logfile = write_params_logfile(input_dict, logfile)
+    input_dict['step_name'] = str(os.path.basename(__file__).split('.')[0])
 
     # Proceed with list of matched events in input_dict:
     if len(input_dict['match_twin_files']) > 0:
@@ -60,6 +61,10 @@ def process_one_event(input_dict):
                     outfile = open_outfile_file(input_dict)
                     outfile = write_params_outfile(input_dict, outfile)
                     
+                    # Counting stats
+                    input_dict['num_files_in'] += 1
+                    input_dict['num_obj_in'] = len(twin_df)
+
                     ###
                     toolkit.print_log(params_in, logfile, f'----------////    WORKING ON: ' + str(id_ctm) + '    ////----------')
                     ###
@@ -106,7 +111,7 @@ def process_one_event(input_dict):
 
     logfile.close()
     
-    return
+    return input_dict
 
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
@@ -361,6 +366,9 @@ def associate_twin_phase(input_dict, twin_in, twin_df, logfile, outfile, fail):
 
         # Drop Nans non_nan_rows = df.dropna()
         non_nan_merged_df = merged_df.dropna()
+        
+        # Find maximum "pronouced peak" window amplitude, normalised by window length - shorter windows
+        max_pronouced_peak_amplitude = ((non_nan_merged_df['A_peak'] / non_nan_merged_df[['A_left', 'A_right']].mean(axis=1))   / non_nan_merged_df['t_right'].sub( non_nan_merged_df['t_left'])      ).max()
 
         # Remove rows of df that refer to the same station & phase & taup time
         # keep row that minimises absolute difference between the taup_time and the t_peak ()
@@ -382,15 +390,30 @@ def associate_twin_phase(input_dict, twin_in, twin_df, logfile, outfile, fail):
 
                 # If len(phase_df == 0) dont do anything.
                 if len(phase_df) > 1:
-                    # find index of row that minimises the absolute difference between the taup_time and the t_peak
-                    index_min_abs_diff = phase_df['t_peak'].sub(taup_time).abs().idxmin()
+
+                    phase_df_copy = phase_df.copy()
+                    # For each row, divide A_peak by average amplitude of edges and normalise by most pronouced window in dataframe
+                    phase_df_copy['A_peak_normalized'] = ((phase_df_copy['A_peak'] / phase_df_copy[['A_left', 'A_right']].mean(axis=1))    / phase_df_copy['t_right'].sub( phase_df_copy['t_left'])      ) / max_pronouced_peak_amplitude
+                    # For each row normalise the absolute time difference between the t_peak and taup_tiime by the max_thsift and take 1 minus this value.
+                    phase_df_copy['t_peak_normalized'] = 1 - (phase_df['t_peak'].sub(taup_time).abs() / params_in['max_tshift'])
+                    # Sum the two normalised columns and keep maximum index
+                    phase_df_copy['peak_normalized'] = phase_df_copy[['A_peak_normalized', 't_peak_normalized']].sum(axis=1)
+                    idx_select = phase_df_copy['peak_normalized'].idxmax()
+
+                    # # find index of row that minimises the absolute difference between the taup_time and the t_peak
+                    # idx_select_time = phase_df['t_peak'].sub(taup_time).abs().idxmin()
+
+                    # if idx_select != idx_select_time:
+                    #     print(phase_df_copy)
+                    #     sys.exit()
+
                     # Select all other entries
-                    idx = [x for x in phase_df.index.tolist() if index_min_abs_diff !=  x]
+                    idx = [x for x in phase_df.index.tolist() if idx_select !=  x]
                     drop_list.append(idx)
 
 
         # Remove rows that fail QC above in dataframe
-        drop_list = flatten_concatenation(drop_list)
+        drop_list = toolkit.flatten_concatenation(drop_list)
         if drop_list:
             # print('dropping indices: ', drop_list)
             ###
@@ -404,17 +427,11 @@ def associate_twin_phase(input_dict, twin_in, twin_df, logfile, outfile, fail):
                 tw_info = params_in['phase_a_outfmt'].format(row['nslc'],row['latitude'],row['longitude'],row['elevation'],row['t_left'],row['t_peak'],row['t_right'],row['A_left'],row['A_peak'],row['A_right'],row['A_noise'],str(row['phase']),row['n_depth_phase'],row['t_taup']) + '\n'
                 outfile.write(tw_info)
 
-    return input_dict, twin_in, twin_df, logfile, outfile, fail
+            # Counting stats
+            input_dict['num_obj_out']   += len(non_nan_merged_df)
+            input_dict['num_files_out'] += 1
 
-# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-def flatten_concatenation(matrix):
-    '''
-    Return a flattened list
-    '''
-    flat_list = []
-    for row in matrix:
-        flat_list  +=  row
-    return flat_list
+    return input_dict, twin_in, twin_df, logfile, outfile, fail
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 def strip_first_letter(uphs):
@@ -429,7 +446,7 @@ def strip_first_letter(uphs):
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 def open_log_file(input_dict):
     '''
-    Return an open log file in log_loc/'filename'/'code_start_time'/event_name.log
+    Return an open log file in log_loc/'code_start_time'/'filename'/event_name.log
     '''
     params_in = input_dict['params_in']
 

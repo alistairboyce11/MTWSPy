@@ -1,6 +1,7 @@
 import os, time, glob
 import toolkit
 import inspect
+import numpy as np
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 def find_common_events(params_in):
@@ -22,7 +23,16 @@ def find_common_events(params_in):
     # Initiate logfile
     logfile = open_log_file(params_in)
     logfile = write_params_logfile(params_in, logfile)
-    log_statement = str(inspect.stack()[0][3])
+    log_statement = str(os.path.basename(__file__).split('.')[0])
+
+    # Counting stats
+    io_logfile = toolkit.open_io_log_file(params_in)
+    num_files_in  = 0
+    num_obj_in    = 0
+    num_files_out = 0
+    num_obj_out   = 0
+
+
 
     ###
     toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  ----------')
@@ -88,6 +98,10 @@ def find_common_events(params_in):
         ###
         toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  {n_com} after joining with existing ones')
         ###
+        
+        num_files_in += 1
+        num_obj_in = np.max([len(evnames_obs), len(evnames_syn)])
+
 
     # Sort the list:
     evid_com = sorted(evid_com)
@@ -103,6 +117,12 @@ def find_common_events(params_in):
             toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  adding: {evid_com[i]}')
             outfile.write(str(evid_com[i]) + '\n')
         outfile.close()
+
+        toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  {n_com} / {np.max([len(evnames_obs), len(evnames_syn)])} possible common evids written...')
+
+        num_obj_out = n_com
+        num_files_out += 1
+
     else:
         # No common ids found
         
@@ -113,6 +133,14 @@ def find_common_events(params_in):
     ###
     toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  FINISHED.....\n')
     ###
+
+
+    statement  = toolkit.get_io_statement(log_statement, num_files_in, num_obj_in, num_files_out, num_obj_out)
+    ###
+    toolkit.print_log(params_in, io_logfile, statement)
+    ###
+
+    io_logfile.close()
 
     logfile.close()
     return

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=MTWSPy
 #SBATCH --partition=Cascade,Cascade-flix
-#SBATCH --time=168:00:00
+#SBATCH --time=12:00:00
 ###########################################################
 # USER PARAMETERS
 # Cascade # LF
