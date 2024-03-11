@@ -52,6 +52,7 @@ def process_one_event(input_dict):
     # Initiate logfile
     logfile = open_log_file(input_dict)
     logfile = write_params_logfile(input_dict, logfile)
+    input_dict['step_name'] = str(os.path.basename(__file__).split('.')[0])
 
     # Proceed with list of matched events in input_dict:
     if len(input_dict['match_twin_files']) > 0:
@@ -77,6 +78,10 @@ def process_one_event(input_dict):
                     # Initiate outfile
                     outfile = open_outfile_file(input_dict)
                     outfile = write_params_outfile(input_dict, outfile)
+
+                    # Counting stats
+                    input_dict['num_files_in'] += 1
+                    input_dict['num_obj_in'] = np.min([len(twin_df_obs), len(twin_df_syn)])
 
                     # Initiate empty df of correlated time windows
                     corr_df = pd.DataFrame(columns = params_in['correlate_outcols'])
@@ -133,7 +138,7 @@ def process_one_event(input_dict):
 
     logfile.close()
     
-    return
+    return input_dict
 
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
@@ -931,13 +936,18 @@ def save_tdelay_files(input_dict, twin_in_obs, twin_df_obs, twin_in_syn, twin_df
                 tw_info = params_in['correlate_outfmt'].format(row['nslc'],row['stla'],row['stlo'],row['stel'],row['phase'],row['tdelay'],row['tderr'],row['ccmx'],row['ttaup'],row['tp_obs'],row['tp_syn'],row['Ap_obs'],row['Ap_syn']) + '\n'
                 outfile.write(tw_info)
 
+            # Counting stats
+            input_dict['num_obj_out']   += len(non_nan_merged_df)
+            input_dict['num_files_out'] += 1
+
+
     return input_dict, twin_in_obs, twin_df_obs, twin_in_syn, twin_df_syn, corr_df, logfile, outfile, fail
 
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 def open_log_file(input_dict):
     '''
-    Return an open log file in log_loc/'filename'/'code_start_time'/event_name.log
+    Return an open log file in log_loc/'code_start_time'/'filename'/event_name.log
     '''
     params_in = input_dict['params_in']
 

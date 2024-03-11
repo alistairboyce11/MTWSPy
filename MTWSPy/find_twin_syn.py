@@ -44,8 +44,13 @@ def process_one_event(input_dict):
 
     # List of files in the event
     files = sorted(glob.glob(event + '/' + str(params_in['year']) + '*' + str(params_in['component'])))
-
     num_files = len(files)
+
+    # Counting stats
+    input_dict['step_name'] = str(os.path.basename(__file__).split('.')[0])
+    input_dict['num_files_in'] = num_files
+    input_dict['num_obj_in'] = 0 # No timewindows yet
+
     if num_files ==  0:
         # No files found...
         ###
@@ -83,7 +88,7 @@ def process_one_event(input_dict):
             else:
                 # apply functions, only executed when fail = 0
                 for function in functions:
-                    input_dict,file,seis,logfile,outfile,fail = function(input_dict,file,seis,logfile,outfile,fail)
+                    input_dict, file, seis, logfile, outfile, fail = function(input_dict, file, seis, logfile, outfile, fail)
                 
             ###
             toolkit.print_log(params_in, logfile, f'{log_statement:s}  , FINISHED.....')
@@ -91,7 +96,7 @@ def process_one_event(input_dict):
             
     logfile.close()
     outfile.close()
-    return
+    return input_dict
 
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #

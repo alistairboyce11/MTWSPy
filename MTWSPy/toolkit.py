@@ -1,4 +1,4 @@
-import glob, sys, os
+import glob, sys, os, inspect
 import yaml
 from yaml.loader import SafeLoader
 import pandas as pd
@@ -84,7 +84,17 @@ def subvec(t, x, interval):
     return t_new, x_new
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-def print_log(params,logfile,statement):
+def flatten_concatenation(matrix):
+    '''
+    Return a flattened list
+    '''
+    flat_list = []
+    for row in matrix:
+        flat_list  +=  row
+    return flat_list
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+def print_log(params, logfile, statement):
     '''
     Print statement to terminal (depending on input params) and open logfile 
     '''
@@ -98,6 +108,50 @@ def print_log(params,logfile,statement):
         pass
 
     return
+
+
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+def open_io_log_file(params_in):
+    '''
+    Return an open input/output log file in log_loc/'code_start_time'/steps_results.log
+    '''
+
+    lf_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time'])
+    if not os.path.exists(lf_loc):
+        os.makedirs(lf_loc)
+
+    lf_name = lf_loc + '/io_results.log'
+
+    if not os.path.isfile(lf_name):
+        print_header = 1
+
+    logfile = open(lf_name, 'a')
+    
+    if print_header: 
+        logfile.write(f'----------////      TRACKING INPUT / OUTPUT           ////----------\n\n')
+    return logfile
+
+
+
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+def get_io_statement(step_name, num_files_in, num_obj_in, num_files_out, num_obj_out):
+    '''
+    Return an statement for the input/output log file
+    '''
+    
+    statement = f'----------////               {step_name}                ////----------\n'
+
+    statement += f'Files   in/out: {num_files_in} / {num_files_out}, percentage gain/loss (+/-): {-1 * np.round(((num_files_in - num_files_out) / num_files_in) * 100, 2)}%\n'
+    try: 
+        statement += f'Objects in/out: {num_obj_in} / {num_obj_out}, percentage gain/loss (+/-): {-1 * np.round(((num_obj_in - num_obj_out) / num_obj_in) * 100, 2)}%\n'
+    except: 
+        statement += f'Objects in/out: {num_obj_in} / {num_obj_out}\n'
+    statement += f'\n'
+
+    return statement
+
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 def get_input_dicts(input_directory, evt_id_tab, functions, params_in, phases):
@@ -179,9 +233,17 @@ def get_input_dicts(input_directory, evt_id_tab, functions, params_in, phases):
                 input_dict['id_cmt'] = evt_id_tab['id_cmt'][ind[0]]
                 input_dict['id_ctm'] = evt_id_tab['id_ctm'][ind[0]]
                 input_dict['id_fmt_ctm'] = id_fmt_ctm
+
                 input_dict['phases'] = phases
                 input_dict['functions'] = functions
                 input_dict['params_in'] = params_in
+
+                # Counting stats
+                input_dict['num_files_in'] =  0 # Files
+                input_dict['num_obj_in'] =    0 # Twin or picks
+                input_dict['num_files_out'] = 0 # Files 
+                input_dict['num_obj_out'] =   0 # Twin or picks
+
                 try: 
                     if len(match_twin_files) > 0:
                         input_dict['match_twin_files'] = match_twin_files
@@ -250,16 +312,35 @@ def apply_serial(main_function, input_directory, evt_id_tab, functions, params_i
     Functions can write to logfile & outfile.
     '''
 
+    # Counting stats
+    num_files_in =  0 # Files
+    num_obj_in =    0 # Twin or picks
+    num_files_out = 0 # Files 
+    num_obj_out =   0 # Twin or picks
+
     # get input dicts
     input_dicts = get_input_dicts(input_directory, evt_id_tab, functions, params_in, phases)
     
+    io_logfile = open_io_log_file(params_in)
+
+
     if input_dicts:
         # Serial processing
         for input_dict in input_dicts:
     
             for main_f in main_function:
-                res = main_f(input_dict)
-    
+                results = main_f(input_dict)
+                num_files_in  += results['num_files_in'] 
+                num_obj_in    += results['num_obj_in']
+                num_files_out += results['num_files_out']
+                num_obj_out   += results['num_obj_out']
+
+        statement  = get_io_statement(results['step_name'], num_files_in, num_obj_in, num_files_out, num_obj_out)
+        ###
+        print_log(params_in, io_logfile, statement)
+        ###
+        io_logfile.close()
+
         return
     else:
         pass
@@ -302,9 +383,17 @@ def apply_parallel(main_function, input_directory, evt_id_tab, functions, params
     The functions must return all input variables
     Functions can write to logfile & outfile.
     '''
+    
+    # Counting stats
+    num_files_in =  0 # Files
+    num_obj_in =    0 # Twin or picks
+    num_files_out = 0 # Files 
+    num_obj_out =   0 # Twin or picks
 
     # get input dicts
     input_dicts = get_input_dicts(input_directory, evt_id_tab, functions, params_in, phases)
+
+    io_logfile = open_io_log_file(params_in)
 
     if input_dicts:
         # Parallel processing
@@ -312,8 +401,20 @@ def apply_parallel(main_function, input_directory, evt_id_tab, functions, params
 
             with concurrent.futures.ProcessPoolExecutor(max_workers = params_in['cores']) as executor:
                 results = executor.map(main_f, input_dicts)
+                for res in results:
+                    num_files_in  += res['num_files_in'] 
+                    num_obj_in    += res['num_obj_in']
+                    num_files_out += res['num_files_out']
+                    num_obj_out   += res['num_obj_out']
 
-            return
+        statement  = get_io_statement(res['step_name'], num_files_in, num_obj_in, num_files_out, num_obj_out)
+        ###
+        print_log(params_in, io_logfile, statement)
+        ###
+        io_logfile.close()
+
+
+        return
     else:
         pass
 
@@ -322,7 +423,7 @@ def apply_parallel(main_function, input_directory, evt_id_tab, functions, params
 def read_twin_file(file_path):
     '''
     Read twin file from file_path into pandas dataframe
-    Ingore header lines before column headers
+    Ignore header lines before column headers
     '''
     with open(file_path, 'r') as file:
         # Skip header lines
@@ -340,6 +441,79 @@ def read_twin_file(file_path):
             df = pd.DataFrame()
 
     return df
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+def read_tdelay_file(file_path):
+    '''
+    Read tdelay file from file_path into pandas dataframe
+    Add header lines of Earthquake details
+    '''
+    with open(file_path, 'r') as file:
+        # Skip header lines
+        try:
+            header = 1
+            while header:
+                fline = file.readline()
+                if 'event_name' in fline:
+                    evid = str(fline.split()[2])
+                if 'date_time' in fline:
+                    date_time = str(fline.split()[2])
+                if 'latitude' in fline:
+                    evt_lat = str(fline.split()[2])
+                if 'longitude' in fline:
+                    evt_lon = str(fline.split()[2])
+                if 'depth' in fline:
+                    evt_dep = str(fline.split()[2])
+                if 'Mw' in fline:
+                    evt_mag = str(fline.split()[2])
+                if 'Channels' in fline:
+                    channel = fline.split()[2][-1]
+                # if 'period band' in fline:
+                #     per_band = [float(fline.split()[4].split(',')[0].split('[')[1]), float(fline.split()[5].split(',')[0].split(']')[0])]
+
+                if 'columns format' in fline:
+                    header = 0
+
+            convert_dict = {'nslc': str,
+                        'stla': float,
+                        'stlo': float,
+                        'stel': float,
+                        'phase': str,
+                        'tdelay': float,
+                        'tderr': float,
+                        'ccmx': float,
+                        'ttaup': float,
+                        'tp_obs': float,
+                        'tp_syn': float,
+                        'Ap_obs': float,
+                        'Ap_syn': float}
+
+            # Read data into DataFrame
+            s_df = pd.read_csv(file, delimiter = ',', dtype = convert_dict)
+
+            eq_df = pd.DataFrame(columns = ['evid','date_time','evt_lat','evt_lon','evt_dep','evt_mag','channel'], index = range(0,len(s_df)))
+            for index, row in eq_df.iterrows():
+                eq_df['evid'][index] = str(evid)
+                eq_df['date_time'][index] = str(date_time)
+                eq_df['evt_lat'][index] = float(evt_lat)
+                eq_df['evt_lon'][index] = float(evt_lon)
+                eq_df['evt_dep'][index] = float(evt_dep)
+                eq_df['evt_mag'][index] = float(evt_mag)
+                eq_df['channel'][index] = channel
+
+            # Merge eq_df, s_df and write out where no nans in line. of merged df.
+            merged_df = pd.merge(eq_df, s_df, left_index = True, right_index = True)
+            # Drop Nans non_nan_rows = df.dropna()
+            df = merged_df.dropna()
+
+        except:
+            #Return empy dataframe if not possible.
+            df = pd.DataFrame()
+
+    return df
+
+
+
 
 
 

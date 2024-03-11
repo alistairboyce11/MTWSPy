@@ -40,6 +40,7 @@ def process_one_event(input_dict):
     # Initiate logfile
     logfile = open_log_file(input_dict)
     logfile = write_params_logfile(input_dict, logfile)
+    input_dict['step_name'] = str(os.path.basename(__file__).split('.')[0])
 
     # Proceed with list of matched events in input_dict:
     if len(input_dict['match_twin_files']) > 0:
@@ -58,6 +59,11 @@ def process_one_event(input_dict):
                     # Initiate outfile
                     outfile = open_outfile_file(input_dict)
                     outfile = write_params_outfile(input_dict, outfile)
+    
+                    # Counting stats
+                    input_dict['num_files_in'] += 1
+                    input_dict['num_obj_in'] = len(twin_df)
+
 
                     # Synth rename A_median (if any) to A_noise for syn twin
                     try:
@@ -110,7 +116,7 @@ def process_one_event(input_dict):
         pass
 
     logfile.close()
-    return
+    return input_dict
 
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
@@ -227,7 +233,7 @@ def write_params_outfile(input_dict, outfile):
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 def open_log_file(input_dict):
     '''
-    Return an open log file in log_loc/'filename'/'code_start_time'/event_name.log
+    Return an open log file in log_loc/'code_start_time'/'filename'/event_name.log
     '''
     params_in = input_dict['params_in']
 
