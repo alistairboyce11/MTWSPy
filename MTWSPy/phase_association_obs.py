@@ -29,7 +29,7 @@ def process_one_event(input_dict):
             functions : list of functions to execute
             params_in : input paramters
 
-    Returns
+    Returns : input_dict
     ----------
     Nothing: None
     '''
