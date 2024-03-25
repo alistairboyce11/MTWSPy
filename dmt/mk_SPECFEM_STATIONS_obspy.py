@@ -47,19 +47,32 @@ def get_inventory(home, year, network, station, location, channel):
 
 
 def write_inventory(home, year, inventory):
+    '''
+    Write inventory to station xml and Specfem format.
+    Inputs:
+    home : str
+    year : str/int
+    inventory : obspy station inventory
+    '''
 
+    # Make the directory for the outputs
     if not os.path.exists(home+'/e'+str(year)):
         os.makedirs(home+'/e'+str(year))
 
-    outfile=home+'/e'+str(year)+'/STATIONS_'+str(year)+'_obspy'
+    outfile = home + '/e' + str(year) + '/STATIONS_' + str(year) + '_obspy'
+
+    # Write an output xml file    
+    outfile_xml = outfile + '.xml'
+    inventory.write(outfile_xml, format="STATIONXML")  
+
     file=open(outfile,'w')
-
     nwk_sta_list=[]
-
+    # Loop through networks
     for i in range(len(inventory.networks)):
         net_name = inventory.networks[i]._code
         print(net_name)
 
+        # Loop through stations and get name, lat, lon, elev
         for j in range(len(inventory.networks[i].stations)):
             sta_name = inventory.networks[i].stations[j]._code
             sta_lat = np.round(inventory.networks[i].stations[j]._latitude,4)
@@ -78,6 +91,8 @@ def write_inventory(home, year, inventory):
                 channel_elev=[]
                 channel_depth=[]
                 channel_loc=[]
+
+                # Get unique channel info
                 for k in range(len(inventory.networks[i].stations[j].channels)):
                     
                     channel_depth.append(str(np.round(inventory.networks[i].stations[j].channels[k]._depth,1)))
@@ -90,6 +105,7 @@ def write_inventory(home, year, inventory):
                 channel_name=unique(channel_name)
                 channel_loc=unique(channel_loc)
 
+                # Check for duplicates
                 if len(channel_depth) == 0 or len(channel_elev) == 0 or len(channel_name) == 0 or len(channel_loc) == 0:
                     print('WE HAVE AN ISSUE WITH: '+net_name+'_'+sta_name)
                     print('Missing info... ')
@@ -97,7 +113,6 @@ def write_inventory(home, year, inventory):
                     print('channel_loc: '+str(channel_loc))
                     print('channel_elev: '+str(channel_elev))
                     print('channel_depth: '+str(channel_depth))
-
 
                 elif len(channel_depth) > 1:
                     print('WE HAVE A DEPTH ISSUE WITH: '+net_name+'_'+sta_name)
@@ -127,7 +142,7 @@ def write_inventory(home, year, inventory):
                     print("{0:<5s}      {1:2s}      {2:>8s}   {3:>9s}   {4:>7s}  {5:>6s}".format(sta_name, net_name, str(sta_lat), str(sta_lon), str(channel_elev[0]), str(channel_depth[0])))
                     file.write("{0:<5s}      {1:2s}      {2:>8s}   {3:>9s}   {4:>7s}  {5:>6s}\n".format(sta_name, net_name, str(sta_lat), str(sta_lon), str(channel_elev[0]), str(channel_depth[0])))
 
-
+                # print to file
                 else:
                     print("{0:<5s}      {1:2s}      {2:>8s}   {3:>9s}   {4:>7s}  {5:>6s}".format(sta_name, net_name, str(sta_lat), str(sta_lon), str(channel_elev[0]), str(channel_depth[0])))
                     file.write("{0:<5s}      {1:2s}      {2:>8s}   {3:>9s}   {4:>7s}  {5:>6s}\n".format(sta_name, net_name, str(sta_lat), str(sta_lon), str(channel_elev[0]), str(channel_depth[0])))
@@ -141,6 +156,7 @@ def write_inventory(home, year, inventory):
     except subprocess.CalledProcessError as e:
         print(f"Error sorting the file: {e}")
 
+    return
 
 
 
@@ -152,7 +168,7 @@ def main():
     if num_args <= 2:
         print('Required :       Script.py <channel> <year1> <year2> <year3> <etc...>')
         print('Arguments:      ',sys.argv)
-        print('Options [1] :     LHZ')
+        print('Options [1] :     HH?,BH?,LH?')
         print('Options [2] :     2008')
         print('Options [3] :     2009')
         print('Number of arguments (' + str(num_args) +') incorrect... exit')
@@ -170,11 +186,10 @@ def main():
 
     # Set params:
     home='/home/aboyce/d_data_and_docs/dmt'
+    # home = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code/dmt'
 
     channel=str(sys.argv[1])
     location='*'
-    # network="AD,AF,AS,AZ,BE,BF,BK,CD,CI,CN,CU,CZ,DK,DW,G,GD,GE,GT,H2,HG,HT,HW,IC,II,IM,IU,KN,LB,LD,LI,MN,MS,MY,NM,NN,NR,NZ,OE,OV,PB,PI,PM,PS,RS,SF,SR,TA,TS,TW,US,UW"
-    #network="*"
     network="*"
     station="*"
  
@@ -187,5 +202,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

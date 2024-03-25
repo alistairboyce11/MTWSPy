@@ -3,8 +3,8 @@
 if [ "$#" -lt 2 ];
 then
     echo " Please specify YEAR and CHANNEL of obspyDMT Data to process"
-    echo " USEAGE:   proc_obspy_data.sh <YEAR> <CHANNEL>"
-    echo " EXAMPLE:  proc_obspy_data.sh 2008 LH"
+    echo " USEAGE:   pyproc_obspy_data.sh <YEAR> <CHANNEL>"
+    echo " EXAMPLE:  pyproc_obspy_data.sh 2008 LH"
     echo " "
     exit
 else
@@ -28,7 +28,7 @@ if [ ! -d ${DIR}"/LOG_FILES" ]; then
     mkdir -p ${DIR}"/LOG_FILES"
 fi
 
-LOG_FILE=`echo ${DIR}"/LOG_FILES/Process_obspyDMT_YR_"${YEAR}"_CH_"${CHANNEL}"_"${today}".log"`
+LOG_FILE=`echo ${DIR}"/LOG_FILES/ProcessPy_obspyDMT_YR_"${YEAR}"_CH_"${CHANNEL}"_"${today}".log"`
 echo Logfile name : $LOG_FILE
 echo
 echo Logfile name : $LOG_FILE  > $LOG_FILE
@@ -62,29 +62,52 @@ if [ ! -d e$YEAR ]; then
 else
     echo "Data directory e"$YEAR" exists" >> $LOG_FILE
 fi
+
 ###################################################################
 
-echo "Making batch file for Processing obspyDMT submit..." >> $LOG_FILE
+cd $DIR
+OUTDIR=`echo ${DIR}/e${YEAR}`
 
-# Replace options in batch file template before submission.
-sed -e "s/YXXR/${YEAR}/g" run_proc_obspy_slurm_TEMPLATE.bash  > run_proc_obspy_slurm_${YEAR}_${CHANNEL}.bash 
-sed -i -e "s/CHXXXEL/${CHANNEL}/g" run_proc_obspy_slurm_${YEAR}_${CHANNEL}.bash 
-
-echo "Made batch file for Processing obspyDMT submit..." >> $LOG_FILE
-echo >> $LOG_FILE
-
-echo "Submitting batch file: run_proc_obspy_slurm_${YEAR}_${CHANNEL}.bash" >> $LOG_FILE
-
-echo sbatch run_proc_obspy_slurm_${YEAR}_${CHANNEL}.bash   >> $LOG_FILE
-sbatch run_proc_obspy_slurm_${YEAR}_${CHANNEL}.bash   >> $LOG_FILE
-sleep 3
-
-echo "Submitted batch file" >> $LOG_FILE
-echo "Should find the submission in the following squeue call....:" >> $LOG_FILE
 
 echo >> $LOG_FILE
-squeue | grep "pobs_" >> $LOG_FILE
-echo >> $LOG_FILE
+# Months
+n1=1
+n2=12
+nbs=$(($((${n2}-${n1}))+1))
+echo -e "Number of Simultaneous runs: ${nbs}"  >> $LOG_FILE
+
+# Loop through Months and make packets of submissions.
+
+for i in $(seq ${n1} ${n2}); do
+
+    MONTH=`echo $i | awk '{ printf("%02d\n", $1) }'`
+
+    echo "Making batch file for Processing obspyDMT submit..." >> $LOG_FILE
+
+    # Replace options in batch file template before submission.
+    sed -e "s/year_r/${YEAR}/g" run_pyproc_obspy_slurm_TEMPLATE.bash  > ${OUTDIR}/run_pyproc_obspy_slurm_${MONTH}_${YEAR}_${CHANNEL}.bash 
+    sed -i -e "s/month_r/${MONTH}/g" ${OUTDIR}/run_pyproc_obspy_slurm_${MONTH}_${YEAR}_${CHANNEL}.bash 
+    sed -i -e "s/kchan_r/${CHANNEL}/g" ${OUTDIR}/run_pyproc_obspy_slurm_${MONTH}_${YEAR}_${CHANNEL}.bash 
+
+    echo "Made batch file for Processing obspyDMT submit..." >> $LOG_FILE
+    echo >> $LOG_FILE
+
+    echo "Submitting batch file: ${OUTDIR}/run_pyproc_obspy_slurm_${MONTH}_${YEAR}_${CHANNEL}.bash" >> $LOG_FILE
+
+    cd ${OUTDIR}/
+    echo sbatch run_pyproc_obspy_slurm_${MONTH}_${YEAR}_${CHANNEL}.bash   >> $LOG_FILE
+    sbatch run_pyproc_obspy_slurm_${MONTH}_${YEAR}_${CHANNEL}.bash   >> $LOG_FILE
+    sleep 3
+    cd ${DIR}
+
+    echo "Submitted batch file" >> $LOG_FILE
+    echo "Should find the submission in the following squeue call....:" >> $LOG_FILE
+
+    echo >> $LOG_FILE
+    squeue | grep "pobs_" >> $LOG_FILE
+    echo >> $LOG_FILE
+
+done
 
 echo "Finished submission for: "$YEAR", assuming data channel: "$CHANNEL >> $LOG_FILE
 echo >> $LOG_FILE
