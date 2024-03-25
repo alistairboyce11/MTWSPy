@@ -8,16 +8,9 @@
 # ttimes : https://ds.iris.edu/pub/programs/iaspei-tau/
 
 #------ ObspyDMT Data processing. ------#
-# obspyDMT_data_par_proc_all.sh
-# obspyDMT_data_proc_event.sh
-# get_julday.py
-# obspyDMT_rem_inst_resp.py
-# obspy_rotate_comps.py
+# parallel_proc_obspyDMT_seis.py
 #------ Specfem Data processing. ------#
-# get_CMTSOLUTION_tshift.py
-# parallel_proc_specfem_seis.sh
-# proc_specfem_seis_file.sh
-# phtimes.csh
+# parallel_proc_specfem_seis.py
 
 # >> 
 
@@ -92,7 +85,7 @@ matpl_val=`grep 'matplotlib: not installed' $LOG_FILE_PYDMT | wc -l`
 
 obDMT_val=`echo $(( $obspy_val + $numpy_val + $scipy_val + $matpl_val ))`
 
-if [ $py_package_error -ne 0 ]; then
+if [ $obDMT_val -ne 0 ]; then
     echo "Python package errors in obspyDMT...."  >> $LOG_FILE_SH
     exit
 else
@@ -101,60 +94,48 @@ fi
 
 ######################################################################################
 
-echo  "------------------" >> $LOG_FILE_SH
-### Obspy Data processing:
-parallel_yes=`which parallel | wc -l`
-sac_yes=`which sac | wc -l`
-saclst_yes=`which saclst | wc -l`
-ttime_yes=`which ttimes | wc -l`
+# echo  "------------------" >> $LOG_FILE_SH
+# ### Obspy Data processing:
+# parallel_yes=`which parallel | wc -l`
+# sac_yes=`which sac | wc -l`
+# saclst_yes=`which saclst | wc -l`
+# ttime_yes=`which ttimes | wc -l`
 
-if [ $parallel_yes -eq 0 ]; then
-    echo "Parallel not found....."  >> $LOG_FILE_SH
-    exit
-else
-    echo "Parallel found..."  >> $LOG_FILE_SH
-fi
+# if [ $parallel_yes -eq 0 ]; then
+#     echo "Parallel not found....."  >> $LOG_FILE_SH
+#     exit
+# else
+#     echo "Parallel found..."  >> $LOG_FILE_SH
+# fi
 
-if [ $sac_yes -eq 0 ]; then
-    echo "SAC not found....."  >> $LOG_FILE_SH
-    exit
-else
-    echo "SAC found..."  >> $LOG_FILE_SH
-fi
+# if [ $sac_yes -eq 0 ]; then
+#     echo "SAC not found....."  >> $LOG_FILE_SH
+#     exit
+# else
+#     echo "SAC found..."  >> $LOG_FILE_SH
+# fi
 
-if [ $saclst_yes -eq 0 ]; then
-    echo "Saclst not found....."  >> $LOG_FILE_SH
-    exit
-else
-    echo "Saclst found..."  >> $LOG_FILE_SH
-fi
+# if [ $saclst_yes -eq 0 ]; then
+#     echo "Saclst not found....."  >> $LOG_FILE_SH
+#     exit
+# else
+#     echo "Saclst found..."  >> $LOG_FILE_SH
+# fi
 
-if [ $ttime_yes -eq 0 ]; then
-    echo "TTimes not found....."  >> $LOG_FILE_SH
-    exit
-else
-    echo "TTimes found..."  >> $LOG_FILE_SH
-fi
-echo  "------------------" >> $LOG_FILE_SH
+# if [ $ttime_yes -eq 0 ]; then
+#     echo "TTimes not found....."  >> $LOG_FILE_SH
+#     exit
+# else
+#     echo "TTimes found..."  >> $LOG_FILE_SH
+# fi
+# echo  "------------------" >> $LOG_FILE_SH
 
 ######################################################################################
 
 ### ObspyDMT Data processing.
 
-if [ ! -f ${subdir}/obspyDMT_data_par_proc_all.sh ]; then
-    echo "obspyDMT_data_par_proc_all.sh not found....."  >> $LOG_FILE_SH
-    exit
-elif [ ! -f ${subdir}/obspyDMT_data_proc_event.sh ]; then
-    echo "obspyDMT_data_proc_event.sh not found....."  >> $LOG_FILE_SH
-    exit
-elif [ ! -f ${subdir}/get_julday.py ]; then
-    echo "get_julday.py not found....."  >> $LOG_FILE_SH
-    exit
-elif [ ! -f ${subdir}/obspyDMT_rem_inst_resp.py ]; then
-    echo "obspyDMT_rem_inst_resp.py not found....."  >> $LOG_FILE_SH
-    exit
-elif [ ! -f ${subdir}/obspy_rotate_comps.py ]; then
-    echo "obspy_rotate_comps.py not found....."  >> $LOG_FILE_SH
+if [ ! -f ${subdir}/parallel_proc_obspyDMT_seis.py ]; then
+    echo "parallel_proc_obspyDMT_seis.py not found....."  >> $LOG_FILE_SH
     exit
 else
     echo "obspyDMT processing scripts found....."  >> $LOG_FILE_SH
@@ -165,17 +146,8 @@ echo  "------------------" >> $LOG_FILE_SH
 
 ### Specfem Data processing.
 
-if [ ! -f ${subdir}/parallel_proc_specfem_seis.sh ]; then
-    echo "parallel_proc_specfem_seis.sh not found....."  >> $LOG_FILE_SH
-    exit
-elif [ ! -f ${subdir}/proc_specfem_seis_file.sh ]; then
-    echo "proc_specfem_seis_file.sh not found....."  >> $LOG_FILE_SH
-    exit
-elif [ ! -f ${subdir}/get_CMTSOLUTION_tshift.py ]; then
-    echo "get_CMTSOLUTION_tshift.py not found....."  >> $LOG_FILE_SH
-    exit
-elif [ ! -f ${SPECFEM_LOC}/utils/seis_process/phtimes.csh ]; then
-    echo "phtimes.csh not found....."  >> $LOG_FILE_SH
+if [ ! -f ${subdir}/parallel_proc_specfem_seis.py ]; then
+    echo "parallel_proc_specfem_seis.py not found....."  >> $LOG_FILE_SH
     exit
 else
     echo "SPECFEM processing scripts found....."  >> $LOG_FILE_SH

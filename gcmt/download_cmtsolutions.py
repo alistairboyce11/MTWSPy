@@ -73,6 +73,13 @@ def get_CMTSOLUTIONS(listannee, min_depth, max_depth, min_mag, max_mag):
                             fichier.write(ligne1+"\n")
                             CMT.write(ligne1+"\n")
                             CMT_SPECFEM.write(ligne1+"\n")
+
+                        elif ligne[0:5]==' SWEQ':
+                            ligne1=ligne.replace(" SWEQ"," SWE ")# SPECFEM3D globe ne lit pas SWEQ => ça crée une erreur
+                            fichier.write(ligne1+"\n")
+                            CMT.write(ligne1+"\n")
+                            CMT_SPECFEM.write(ligne1+"\n")
+
                         # à décommenter si on a besoin d'un half duration =0 dans SPECFEM3D (ce qui est recommandé dans le manuel)	
                         elif ligne[0:4]=='half': 
                             ligne2='half duration:   0.0000'

@@ -16,13 +16,13 @@ This package includes codes to download and process seismic data, create corresp
 
 * We use [obspyDMT](https://kasra-hosseini.github.io/obspyDMT/) for download of seismic data.
 * We use [SPECFEM3D_GLOBE](https://specfem.org/) v8.0.0 available [here](https://github.com/SPECFEM/specfem3d_globe/releases/tag/v8.0.0) for calculation of global synthetic seismograms.
-* We use [parallel](https://www.gnu.org/software/parallel/), [SAC](http://www.iris.edu/dms/nodes/dmc/software/downloads/sac), [saclst](http://geophysics.eas.gatech.edu/people/zpeng/Software/sac_msc.tar.gz) and [ttimes](https://ds.iris.edu/pub/programs/iaspei-tau/) for observed and synthetic data processing.
+* We use [ObsPy](https://docs.obspy.org/) for observed and synthetic data processing.
 
 The codes are designed to be run on a year-by-year basis to build up a travel time database progressively, thereby avoiding data storage issues where possible.
 
 HPC operations are setup using an example from the PSMN cluster at ENS Lyon, France (96 cores per node) using the SLURM batch scheduler.
 
-Parallelisation is used to speed up post-processing of observed and synthetic data (GNU parallel) and arrival time picking (python concurrent.futures) using the MTWS algorithm.
+Parallelisation is used to speed up post-processing of observed and synthetic data and arrival time picking (python concurrent.futures) using the MTWS algorithm.
 
 
 <!-- ######################################################################## -->
@@ -34,16 +34,9 @@ Parallelisation is used to speed up post-processing of observed and synthetic da
 1. Create a fresh python3 environment (used 3.12) with the following pacakges available ('obspy','numpy', 'scipy', 'pandas', 'matplotlib', 'sys', 'glob', 'shutil', 'os', 'time', 'warnings', 'datetime', 'inspect', 'yaml'). Obspy 1.4 installed using pip.
 2. Ensure obspyDMT is installed and active on the system used for data download. (Version 2.2.11 available using pip)
 3. Ensure SPECFEM3D_GLOBE can be compiled and run using parameters appropriate to the system used to compute synthetics (typically HPC). v8.0.0 installed fresh from Github.
-4. Ensure GNU parallel, SAC, saclst and ttimes are available on system used for data processing. Small programs are available in the utils directory.
-5. Ensure the following 10 files are copied into a local bin directory and are available on your PATH:
-    * get_julday.py
-    * get_CMTSOLUTION_tshift.py
-    * obspy_rotate_comps.py
-    * obspyDMT_rem_inst_resp.py
-    * obspyDMT_data_par_proc_all.sh
-    * obspyDMT_data_proc_event.sh
-    * parallel_proc_specfem_seis.sh
-    * proc_specfem_seis_file.sh
+4. Ensure the following 4 files are copied into a local bin directory and are available on your PATH:
+    * parallel_proc_specfem_seis.py
+    * parallel_proc_obspyDMT_seis.py
     * check_obspyDMT_SPECFEM_install.sh
     * check_obspyDMT_SPECFEM_install.py
 
@@ -57,8 +50,8 @@ Parallelisation is used to speed up post-processing of observed and synthetic da
 
 navigate to `dmt`
 
-* `get_obspy_data.sh` &rarr; launches obspyDMT via batch scheduler for given year.
-* `proc_obspy_data.sh` &rarr; launches post processing of observed data using GNU parallel.
+* `get_obspy_data.sh` &rarr; launches obspyDMT via batch scheduler for given year (using run_obspy_slurm_TEMPLATE.bash).
+* `pyproc_obspy_data.sh` &rarr; launches post processing of observed data using python parallel (using run_pyproc_obspy_slurm_TEMPLATE.bash).
 * `python mk_SPECFEM_STATIONS_dmt.py` &rarr; Creates station file for specfem if obspyDMT database is prepared.
 __OR__ 
 * `python mk_SPECFEM_STATIONS_obspy.py` &rarr; Creates station file for Specfem using datacenter quieries (often more frequently used).
@@ -73,8 +66,8 @@ navigate to `specfem`
 
 * Par file  &rarr; Verify parameters chosen are appropirate for your system (e.g., minimum period). Normally using 2hrs seismogram length.
 * Station file &rarr; Using workflow below, the STATION file will be updated from the dmt directory described above.
-* `get_specfem_synthetics.sh` &rarr; Launches all SPECFEM simulations for CMT solutions in gcmt directory using batch scheduler. May need modification to suit local resources.
-* `proc_specfem_synthetics.sh` &rarr; Launches post processing of SPECFEM simulation data using GNU parallel and batch scheduler.
+* `get_specfem_synthetics.sh` &rarr; Launches all SPECFEM simulations for CMT solutions in gcmt directory using batch scheduler (and run_specfem_slurm_TEMPLATE.bash). May need modification to suit local resources.
+* `pyproc_specfem_synthetics.sh` &rarr; Launches post processing of SPECFEM simulation data using python parallel (and run_pyproc_specfem_TEMPLATE.bash) and batch scheduler.
 
 ### MTWSPy _Main_
 
@@ -82,7 +75,7 @@ navigate to `MTWSPy`
 
 #### Contents:
 
-* __params_in.yaml__ &rarr; Parameter file
+* __params_in.yaml__ &rarr; Parameter file for main code
 * __v01_phasenames.py__ &rarr; Dictionary of phases desired
 * __toolkit.py__ &rarr; Global functions
 * __mk_events_csv.py__ &rarr; Make useable csv file of possible events
@@ -94,6 +87,9 @@ navigate to `MTWSPy`
 * __correlate_twin.py__ &rarr; Correlate observed and synth time windows
 * __MTWSPy_main.py__ &rarr; Execute main code
 * __run_MTWSPy.bash__ &rarr; Slurm batch scheduler 
+* __proc_tdl_in.yaml__ &rarr; Parameter file for Time delay processing code
+* __process_tdl_files.py__ &rarr; Time delay processing code
+
 
 #### Description:
 
@@ -119,7 +115,7 @@ All steps of the code that utilise parallelisation (also written to work in seri
 
 #### Detailed description:
 
-__params_in.yaml__ &rarr; Parameter file containing all variables that can be changed within the code.
+__params_in.yaml__ &rarr; Parameter file containing all variables that can be changed within the main code.
 
 __v01_phasenames.py__ &rarr; Dictionary of phases desired, could be modified to search for alternative seismic phases
 
@@ -142,6 +138,11 @@ __correlate_twin.py__ &rarr; Correlate observed and synth time windows using cro
 __MTWSPy_main.py__ &rarr; Execute main code sequentially using params_in.yaml
 
 __run_MTWSPy.bash__ &rarr; Execute code on cluster using SLURM batch scheduler
+
+__proc_tdl_in.yaml__ &rarr; Parameter file containing all variables that can be changed within the Time delay processing code
+
+__process_tdl_files.py__ &rarr; Time delay processing code to write station means or phase difference times from .tdl files produced by main code
+
 
 <!-- ######################################################################## -->
 
