@@ -154,7 +154,7 @@ def open_log_file(params_in):
     # Get location of logfile
     lf_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time']) + '/' + os.path.basename(__file__).split('.')[0]
     if not os.path.exists(lf_loc):
-        os.makedirs(lf_loc)
+        os.makedirs(lf_loc, exist_ok=True)
 
     lf_name = lf_loc + '/match_twin_files.log'
 
