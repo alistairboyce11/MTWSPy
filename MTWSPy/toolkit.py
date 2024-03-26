@@ -110,7 +110,6 @@ def print_log(params, logfile, statement):
     return
 
 
-
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 def open_io_log_file(params_in):
     '''
@@ -125,14 +124,14 @@ def open_io_log_file(params_in):
 
     if not os.path.isfile(lf_name):
         print_header = 1
+    else:
+        print_header = 0
 
     logfile = open(lf_name, 'a')
     
     if print_header: 
         logfile.write(f'----------////      TRACKING INPUT / OUTPUT           ////----------\n\n')
     return logfile
-
-
 
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
