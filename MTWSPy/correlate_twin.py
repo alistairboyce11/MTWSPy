@@ -821,7 +821,7 @@ def corr_twin_plot(input_dict, params_in, logfile, log_statement, nslc,
         ###
 
         if not os.path.exists(pic_loc):
-            os.makedirs(pic_loc)
+            os.makedirs(pic_loc, exist_ok=True)
         plt.savefig(pic_loc + '/' + pic_filename, format = 'pdf')
         plt.close()
     else:
@@ -953,7 +953,7 @@ def open_log_file(input_dict):
 
     lf_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time']) + '/' + os.path.basename(__file__).split('.')[0]
     if not os.path.exists(lf_loc):
-        os.makedirs(lf_loc)
+        os.makedirs(lf_loc, exist_ok=True)
 
     lf_name = lf_loc + '/' + str(input_dict['id_fmt_ctm']) + '.log'
 
@@ -970,7 +970,7 @@ def open_outfile_file(input_dict):
 
     of_loc = params_in['home'] + '/' + params_in['tdelay_loc'] + '/' + params_in['phase_a_obs_out_loc'][-2:] + params_in['component'] + '-' + params_in['phase_a_syn_out_loc'][-2:] + params_in['component']
     if not os.path.exists(of_loc):
-        os.makedirs(of_loc)
+        os.makedirs(of_loc, exist_ok=True)
 
     of_name = of_loc + '/' + str(input_dict['id_ctm']) + '.T.tdl'
 

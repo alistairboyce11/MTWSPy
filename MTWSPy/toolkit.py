@@ -119,7 +119,7 @@ def open_io_log_file(params_in):
 
     lf_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time'])
     if not os.path.exists(lf_loc):
-        os.makedirs(lf_loc)
+        os.makedirs(lf_loc, exist_ok=True)
 
     lf_name = lf_loc + '/io_results.log'
 

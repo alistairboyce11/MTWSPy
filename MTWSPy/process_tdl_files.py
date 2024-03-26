@@ -485,7 +485,7 @@ def write_station_means(params, input_df):
     output_directory = params['home'] + '/' + params['proc_tdl_loc'] + '/'
 
     if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
+        os.makedirs(output_directory, exist_ok=True)
 
     filename_out = output_directory + params['out_f_name'] + '_station_means.out'
 
@@ -603,7 +603,7 @@ def write_tdl_summary_file(params, input_df):
     output_directory = params['home'] + '/' + params['proc_tdl_loc'] + '/'
 
     if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
+        os.makedirs(output_directory, exist_ok=True)
 
     print('Sending output to: ' +str(output_directory))
 
@@ -632,7 +632,7 @@ def write_tt_diff_summary_file(params, input_df):
     output_directory = params['home'] + '/' + params['proc_tdl_loc'] + '/'
 
     if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
+        os.makedirs(output_directory, exist_ok=True)
     filename_out = output_directory + params['out_f_name'] + '_' + str(params['diff_phases'][0]) + '-' + str(params['diff_phases'][1]) + '.out'
 
     input_df.to_csv(filename_out, index=False) 
