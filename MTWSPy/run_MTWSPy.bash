@@ -43,7 +43,7 @@ today=`date +%Y-%m-%d`
 echo 
 echo "Starting modules/packages/code check"
 
-${CODE_HOME}/bin/check_obspyDMT_SPECFEM_install.sh # OUTFILE = ${HOME}/tmp.check-sh
+${HOME}/bin/check_obspyDMT_SPECFEM_install.sh # OUTFILE = ${HOME}/tmp.check-sh
 mod_check=`tail -1 ${HOME}/tmp/tmp.check-sh | awk '{print $1}'`
 
 if [ $mod_check == 'YES' ]; then
