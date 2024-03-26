@@ -142,7 +142,11 @@ def get_io_statement(step_name, num_files_in, num_obj_in, num_files_out, num_obj
     
     statement = f'----------////               {step_name}                ////----------\n'
 
-    statement += f'Files   in/out: {num_files_in} / {num_files_out}, percentage gain/loss (+/-): {-1 * np.round(((num_files_in - num_files_out) / num_files_in) * 100, 2)}%\n'
+    try:
+        statement += f'Files   in/out: {num_files_in} / {num_files_out}, percentage gain/loss (+/-): {-1 * np.round(((num_files_in - num_files_out) / num_files_in) * 100, 2)}%\n'
+    except:
+        statement += f'Files   in/out: {num_files_in} / {num_files_out}\n'
+
     try: 
         statement += f'Objects in/out: {num_obj_in} / {num_obj_out}, percentage gain/loss (+/-): {-1 * np.round(((num_obj_in - num_obj_out) / num_obj_in) * 100, 2)}%\n'
     except: 
