@@ -470,9 +470,7 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
         stla = float(seis[0].stats['sac']['stla']) # Station latitude
         stlo = float(seis[0].stats['sac']['stlo']) # Station longitude
 
-        # Change back when using reprocessed data!!!!!
-        nslc = str(seis[0].stats['network']) + '.' + str(seis[0].stats['station']) + '.' + str(seis[0].stats['location']) + '.' + str(seis[0].stats['channel'])
-        # nslc = str(seis[0].stats['network']) + '_' + str(seis[0].stats['station']) + '.00.' + str(seis[0].stats['channel'])
+        nslc = str(seis[0].stats['network']) + '_' + str(seis[0].stats['station']) + '.' + str(seis[0].stats['location']) + '.' + str(seis[0].stats['channel'])
 
         t = seis[0].times(reftime = UTCDateTime(str(input_dict['evtm'])))
 
