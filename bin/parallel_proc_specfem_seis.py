@@ -92,6 +92,11 @@ def read_CMTSOLUTION(file):
     cmt_dict['s_sec'] = time_shifted.second
     cmt_dict['s_msec'] = time_shifted.microsecond
 
+    # Guard against rounding error in time shift gcmt catalog (1 s.f.) versus CMT solution (2.s.f.)
+    # It affects the ev_id on ~5% of events.
+    if UTCDateTime(UTCDateTime(time) + tshift).second != UTCDateTime(UTCDateTime(time) + np.round(tshift,1)).second:
+        time_shifted = UTCDateTime(UTCDateTime(time) + np.round(tshift,1))
+
     cmt_dict['ev_id'] = '{0:4d}{1:02d}{2:02d}{3:02d}{4:02d}{5:02d}'.format(time_shifted.year, time_shifted.month, time_shifted.day, time_shifted.hour, time_shifted.minute, time_shifted.second)
     cmt_dict['evname'] = evname
     cmt_dict['tshift'] = tshift
