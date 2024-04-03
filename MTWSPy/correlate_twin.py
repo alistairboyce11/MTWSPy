@@ -61,11 +61,11 @@ def process_one_event(input_dict):
 
             # Find location of both data and twin files for obs and syn.
 
-            tw_loc_obs = params_in['home'] + '/' + params_in['twin_loc'] + '/' + params_in['phase_a_obs_out_loc'] + params_in['component']
-            twin_in_obs = tw_loc_obs + '/' + str(id_ctm) + '.' + params_in['phase_a_obs_out_loc'][-2:] + params_in['component'] + '.twin'
+            tw_loc_obs = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['phase_a_obs_out_loc']}{params_in['component']}'
+            twin_in_obs = f'{tw_loc_obs}/{str(id_ctm)}.{params_in['phase_a_obs_out_loc'][-2:]}{params_in['component']}.twin'
 
-            tw_loc_syn = params_in['home'] + '/' + params_in['twin_loc'] + '/' + params_in['phase_a_syn_out_loc'] + params_in['component']
-            twin_in_syn = tw_loc_syn + '/' + str(id_ctm) + '.' + params_in['phase_a_syn_out_loc'][-2:] + params_in['component'] + '.twin'
+            tw_loc_syn = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['phase_a_syn_out_loc']}{params_in['component']}'
+            twin_in_syn = f'{tw_loc_syn}/{str(id_ctm)}.{params_in['phase_a_syn_out_loc'][-2:]}{params_in['component']}.twin'
 
             if os.path.isfile(twin_in_obs) and os.path.isfile(twin_in_syn):
                 # read twin file
@@ -87,7 +87,7 @@ def process_one_event(input_dict):
                     corr_df = pd.DataFrame(columns = params_in['correlate_outcols'])
 
                     ###
-                    toolkit.print_log(params_in, logfile, f'----------////    WORKING ON: ' + str(id_ctm) + '    ////----------')
+                    toolkit.print_log(params_in, logfile, f'----------////    WORKING ON: {str(id_ctm)}    ////----------')
                     ###
 
                     fail = 0
@@ -113,9 +113,9 @@ def process_one_event(input_dict):
                     # Returned empty dataframe
                     ###
                     toolkit.print_log(params_in, logfile, f'----------////            NO-TWINS-IN:            ////----------')
-                    toolkit.print_log(params_in, logfile, f'----------////      ' + str(twin_df_obs) + '          ////----------')
+                    toolkit.print_log(params_in, logfile, f'----------////      {str(twin_df_obs)}          ////----------')
                     toolkit.print_log(params_in, logfile, f'----------////                  OR:               ////----------')
-                    toolkit.print_log(params_in, logfile, f'----------////      ' + str(twin_df_syn) + '          ////----------')
+                    toolkit.print_log(params_in, logfile, f'----------////      {str(twin_df_syn)}          ////----------')
                     ###
                     pass
 
@@ -123,16 +123,16 @@ def process_one_event(input_dict):
                 # No corresponding twin file found at twin_in
                 ###
                 toolkit.print_log(params_in, logfile, f'----------////        NO-TWIN-FILE-AT:            ////----------')
-                toolkit.print_log(params_in, logfile, f'----------////      ' + str(twin_in_obs) + '          ////----------')
+                toolkit.print_log(params_in, logfile, f'----------////      {str(twin_in_obs)}          ////----------')
                 toolkit.print_log(params_in, logfile, f'----------////                  OR:               ////----------')
-                toolkit.print_log(params_in, logfile, f'----------////      ' + str(twin_in_syn) + '          ////----------')
+                toolkit.print_log(params_in, logfile, f'----------////      {str(twin_in_syn)}          ////----------')
                 ###
 
                 pass
     else:
         # No file found at params_in['mtf_outfilename']
         ###
-        toolkit.print_log(params_in, logfile, f'----------////   NO-MATCHED_TWIN-FILE-AT: ' + str(params_in['mtf_outfilename']) + '    ////----------')
+        toolkit.print_log(params_in, logfile, f'----------////   NO-MATCHED_TWIN-FILE-AT: {str(params_in['mtf_outfilename'])}    ////----------')
         ###
         pass
 
@@ -226,8 +226,8 @@ def write_params_outfile(input_dict, outfile):
     outfile.write('----------\n')
 
     outfile.write('----------////              CORRELATE TWIN PARAMETERS               ////----------\n')
-    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Channels',' : ',str(params_in['phase_a_obs_out_loc'][-2:] + params_in['component'] + '-' + params_in['phase_a_syn_out_loc'][-2:] + params_in['component']), x = justify) )
-    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('period band [s]',' : ',str('[' + str(params_in['T1']) +  ', ' + str(params_in['T2']) + ']'), x = justify) )
+    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Channels',' : ', f'{params_in['phase_a_obs_out_loc'][-2:]}{params_in['component']}-{params_in['phase_a_syn_out_loc'][-2:]}{params_in['component']}', x = justify) )
+    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('period band [s]',' : ', f'[{str(params_in['T1'])}, {str(params_in['T2'])}]', x = justify) )
     outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('interpolate delta',' : ',str(params_in['interp_delta']), x = justify) )
     outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Use Zaroli F3',' : ',str(params_in['Zaroli']), x = justify) )
     outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('max time delay [s]',' : ',str(params_in['max_tdelay']), x = justify) )
@@ -239,9 +239,9 @@ def write_params_outfile(input_dict, outfile):
     outfile.write('{0:<20s} {1:s} {2:s}\n'.format('columns format',' : ',params_in['correlate_outfmt']))
     for h,header in enumerate(params_in['correlate_outcols']):
         if h < len(params_in['correlate_outcols']) - 1:
-            outfile.write('{0:s}'.format(header + ','))
+            outfile.write('{0:s}'.format(f'{header},'))
         else:
-            outfile.write('{0:s}'.format(header + '\n'))
+            outfile.write('{0:s}'.format(f'{header}\n'))
     
     return outfile
 
@@ -270,7 +270,8 @@ def correlate_windows(input_dict, twin_in_obs, twin_df_obs, twin_in_syn, twin_df
     np.seterr(divide = 'ignore', invalid = 'ignore')
 
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement = toolkit.get_log_statement(input_dict['event_id'], twin_in_obs) + ', ' + str(inspect.stack()[0][3])
+    log_statement = f'{toolkit.get_log_statement(input_dict['event_id'], twin_in_obs)}, {str(inspect.stack()[0][3])}'
+
     if fail:
         ###
         toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
@@ -281,8 +282,8 @@ def correlate_windows(input_dict, twin_in_obs, twin_df_obs, twin_in_syn, twin_df
         ###
 
         # data loc / synth loc
-        input_directory_obs = str(params_in['data_loc']) + '/e' + str(params_in['year']) + str(params_in['fmt_data_loc'])
-        input_directory_syn = str(params_in['synth_loc']) + '/e' + str(params_in['year']) + str(params_in['fmt_data_loc'])
+        input_directory_obs = f'{params_in['data_loc']}/e{str(params_in['year'])}{params_in['fmt_data_loc']}'
+        input_directory_syn = f'{params_in['synth_loc']}/e{str(params_in['year'])}{params_in['fmt_data_loc']}'
 
         # find unique stations in obs & syn df.
         unique_stations_obs = list(twin_df_obs['nslc'].unique())
@@ -309,13 +310,13 @@ def correlate_windows(input_dict, twin_in_obs, twin_df_obs, twin_in_syn, twin_df
                 len_stat_df_syn = len(stat_df_syn)
 
                 ###
-                toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  {len_stat_df_obs} obs windows for station {station} [' + str(s + 1) + '/' + str(nst) + ']')
-                toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  {len_stat_df_syn} syn windows for station {station} [' + str(s + 1) + '/' + str(nst) + ']')
+                toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  {len_stat_df_obs} obs windows for station {station} [{str(s + 1)}/{str(nst)}]')
+                toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  {len_stat_df_syn} syn windows for station {station} [{str(s + 1)}/{str(nst)}]')
                 ###
 
                 # read sac files
-                file_obs = input_directory_obs + '/' + str(input_dict['id_fmt_ctm']) + '/' + str(input_dict['id_fmt_ctm']) + '_' + str(station)
-                file_syn = input_directory_syn + '/' + str(input_dict['id_fmt_ctm']) + '/' + str(input_dict['id_fmt_ctm']) + '_' + str(station)
+                file_obs = f'{input_directory_obs}/{str(input_dict['id_fmt_ctm'])}/{str(input_dict['id_fmt_ctm'])}_{str(station)}'
+                file_syn = f'{input_directory_syn}/{str(input_dict['id_fmt_ctm'])}/{str(input_dict['id_fmt_ctm'])}_{str(station)}'
 
                 try:
                     seis_obs = read(file_obs,'sac')
@@ -331,7 +332,8 @@ def correlate_windows(input_dict, twin_in_obs, twin_df_obs, twin_in_syn, twin_df
                     ###
                     continue
 
-                nslc = str(seis_obs[0].stats['network']) + '_' + str(seis_obs[0].stats['station']) + '.' + str(seis_obs[0].stats['location']) + '.' + str(seis_obs[0].stats['channel'])
+                nslc = f'{str(seis_obs[0].stats['network'])}_{str(seis_obs[0].stats['station'])}.{str(seis_obs[0].stats['location'])}.{str(seis_obs[0].stats['channel'])}'
+
                 stel = float(seis_obs[0].stats['sac']['stel']) # in meters
                 stla = float(seis_obs[0].stats['sac']['stla'])
                 stlo = float(seis_obs[0].stats['sac']['stlo'])
@@ -813,7 +815,9 @@ def corr_twin_plot(input_dict, params_in, logfile, log_statement, nslc,
     ################## Save or show  ##################
 
     if params_in['corr_save_pic']:
-        pic_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time']) + '/' + os.path.basename(__file__).split('.')[0]
+
+        pic_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
+
         pic_filename = f'Event {input_dict['id_cmt']}_{nslc}_{row_obs['phase']:s}_{row_obs['t_taup']:.2f}s.pdf'
 
         ###
@@ -822,7 +826,9 @@ def corr_twin_plot(input_dict, params_in, logfile, log_statement, nslc,
 
         if not os.path.exists(pic_loc):
             os.makedirs(pic_loc, exist_ok=True)
-        plt.savefig(pic_loc + '/' + pic_filename, format = 'pdf')
+
+        plt.savefig(f'{pic_loc}/{pic_filename}', format = 'pdf')
+
         plt.close()
     else:
         plt.show()
@@ -850,7 +856,8 @@ def select_windows(input_dict, twin_in_obs, twin_df_obs, twin_in_syn, twin_df_sy
     params_in = input_dict['params_in']
 
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement = toolkit.get_log_statement(input_dict['event_id'], twin_in_obs) + ', ' + str(inspect.stack()[0][3])
+    log_statement = f'{toolkit.get_log_statement(input_dict['event_id'], twin_in_obs)}, {str(inspect.stack()[0][3])}'
+
     if fail:
         ###
         toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
@@ -918,7 +925,8 @@ def save_tdelay_files(input_dict, twin_in_obs, twin_df_obs, twin_in_syn, twin_df
     params_in = input_dict['params_in']
 
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement = toolkit.get_log_statement(input_dict['event_id'], twin_in_obs) + ', ' + str(inspect.stack()[0][3])
+    log_statement =  f'{toolkit.get_log_statement(input_dict['event_id'], twin_in_obs)}, {str(inspect.stack()[0][3])}'
+
     if fail:
         ###
         toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
@@ -951,11 +959,12 @@ def open_log_file(input_dict):
     '''
     params_in = input_dict['params_in']
 
-    lf_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time']) + '/' + os.path.basename(__file__).split('.')[0]
+    lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
+
     if not os.path.exists(lf_loc):
         os.makedirs(lf_loc, exist_ok=True)
 
-    lf_name = lf_loc + '/' + str(input_dict['id_fmt_ctm']) + '.log'
+    lf_name = f'{lf_loc}/{str(input_dict['id_fmt_ctm'])}.log'
 
     logfile = open(lf_name,'w')
     return logfile
@@ -968,11 +977,12 @@ def open_outfile_file(input_dict):
     '''
     params_in = input_dict['params_in']
 
-    of_loc = params_in['home'] + '/' + params_in['tdelay_loc'] + '/' + params_in['phase_a_obs_out_loc'][-2:] + params_in['component'] + '-' + params_in['phase_a_syn_out_loc'][-2:] + params_in['component']
+    of_loc = f'{params_in['home']}/{params_in['tdelay_loc']}/{params_in['phase_a_obs_out_loc'][-2:]}{params_in['component']}-{params_in['phase_a_syn_out_loc'][-2:]}{params_in['component']}'
+
     if not os.path.exists(of_loc):
         os.makedirs(of_loc, exist_ok=True)
 
-    of_name = of_loc + '/' + str(input_dict['id_ctm']) + '.T.tdl'
+    of_name = f'{of_loc}/{str(input_dict['id_ctm'])}.T.tdl'
 
     outfile = open(of_name,'w')
     return outfile
@@ -1135,12 +1145,12 @@ def main():
     params_in = toolkit.get_params('params_in.yaml')
 
     # Define input data directory and function list.
-    input_directory = str(params_in['synth_loc']) + '/e' + str(params_in['year']) + str(params_in['fmt_data_loc'])
+    input_directory = f'{params_in['synth_loc']}/e{str(params_in['year'])}{params_in['fmt_data_loc']}'
 
     functions = [correlate_windows, select_windows, save_tdelay_files]
 
     # Get event id table as pandas data frame
-    evt_id_tab = toolkit.get_event_id_table(params_in['cmt_outfile'])
+    evt_id_tab = toolkit.get_event_id_table(params_in)
 
     # Get phases names dictionary 
     import v01_phasenames

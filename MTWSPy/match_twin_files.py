@@ -40,8 +40,8 @@ def find_common_events(params_in):
     ###
 
     # Get root folder, channel names, outfile name
-    fold_root = params_in['home'] + '/' + params_in['twin_loc'] + '/raw'
-    cha_obs, cha_syn = str(params_in['twin_obs_out_loc'][-2:]) + str(params_in['component']), str(params_in['twin_syn_out_loc'][-2:]) + str(params_in['component'])
+    fold_root = f'{params_in['home']}/{params_in['twin_loc']}/raw'
+    cha_obs, cha_syn = f'{str(params_in['twin_obs_out_loc'][-2:])}{str(params_in['component'])}', f'{str(params_in['twin_syn_out_loc'][-2:])}{str(params_in['component'])}'
     outfile = params_in['mtf_outfilename']
 
     ###
@@ -70,11 +70,11 @@ def find_common_events(params_in):
 
 
     # Find obs and syn twin files
-    fold_obs = fold_root + '/' +  'obs' + '/' +  cha_obs
-    fold_syn = fold_root + '/' +  'syn' + '/' +  cha_syn
+    fold_obs = f'{fold_root}/obs/{cha_obs}'
+    fold_syn = f'{fold_root}/syn/{cha_syn}'
 
-    files_obs = sorted(glob.glob(fold_obs + '/' + '*.' + cha_obs + '.twin'))
-    files_syn = sorted(glob.glob(fold_syn + '/' + '*.' + cha_syn + '.twin'))
+    files_obs = sorted(glob.glob(f'{fold_obs}/*.{cha_obs}.twin'))
+    files_syn = sorted(glob.glob(f'{fold_syn}/*.{cha_syn}.twin'))
 
     # Find common evid
     # First take full path-filename, remove path, remove cha.twin
@@ -115,7 +115,7 @@ def find_common_events(params_in):
         outfile = open(outfile,'w')
         for i in range(len(evid_com)):
             toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  adding: {evid_com[i]}')
-            outfile.write(str(evid_com[i]) + '\n')
+            outfile.write(f'{str(evid_com[i])}\n')
         outfile.close()
 
         toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  {n_com} / {np.max([len(evnames_obs), len(evnames_syn)])} possible common evids written...')
@@ -152,11 +152,11 @@ def open_log_file(params_in):
     Return an open log file in log_loc/'code_start_time'/'filename'/match_twin_files.log
     '''
     # Get location of logfile
-    lf_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time']) + '/' + os.path.basename(__file__).split('.')[0]
+    lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
     if not os.path.exists(lf_loc):
         os.makedirs(lf_loc, exist_ok=True)
 
-    lf_name = lf_loc + '/match_twin_files.log'
+    lf_name = f'{lf_loc}/match_twin_files.log'
 
     logfile = open(lf_name,'w')
     return logfile

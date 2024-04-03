@@ -1,4 +1,4 @@
-import glob, sys, os, inspect
+import glob, sys, os
 import yaml
 from yaml.loader import SafeLoader
 import pandas as pd
@@ -21,7 +21,8 @@ def check_files(loc, year, component):
     specified year and component
     Otherwise quit the code...
     '''
-    check_name = str(loc)+'/'+str(year)+'*/'+str(year)+'*'+str(component)
+    check_name = f'{loc}/{str(year)}*/{str(year)}*{component}'
+
     filelist = glob.glob(check_name)
     
     numfiles = len(filelist)
@@ -49,17 +50,19 @@ def get_params(params_filename):
     now = datetime.now()
     params['code_start_time'] = now.strftime("%Y%m%d%H%M%S")
 
-    cha_obs, cha_syn = str(params['twin_obs_out_loc'][-2:])+str(params['component']), str(params['twin_syn_out_loc'][-2:])+str(params['component'])
-    params['mtf_outfilename'] = params['home']+'/'+params['code_loc']+'/'+str(params['mtf_prefix']) + '.' + cha_obs + '-' + cha_syn
+    cha_obs, cha_syn = f'{params['twin_obs_out_loc'][-2:]}{params['component']}', f'{params['twin_syn_out_loc'][-2:]}{params['component']}'
+    params['mtf_outfilename'] = f'{params['home']}/{params['code_loc']}/{str(params['mtf_prefix'])}_{str(params['year'])}.{cha_obs}-{cha_syn}'
 
     return params
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-def get_event_id_table(cmt_outfile):
+def get_event_id_table(params):
     '''
     Get event id table as pandas data frame
     '''
-    tab = pd.read_csv(cmt_outfile)
+    cmt_outfile_name = f'{params['cmt_outfile']}_{str( params['year'])}.csv'
+
+    tab = pd.read_csv(cmt_outfile_name)
 
     return tab
 
@@ -69,7 +72,7 @@ def get_log_statement(event_id, filename):
     Return statement for logfile 
     '''
     filename_p = filename.split('/')[-1]
-    statement = str(event_id)+', '+str(filename_p)
+    statement = f'{event_id}, {filename_p}'
 
     return statement
 
@@ -102,7 +105,7 @@ def print_log(params, logfile, statement):
         print(statement)
     
     try:
-        logfile.write(statement+'\n')
+        logfile.write(f'{statement}\n')
     except:
         # Probably something that cannot be written just printed.
         pass
@@ -116,11 +119,11 @@ def open_io_log_file(params_in):
     Return an open input/output log file in log_loc/'code_start_time'/steps_results.log
     '''
 
-    lf_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time'])
+    lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}'
     if not os.path.exists(lf_loc):
         os.makedirs(lf_loc, exist_ok=True)
 
-    lf_name = lf_loc + '/io_results.log'
+    lf_name = f'{lf_loc}/io_results.log'
 
     if not os.path.isfile(lf_name):
         print_header = 1
@@ -196,13 +199,13 @@ def get_input_dicts(input_directory, evt_id_tab, functions, params_in, phases):
     '''
 
     # Finds files, makes input dictionary of files, functions, inputs
-    events = sorted(glob.glob(input_directory+'/'+str(params_in['year'])+'*'))
+    events = sorted(glob.glob(f'{input_directory}/{str(params_in['year'])}*'))
     input_dicts = []
 
     if len(events) == 0:
         # No events found...
         print('----------')
-        print('----------////   NO-EVENTS-IN: '+str(input_directory)+'    ////----------')
+        print(f'----------////   NO-EVENTS-IN: {input_directory}    ////----------')
     else:
 
         print('----------')
@@ -224,7 +227,7 @@ def get_input_dicts(input_directory, evt_id_tab, functions, params_in, phases):
 
             # Should only be one unique event...
             if len(ind) == 1: 
-                print(str(ind[0])+', '+str(event))
+                print(f'{str(ind[0])}, {str(event)}')
                 input_dict = {}
                 input_dict['event'] = event
                 input_dict['event_id'] = ind[0]

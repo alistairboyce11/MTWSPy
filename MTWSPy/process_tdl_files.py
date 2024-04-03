@@ -38,15 +38,14 @@ def apply_stuff(params, sort_functions):
     outputs_all : dataframe
         contains the dataframe output of all the sort functions.
     '''
-    input_directory = params['home'] + '/' + params['tdelay_loc'] + '/' \
-                    + params['phase_a_obs_out_loc'][-2:] + params['component'] + '-' \
-                    + params['phase_a_syn_out_loc'][-2:] + params['component'] + '-XC-complete'
+    input_directory = f'{params['home']}/{params['tdelay_loc']}/
+                        {params['phase_a_obs_out_loc'][-2:]}{params['component']}-{params['phase_a_syn_out_loc'][-2:]}{params['component']}'
 
     cores = params['cores']
 
-    print('Processing tdl results for: ' +str(input_directory)+' using '+str(cores)+' cores...')
+    print(f'Processing tdl results for: {str(input_directory)} using {str(cores)} cores...')
 
-    files=glob.glob(input_directory+'/*.tdl')
+    files=glob.glob(f'{input_directory}/*.tdl')
 
     files.sort()
     
@@ -136,7 +135,7 @@ def process_one_file(input_dict):
             tdl_df = output_df
 
     else:
-        print('Failed to read: ' + file + ', or empty...')
+        print(f'Failed to read: {file}, or empty...')
 
     return tdl_df
 
@@ -271,7 +270,7 @@ def filt_networks(params, input_df):
 
         for network in params['networks']:
 
-            string = network + "_"
+            string = f'network_'
 
             res = input_df[input_df['nslc'].str.contains(string)]
             cat_df = pd.concat([output_df, res], ignore_index=True)
@@ -482,23 +481,16 @@ def write_station_means(params, input_df):
     outputs : saved output file: filename_out
     '''
 
-    output_directory = params['home'] + '/' + params['proc_tdl_loc'] + '/'
+    output_directory = f'{params['home']} /{params['proc_tdl_loc']}/'
 
     if not os.path.exists(output_directory):
         os.makedirs(output_directory, exist_ok=True)
 
-    filename_out = output_directory + params['out_f_name'] + '_station_means.out'
+    filename_out = f'{output_directory}{params['out_f_name']}_station_means.out'
 
     input_df.to_csv(filename_out, index=False) 
 
     return
-
-
-
-
-
-
-
 
 
 ############################################################################
@@ -554,7 +546,7 @@ def compute_tt_diffs(input_df, diff_phases):
                     stla = float(ph1_df['stla'].iloc[0])
                     stlo = float(ph1_df['stlo'].iloc[0])
                     stel = float(ph1_df['stel'].iloc[0])
-                    phase = str(diff_phases[0]) + '-' + str(diff_phases[1])
+                    phase = f'{str(diff_phases[0])}-{str(diff_phases[1])}'
                     tderr = np.round(np.mean([ph1_df['tderr'].iloc[0], ph2_df['tderr'].iloc[0]]),3)
                     ccmx = np.round(np.mean([ph1_df['ccmx'].iloc[0], ph2_df['ccmx'].iloc[0]]),3)
                     tdelay_p1 = float(ph1_df['tdelay'].iloc[0])
@@ -600,18 +592,19 @@ def write_tdl_summary_file(params, input_df):
     outputs : saved output file: filename_out
     '''
 
-    output_directory = params['home'] + '/' + params['proc_tdl_loc'] + '/'
+    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
 
     if not os.path.exists(output_directory):
         os.makedirs(output_directory, exist_ok=True)
 
-    print('Sending output to: ' +str(output_directory))
+    print(f'Sending output to: {str(output_directory)}')
 
-    filename_out = output_directory + params['out_f_name'] + '.out'
+    filename_out = f'{output_directory}{params['out_f_name']}.out'
 
     input_df.to_csv(filename_out, index=False) 
 
-    print('Written travel time delay summary file to: '+str(filename_out))
+    print(f'Written travel time delay summary file to: {str(filename_out)}')
+
     return
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
@@ -629,15 +622,15 @@ def write_tt_diff_summary_file(params, input_df):
     outputs : saved output file: filename_out
     '''
 
-    output_directory = params['home'] + '/' + params['proc_tdl_loc'] + '/'
+    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
 
     if not os.path.exists(output_directory):
         os.makedirs(output_directory, exist_ok=True)
-    filename_out = output_directory + params['out_f_name'] + '_' + str(params['diff_phases'][0]) + '-' + str(params['diff_phases'][1]) + '.out'
+    filename_out = f'{output_directory}{params['out_f_name']}_{str(params['diff_phases'][0])}-{str(params['diff_phases'][1])}.out'
 
     input_df.to_csv(filename_out, index=False) 
 
-    print('Written travel time diffs delay summary file to: '+str(filename_out))
+    print(f'Written travel time diffs delay summary file to: {str(filename_out)}')
     return
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 

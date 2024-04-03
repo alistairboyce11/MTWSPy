@@ -11,11 +11,11 @@ def open_log_file(params):
     Return an open log file in log_loc/'code_start_time'/'filename'/mk_csv_events_df.log
     '''
 
-    lf_loc = params['home'] + '/' + params['log_loc'] + '/'+str(params['code_start_time']) + '/'+os.path.basename(__file__).split('.')[0]
+    lf_loc = f'{params['home']}/{params['log_loc']}/{str(params['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
     if not os.path.exists(lf_loc):
         os.makedirs(lf_loc, exist_ok=True)
 
-    lf_name = lf_loc + '/mk_csv_events_df.log'
+    lf_name = f'{lf_loc}/mk_csv_events_df.log'
 
     logfile = open(lf_name,'w')
     
@@ -32,7 +32,7 @@ def write_params_logfile(params, logfile):
     logfile.write(' ')
     logfile.write('----------////               INPUT PARAMETERS                ////----------\n')
 
-    params_list = ['min_year', 'max_year', 'cmt_infile', 'cmt_outfile', 'match_error_time', 'match_error_lat', 'match_error_lon', 'match_error_dep', 'match_error_mag']
+    params_list = ['cmt_infile', 'cmt_outfile', 'year', 'match_error_time', 'match_error_lat', 'match_error_lon', 'match_error_dep', 'match_error_mag']
     for k, param in enumerate(params_list):
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format(param,' : ',str(params[param]), x = justify) )
     
@@ -62,13 +62,14 @@ def get_cmt_catalog(params, logfile):
     id_dmt_fmt_ctm: format string for dmt centroid time
     id_dmt_fmt_htm: format string for dmt hypocentral time
     '''
-    log_statement = '* ' + os.path.basename(__file__).split('.')[0] + ', '+str(inspect.stack()[0][3])
+    log_statement = f'* {os.path.basename(__file__).split('.')[0]}, {str(inspect.stack()[0][3])}'
     
     ###
     toolkit.print_log(params, logfile, f'{log_statement:s}  ,  Reading CMT catalog')
     ###
     
-    cat = pd.read_csv(params['home']+'/'+params['cmt_infile'])
+    cmt_fname = f'{params['home']}/{params['cmt_infile']}'
+    cat = pd.read_csv(cmt_fname)
 
     ############## This recreates id from other field.
     evtm = []; evhtm = []; id_ctm = []; id_htm = [] 
@@ -129,7 +130,7 @@ def get_cmt_catalog(params, logfile):
 
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-def get_dmt_catalog_year(params, d_year, logfile):
+def get_dmt_catalog_year(params, logfile):
     '''
     Read obspy dmt catalog_table.txt file into pandas dataframe
     With the following columns:
@@ -138,9 +139,18 @@ def get_dmt_catalog_year(params, d_year, logfile):
 
     Return dataframe
     '''
-    log_statement = '* '+os.path.basename(__file__).split('.')[0]+', '+str(inspect.stack()[0][3])
+    log_statement = f'* {os.path.basename(__file__).split('.')[0]}, {str(inspect.stack()[0][3])}'
+    ###
+    toolkit.print_log(params, logfile, f'{log_statement:s}  ,  Get sorted DMT catalog...')
+    ###
 
-    f_loc = params['home']+'/dmt/e'+str(d_year)+'/EVENTS-INFO/catalog_table.txt'
+    d_year = params['year']
+    
+    ###
+    toolkit.print_log(params, logfile, f'{log_statement:s}  ,  Requesting DMT catalog year {d_year:d}...')
+    ###
+
+    f_loc = f'{params['data_loc']}/e{str(d_year)}/EVENTS-INFO/catalog_table.txt'
 
     if os.path.isfile(f_loc):  
         
@@ -164,16 +174,23 @@ def get_dmt_catalog_year(params, d_year, logfile):
                 LAT.append(float(line.split()[1]))
                 LON.append(float(line.split()[2]))
                 DEP.append(float(line.split()[3]))
-                DATETIME.append(UTCDateTime(str(line.split()[4])))
+                DATETIME.append(str(UTCDateTime(str(line.split()[4]))))
                 MAG.append(float(line.split()[5]))
                 EV_ID.append(str(line.split()[7]))
 
                 out_cat.append([int(line.split()[0]), float(line.split()[1]), 
                                 float(line.split()[2]), float(line.split()[3]), 
-                                UTCDateTime(str(line.split()[4])), float(line.split()[5]),str(line.split()[7])])
+                                str(UTCDateTime(str(line.split()[4]))), float(line.split()[5]),str(line.split()[7])])
 
         column_names = ['N','LAT', 'LON', 'DEP', 'DATETIME', 'MAG', 'EV_ID']
-        dmt_cat = pd.DataFrame(sorted(out_cat),columns = column_names)
+        dmt_cat = pd.DataFrame(sorted(out_cat), columns = column_names)
+        
+        # Drop duplicated rows
+        dmt_cat = dmt_cat.drop_duplicates() 
+
+        ###
+        toolkit.print_log(params, logfile, f'{log_statement:s}  ,  DMT catalog returned for year : {d_year:d}...')
+        ###
 
     else:
         # Return empty dataframe
@@ -188,43 +205,6 @@ def get_dmt_catalog_year(params, d_year, logfile):
     return dmt_cat
 
 
-
-# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-def get_dmt_catalog(params,logfile):
-    '''
-    Determine the number of years required in matched catalog
-    Use get_dmt_catalog_year to get dataframe for each year requested from dmt file.
-    Sort by EV_ID and return dmt dataframe
-    '''
-
-    log_statement = '* ' + os.path.basename(__file__).split('.')[0] + ', '+str(inspect.stack()[0][3])
-    toolkit.print_log(params, logfile, f'{log_statement:s}  ,  Get sorted DMT catalog...')
-
-    if params['min_year'] == params['max_year']:
-        d_year = params['min_year']
-        dmt_cat = get_dmt_catalog_year(params, d_year, logfile)
-    else:
-        data_years = range(params['min_year'], params['max_year']+1,1)
-        for d, d_year in enumerate(data_years):
-
-            ###
-            toolkit.print_log(params, logfile, f'{log_statement:s}  ,  Requesting DMT catalog year {d_year:d}...')
-            ###
-
-            out_cat = get_dmt_catalog_year(params, d_year, logfile)
-            if d != 0:
-                out_cat = pd.concat([dmt_cat,out_cat]).reset_index(drop = True)
-
-            dmt_cat = out_cat
-
-    dmt_cat = dmt_cat.sort_values(by = ['EV_ID'])
-
-    ###
-    toolkit.print_log(params, logfile, f'{log_statement:s}  ,  Concatenated DMT catalog returned...')
-    ###
-
-    return dmt_cat
-
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 def get_match_catalog(params, cat, dmt_cat, logfile):
     '''
@@ -232,8 +212,7 @@ def get_match_catalog(params, cat, dmt_cat, logfile):
     Using error values in params (time, lat, lon, depth, magnitude)
     If match found, output to dataframe
     '''
-    log_statement = '* ' + os.path.basename(__file__).split('.')[0] + ', '+str(inspect.stack()[0][3])
-    
+    log_statement = f'* {os.path.basename(__file__).split('.')[0]}, {str(inspect.stack()[0][3])}'
     ###
     toolkit.print_log(params, logfile, f'{log_statement:s}  ,  Attempting CMT-DMT catalog match...')
     ###
@@ -256,7 +235,7 @@ def get_match_catalog(params, cat, dmt_cat, logfile):
             # Now check the times.
             ind2 = []
             for m in ind:
-                if np.abs(row['DATETIME']-cat['evtm'][m]) <= params['match_error_time']:
+                if np.abs(UTCDateTime(row['DATETIME'])-cat['evtm'][m]) <= params['match_error_time']:
                     ind2.append(m)
 
             if len(ind2) < 1:
@@ -306,16 +285,18 @@ def write_match_catalog(params, df_out,logfile):
     Saves: matched event catalog as csv
     Returns: Nothing
     '''
-    log_statement = '* ' + os.path.basename(__file__).split('.')[0] + ', '+str(inspect.stack()[0][3])
+    log_statement = f'* {os.path.basename(__file__).split('.')[0]}, {str(inspect.stack()[0][3])}'
+
+    cmt_outfile_name = f'{params['cmt_outfile']}_{str( params['year'])}.csv'
 
     ###
     toolkit.print_log(params, logfile, f'{log_statement:s}  ')
-    toolkit.print_log(params, logfile, f'{log_statement:s}  ,  Saving the following DataFrame to: '+str(params['cmt_outfile']))
+    toolkit.print_log(params, logfile, f'{log_statement:s}  ,  Saving the following DataFrame to: {str(cmt_outfile_name)}')
     toolkit.print_log(params, logfile, f'{log_statement:s}  ')
     toolkit.print_log(params, logfile, df_out)
     ###
 
-    df_out.to_csv(str(params['cmt_outfile']), index = False)
+    df_out.to_csv(str(cmt_outfile_name), index = False)
     return
 
 
@@ -329,14 +310,14 @@ def execute(params_in):
     Returns: matched catalog dataframe object.
     '''
     logfile = open_log_file(params_in)
-    logfile = write_params_logfile(params_in,logfile)
+    logfile = write_params_logfile(params_in, logfile)
 
     # Get CMT catalog
-    cmt_cat = get_cmt_catalog(params_in,logfile)
+    cmt_cat = get_cmt_catalog(params_in, logfile)
 
     # Get DMT catalog
-    dmt_cat = get_dmt_catalog(params_in,logfile)
-
+    dmt_cat = get_dmt_catalog_year(params_in, logfile)
+            
     # Match the two catalogs
     match_catalog = get_match_catalog(params_in, cmt_cat, dmt_cat, logfile)
 
@@ -356,13 +337,13 @@ def main():
     params_in = toolkit.get_params('params_in.yaml')
 
     logfile = open_log_file(params_in)
-    logfile = write_params_logfile(params_in,logfile)
+    logfile = write_params_logfile(params_in, logfile)
 
     # Get CMT catalog
-    cmt_cat = get_cmt_catalog(params_in,logfile)
+    cmt_cat = get_cmt_catalog(params_in, logfile)
 
     # Get DMT catalog
-    dmt_cat = get_dmt_catalog(params_in,logfile)
+    dmt_cat = get_dmt_catalog_year(params_in, logfile)
 
     # Match the two catalogs
     match_catalog = get_match_catalog(params_in, cmt_cat, dmt_cat, logfile)  

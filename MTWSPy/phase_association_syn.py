@@ -47,8 +47,8 @@ def process_one_event(input_dict):
         if id_ctm in input_dict['match_twin_files']:
             # This event is matched... proceed.
 
-            tw_loc = params_in['home'] + '/' + params_in['twin_loc'] + '/' + params_in['twin_syn_out_loc'] + params_in['component']
-            twin_in = tw_loc + '/' + str(id_ctm) + '.' + params_in['twin_syn_out_loc'][-2:] + params_in['component']+'.twin'
+            tw_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['twin_syn_out_loc']}{params_in['component']}'
+            twin_in = f'{tw_loc}/{str(id_ctm)}.{params_in['twin_syn_out_loc'][-2:]}{params_in['component']}.twin'
             
             if os.path.isfile(twin_in):
                 # read twin file
@@ -237,11 +237,12 @@ def open_log_file(input_dict):
     '''
     params_in = input_dict['params_in']
 
-    lf_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time'])+'/' + os.path.basename(__file__).split('.')[0]
+    lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
+
     if not os.path.exists(lf_loc):
         os.makedirs(lf_loc, exist_ok=True)
 
-    lf_name = lf_loc + '/' + str(input_dict['id_fmt_ctm']) + '.log'
+    lf_name = f'{lf_loc}/{str(input_dict['id_fmt_ctm'])}.log'
 
     logfile = open(lf_name, 'w')
     return logfile
@@ -254,11 +255,11 @@ def open_outfile_file(input_dict):
     '''
     params_in = input_dict['params_in']
 
-    of_loc = params_in['home'] + '/' + params_in['twin_loc'] + '/' + params_in['phase_a_syn_out_loc'] + params_in['component']
+    of_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['phase_a_syn_out_loc']}{params_in['component']}'
     if not os.path.exists(of_loc):
         os.makedirs(of_loc, exist_ok=True)
 
-    of_name = of_loc + '/' + str(input_dict['id_ctm']) + '.'+params_in['phase_a_syn_out_loc'][-2:] + params_in['component'] + '.twin'
+    of_name = f'{of_loc}/{str(input_dict['id_ctm'])}.{params_in['phase_a_syn_out_loc'][-2:]}{params_in['component']}.twin'
 
     outfile = open(of_name, 'w')
     return outfile
@@ -270,12 +271,12 @@ def main():
     params_in = toolkit.get_params('params_in.yaml')
 
     # Define input data directory and function list.
-    input_directory = str(params_in['synth_loc']) + '/e'+str(params_in['year']) + str(params_in['fmt_data_loc'])
+    input_directory = f'{str(params_in['synth_loc'])}/e{str(params_in['year'])}{str(params_in['fmt_data_loc'])}'
 
     functions = [phase_association_obs.associate_twin_phase]
 
     # Get event id table as pandas data frame
-    evt_id_tab = toolkit.get_event_id_table(params_in['cmt_outfile'])
+    evt_id_tab = toolkit.get_event_id_table(params_in)
 
     # Get phases names dictionary 
     import v01_phasenames
