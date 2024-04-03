@@ -480,7 +480,7 @@ def write_station_means(params, input_df):
     outputs : saved output file: filename_out
     '''
 
-    output_directory = f'{params['home']} /{params['proc_tdl_loc']}/'
+    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
 
     if not os.path.exists(output_directory):
         os.makedirs(output_directory, exist_ok=True)
