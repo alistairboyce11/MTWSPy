@@ -20,22 +20,22 @@ def main():
     params_in = toolkit.get_params('params_in.yaml')
 
     # Define observed data input directory
-    obs_input_directory = str(params_in['data_loc']) + '/e'+str(params_in['year']) + str(params_in['fmt_data_loc'])
+    obs_input_directory = f'{str(params_in['data_loc'])}/e{str(params_in['year'])}{str(params_in['fmt_data_loc'])}'
     # Define synthetic data input directory
-    syn_input_directory = str(params_in['synth_loc']) + '/e'+str(params_in['year']) + str(params_in['fmt_data_loc'])
+    syn_input_directory = f'{str(params_in['synth_loc'])}/e{str(params_in['year'])}{str(params_in['fmt_data_loc'])}'
 
 
-    ######### Check for presence of Data files #########
+    ######## Check for presence of Data files #########
     toolkit.check_files(obs_input_directory, params_in['year'], params_in['component'])
     
-    ######### Check for presence of Synth files #########
+    ######## Check for presence of Synth files #########
     toolkit.check_files(syn_input_directory, params_in['year'], params_in['component'])
 
     #########          mk_events_csv.py        #########
     # print(mk_events_csv)
     # Can choose between below
-    # evt_id_tab = mk_events_csv.execute(params_in)
-    evt_id_tab = toolkit.get_event_id_table(params_in['cmt_outfile'])
+    evt_id_tab = mk_events_csv.execute(params_in)
+    # evt_id_tab = toolkit.get_event_id_table(params_in)
 
     #########     v01_phasenames.py           ##########
     # Get phases

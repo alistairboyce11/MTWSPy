@@ -55,7 +55,8 @@ def process_one_event(input_dict):
     outfile = write_params_outfile(input_dict, outfile)
 
     # List of files in the event
-    files = sorted(glob.glob(event + '/' + str(params_in['year']) + '*' + str(params_in['component'])))
+    files = sorted(glob.glob(f'{event}/{str(params_in['year'])}*{str(params_in['component'])}'))
+
     num_files = len(files)
 
     # Counting stats
@@ -66,17 +67,17 @@ def process_one_event(input_dict):
     if num_files ==  0:
         # No files found...
         ###
-        toolkit.print_log(params_in, logfile, f'----------////   NO-FILES-IN: ' + str(event) + '    ////----------')
+        toolkit.print_log(params_in, logfile, f'----------////   NO-FILES-IN: {str(event)}    ////----------')
         ###
 
     else:
         ###
-        toolkit.print_log(params_in, logfile, f'----------////    WORKING ON: ' + str(event) + '    ////----------')
+        toolkit.print_log(params_in, logfile, f'----------////    WORKING ON: {str(event)}    ////----------')
         ###
 
         # Loop through file list and apply functions to each
         for k, file in enumerate(files):
-            log_statement = toolkit.get_log_statement(event_id, file) + ', [' + str(k + 1) + '/' + str(num_files) + ']'
+            log_statement = f'{toolkit.get_log_statement(event_id, file)}, [{str(k + 1)}/{str(num_files)}]'
 
             ###
             toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  PROCESSING.....')
@@ -137,7 +138,7 @@ def write_params_logfile(input_dict, logfile):
     logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min noise window length [s]',' : ',str(params_in['min_nois_win_f']*params_in['T2']), x = justify) )
     logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min window size [s]',' : ', str(max(params_in['min_win_span_f'][0]*params_in['T1'],params_in['min_win_span_f'][1])), x = justify) )
     logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('taup phases',' : ',str(phases[str(params_in['phases_key'])][str(params_in['component'])]), x = justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output loc',' : ',str(params_in['home'] + '/' + params_in['twin_obs_out_loc'] + params_in['component']), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output loc',' : ', f'{params_in['home']}/{params_in['twin_obs_out_loc']}{params_in['component']}', x = justify) )
     logfile.write('')
     if '/specfem/' in input_dict['event']:
         min_amp = float(params_in['min_amp_syn'])
@@ -206,9 +207,9 @@ def write_params_outfile(input_dict, outfile):
     outfile.write('{0:<20s} {1:s} {2:s}\n'.format('columns format',' : ',params_in['twin_outfmt']))
     for h,header in enumerate(params_in['twin_obs_outcols']):
         if h < len(params_in['twin_obs_outcols']) - 1:
-            outfile.write('{0:s}'.format(header + ','))
+            outfile.write('{0:s}'.format(f'{header},'))
         else:
-            outfile.write('{0:s}'.format(header + '\n'))
+            outfile.write('{0:s}'.format(f'{header}\n'))
     
     return outfile
 
@@ -229,7 +230,7 @@ def get_tt_times(input_dict, filename, seis, logfile, outfile, fail):
     '''
 
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement = toolkit.get_log_statement(input_dict['event_id'], filename) + ', ' + str(inspect.stack()[0][3])
+    log_statement = f'{toolkit.get_log_statement(input_dict['event_id'], filename)}, {str(inspect.stack()[0][3])}'
     params_in = input_dict['params_in']
 
     if fail:
@@ -294,7 +295,7 @@ def primary_qc(input_dict, filename, seis, logfile, outfile, fail):
     '''
         
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement = toolkit.get_log_statement(input_dict['event_id'], filename) + ', ' + str(inspect.stack()[0][3])
+    log_statement = f'{toolkit.get_log_statement(input_dict['event_id'], filename)}, {str(inspect.stack()[0][3])}'
     params_in = input_dict['params_in']
 
     if fail:
@@ -408,7 +409,7 @@ def filter_seis(input_dict, filename, seis, logfile, outfile, fail):
     '''
         
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement = toolkit.get_log_statement(input_dict['event_id'], filename) + ', ' + str(inspect.stack()[0][3])
+    log_statement = f'{toolkit.get_log_statement(input_dict['event_id'], filename)}, {str(inspect.stack()[0][3])}'
     params_in = input_dict['params_in']
 
     if fail:
@@ -453,7 +454,7 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
     '''
 
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement = toolkit.get_log_statement(input_dict['event_id'], filename) + ', ' + str(inspect.stack()[0][3])
+    log_statement = f'{toolkit.get_log_statement(input_dict['event_id'], filename)}, {str(inspect.stack()[0][3])}'
     params_in = input_dict['params_in']
 
     if fail:
@@ -470,7 +471,7 @@ def detect_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
         stla = float(seis[0].stats['sac']['stla']) # Station latitude
         stlo = float(seis[0].stats['sac']['stlo']) # Station longitude
 
-        nslc = str(seis[0].stats['network']) + '_' + str(seis[0].stats['station']) + '.' + str(seis[0].stats['location']) + '.' + str(seis[0].stats['channel'])
+        nslc = f'{str(seis[0].stats['network'])}_{str(seis[0].stats['station'])}.{str(seis[0].stats['location'])}.{str(seis[0].stats['channel'])}'
 
         t = seis[0].times(reftime = UTCDateTime(str(input_dict['evtm'])))
 
@@ -610,7 +611,7 @@ def filter_window_peaks(input_dict, filename, seis, logfile, outfile, fail):
     '''
 
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement = toolkit.get_log_statement(input_dict['event_id'], filename) + ', ' + str(inspect.stack()[0][3])
+    log_statement = f'{toolkit.get_log_statement(input_dict['event_id'], filename)}, {str(inspect.stack()[0][3])}'
     params_in = input_dict['params_in']
 
     if fail:
@@ -754,7 +755,7 @@ def plot_waveform_envelope_peaks_windows(input_dict, filename, seis, logfile, ou
     '''
     
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement = toolkit.get_log_statement(input_dict['event_id'], filename) + ', ' + str(inspect.stack()[0][3])
+    log_statement = f'{toolkit.get_log_statement(input_dict['event_id'], filename)}, {str(inspect.stack()[0][3])}'
     params_in = input_dict['params_in']
 
     if fail:
@@ -827,11 +828,11 @@ def plot_waveform_envelope_peaks_windows(input_dict, filename, seis, logfile, ou
             # background SNR level
             if '/dmt/' in input_dict['event']:
                 ax1.axhline(y = e_noi_m * params_in['min_snr'], xmin = t[0], xmax = t[-1], ls = '--', lw = 0.25, color = 'c',label = f'mean(env(noise)) * [1, {params_in['min_snr']}]')
-                pic_loc = params_in['home'] + '/' + params_in['twin_loc'] + '/' + params_in['twin_obs_pic_loc'] + params_in['component']
+                pic_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['twin_obs_pic_loc']}{params_in['component']}'
 
             if '/specfem/' in input_dict['event']:
                 ax1.axhline(y = e_sig_m, xmin = t[0], xmax = t[-1], ls = '--', lw = 0.25, color = 'c',label = f'median(env(sigwin))')
-                pic_loc = params_in['home'] + '/' + params_in['twin_loc'] + '/' + params_in['twin_syn_pic_loc'] + params_in['component']
+                pic_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['twin_syn_pic_loc']}{params_in['component']}'
 
             # Add predicted times to both subfigures
             for key, value in ttt.items():
@@ -862,7 +863,7 @@ def plot_waveform_envelope_peaks_windows(input_dict, filename, seis, logfile, ou
                 
                 if not os.path.exists(pic_loc):
                     os.makedirs(pic_loc, exist_ok=True)
-                plt.savefig(pic_loc + '/' + pic_filename, format = 'pdf')
+                plt.savefig(f'{pic_loc}/{pic_filename}', format = 'pdf')
                 plt.close()
             else:
                 plt.show()
@@ -1015,11 +1016,12 @@ def open_log_file(input_dict):
     '''
     params_in = input_dict['params_in']
 
-    lf_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time']) + '/' + os.path.basename(__file__).split('.')[0]
+    lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
+
     if not os.path.exists(lf_loc):
         os.makedirs(lf_loc, exist_ok=True)
 
-    lf_name = lf_loc + '/' + str(input_dict['id_fmt_ctm']) + '.log'
+    lf_name = f'{lf_loc}/{str(input_dict['id_fmt_ctm'])}.log'
 
     logfile = open(lf_name,'w')
     
@@ -1033,11 +1035,12 @@ def open_outfile_file(input_dict):
     '''
     params_in = input_dict['params_in']
 
-    of_loc = params_in['home'] + '/' + params_in['twin_loc'] + '/' + params_in['twin_obs_out_loc'] + params_in['component']
+    of_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['twin_obs_out_loc']}{params_in['component']}'
+
     if not os.path.exists(of_loc):
         os.makedirs(of_loc, exist_ok=True)
 
-    of_name = of_loc + '/' + str(input_dict['id_ctm']) + '.' + params_in['twin_obs_out_loc'][-2:] + params_in['component'] + '.twin'
+    of_name = f'{of_loc}/{str(input_dict['id_ctm'])}.{params_in['twin_obs_out_loc'][-2:]}{params_in['component']}.twin'
 
     outfile = open(of_name,'w')
 
@@ -1075,12 +1078,12 @@ def main():
     params_in = toolkit.get_params('params_in.yaml')
 
     # Define input data directory and function list.
-    input_directory = str(params_in['data_loc']) + '/e' + str(params_in['year']) + str(params_in['fmt_data_loc'])
+    input_directory = f'{str(params_in['data_loc'])}/e{str(params_in['year'])}{str(params_in['fmt_data_loc'])}'
 
     functions = [get_tt_times, primary_qc, detect_window_peaks, filter_window_peaks, plot_waveform_envelope_peaks_windows]
 
     # Get event id table as pandas data frame
-    evt_id_tab = toolkit.get_event_id_table(params_in['cmt_outfile'])
+    evt_id_tab = toolkit.get_event_id_table(params_in)
 
     # Get phases names dictionary 
     import v01_phasenames

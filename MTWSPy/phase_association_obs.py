@@ -48,8 +48,8 @@ def process_one_event(input_dict):
     if len(input_dict['match_twin_files']) > 0:
         if id_ctm in input_dict['match_twin_files']:
             # This event is matched... proceed.
-            tw_loc = params_in['home'] + '/' + params_in['twin_loc'] + '/' + params_in['twin_obs_out_loc'] + params_in['component']
-            twin_in = tw_loc + '/' + str(id_ctm) + '.' + params_in['twin_obs_out_loc'][-2:] + params_in['component'] + '.twin'
+            tw_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['twin_obs_out_loc']}{params_in['component']}'
+            twin_in = f'{tw_loc}/{str(id_ctm)}.{params_in['twin_obs_out_loc'][-2:]}{params_in['component']}.twin'
 
             if os.path.isfile(twin_in):
                 # read twin file
@@ -66,7 +66,7 @@ def process_one_event(input_dict):
                     input_dict['num_obj_in'] = len(twin_df)
 
                     ###
-                    toolkit.print_log(params_in, logfile, f'----------////    WORKING ON: ' + str(id_ctm) + '    ////----------')
+                    toolkit.print_log(params_in, logfile, f'----------////    WORKING ON: {str(id_ctm)}    ////----------')
                     ###
 
                     fail = 0
@@ -91,21 +91,21 @@ def process_one_event(input_dict):
                 else:
                     # Returned empty dataframe
                     ###
-                    toolkit.print_log(params_in, logfile, f'----------////   NO-TWINS-IN: ' + str(twin_in) + '    ////----------')
+                    toolkit.print_log(params_in, logfile, f'----------////   NO-TWINS-IN: {str(twin_in)}    ////----------')
                     ###
                     pass
 
             else:
                 # No corresponding twin file found at twin_in
                 ###
-                toolkit.print_log(params_in, logfile, f'----------////   NO-TWIN-FILE-AT: ' + str(twin_in) + '    ////----------')
+                toolkit.print_log(params_in, logfile, f'----------////   NO-TWIN-FILE-AT: {str(twin_in)}    ////----------')
                 ###
                 pass
             
     else:
         # No file found at params_in['mtf_outfilename']
         ###
-        toolkit.print_log(params_in, logfile, f'----------////   NO-MATCHED_TWIN-FILE-AT: ' + str(params_in['mtf_outfilename']) + '    ////----------')
+        toolkit.print_log(params_in, logfile, f'----------////   NO-MATCHED_TWIN-FILE-AT: {str(params_in['mtf_outfilename'])}    ////----------')
         ###
         pass
 
@@ -139,7 +139,7 @@ def write_params_logfile(input_dict, logfile):
     logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min noise window length [s]',' : ',str(params_in['min_nois_win_f']*params_in['T2']), x = justify) )
     logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min window size [s]',' : ', str(max(params_in['min_win_span_f'][0]*params_in['T1'],params_in['min_win_span_f'][1])), x = justify) )
     logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('taup phases',' : ',str(phases[str(params_in['phases_key'])][str(params_in['component'])]), x = justify) )
-    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output loc',' : ',str(params_in['home'] + '/' + params_in['phase_a_obs_out_loc'] + params_in['component']), x = justify) )
+    logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output loc', ' : ', f'{params_in['home']}/{params_in['phase_a_obs_out_loc']}{params_in['component']}', x = justify) )
     logfile.write('')
     if '/specfem/' in input_dict['event']:
         min_amp = float(params_in['min_amp_syn'])
@@ -210,17 +210,17 @@ def write_params_outfile(input_dict, outfile):
         outfile.write('----------\n')
 
     outfile.write('----------////              PHASE ASSOCIATION PARAMETERS               ////----------\n')
-    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output channel',' : ',str(params_in['phase_a_obs_out_loc'] + params_in['component']), x = justify) )
-    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('max time shift [s]',' : ',str(params_in['max_tshift']), x = justify) )
-    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('taup phases',' : ',str(phases[str(params_in['phases_key'])][str(params_in['component'])]), x = justify) )
+    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output channel',' : ', f'{params_in['phase_a_obs_out_loc']}{params_in['component']}', x = justify) )
+    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('max time shift [s]',' : ', str(params_in['max_tshift']), x = justify) )
+    outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('taup phases',' : ', str(phases[str(params_in['phases_key'])][str(params_in['component'])]), x = justify) )
     outfile.write('----------\n')
 
     outfile.write('{0:<20s} {1:s} {2:s}\n'.format('columns format',' : ',params_in['phase_a_outfmt']))
     for h,header in enumerate(params_in['phase_a_outcols']):
         if h < len(params_in['phase_a_outcols']) - 1:
-            outfile.write('{0:s}'.format(header + ','))
+            outfile.write('{0:s}'.format(f'header,'))
         else:
-            outfile.write('{0:s}'.format(header + '\n'))
+            outfile.write('{0:s}'.format(f'header\n'))
     
     return outfile
 
@@ -247,7 +247,7 @@ def associate_twin_phase(input_dict, twin_in, twin_df, logfile, outfile, fail):
     phases = input_dict['phases']
 
     # setup logfile statement using event_id, filename and function name (with inspect)
-    log_statement = toolkit.get_log_statement(input_dict['event_id'], twin_in) + ', ' + str(inspect.stack()[0][3])
+    log_statement = f'{toolkit.get_log_statement(input_dict['event_id'], twin_in)}, {str(inspect.stack()[0][3])}'
     if fail:
         ###
         toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING- \n')
@@ -276,7 +276,7 @@ def associate_twin_phase(input_dict, twin_in, twin_df, logfile, outfile, fail):
             inds = stat_df.index.tolist()
 
             ###
-            toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  {len_stat_df} windows for station {station} [' + str(s + 1) + '/' + str(nst) + ']')
+            toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  {len_stat_df} windows for station {station} [{str(s + 1)}/{str(nst)}]')
             ###
 
             # Get station lat, lon, elev
@@ -450,11 +450,12 @@ def open_log_file(input_dict):
     '''
     params_in = input_dict['params_in']
 
-    lf_loc = params_in['home'] + '/' + params_in['log_loc'] + '/' + str(params_in['code_start_time']) + '/' + os.path.basename(__file__).split('.')[0]
+    lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
+    
     if not os.path.exists(lf_loc):
         os.makedirs(lf_loc, exist_ok=True)
 
-    lf_name = lf_loc + '/' + str(input_dict['id_fmt_ctm']) + '.log'
+    lf_name = f'{lf_loc}/{str(input_dict['id_fmt_ctm'])}.log'
 
     logfile = open(lf_name,'w')
     return logfile
@@ -467,11 +468,12 @@ def open_outfile_file(input_dict):
     '''
     params_in = input_dict['params_in']
 
-    of_loc = params_in['home'] + '/' + params_in['twin_loc'] + '/' + params_in['phase_a_obs_out_loc'] + params_in['component']
+    of_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['phase_a_obs_out_loc']}{params_in['component']}'
+    
     if not os.path.exists(of_loc):
         os.makedirs(of_loc, exist_ok=True)
 
-    of_name = of_loc + '/' + str(input_dict['id_ctm']) + '.' + params_in['phase_a_obs_out_loc'][-2:] + params_in['component'] + '.twin'
+    of_name = f'{of_loc}/{str(input_dict['id_ctm'])}.{params_in['phase_a_obs_out_loc'][-2:]}{params_in['component']}.twin'
 
     outfile = open(of_name,'w')
     return outfile
@@ -483,12 +485,12 @@ def main():
     params_in = toolkit.get_params('params_in.yaml')
 
     # Define input data directory and function list.
-    input_directory = str(params_in['data_loc']) + '/e' + str(params_in['year']) + str(params_in['fmt_data_loc'])
+    input_directory = f'{str(params_in['data_loc'])}/e{str(params_in['year'])}{str(params_in['fmt_data_loc'])}'
 
     functions = [associate_twin_phase]
 
     # Get event id table as pandas data frame
-    evt_id_tab = toolkit.get_event_id_table(params_in['cmt_outfile'])
+    evt_id_tab = toolkit.get_event_id_table(params_in)
 
     # Get phases names dictionary 
     import v01_phasenames
