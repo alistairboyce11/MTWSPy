@@ -38,8 +38,7 @@ def apply_stuff(params, sort_functions):
     outputs_all : dataframe
         contains the dataframe output of all the sort functions.
     '''
-    input_directory = f'{params['home']}/{params['tdelay_loc']}/
-                        {params['phase_a_obs_out_loc'][-2:]}{params['component']}-{params['phase_a_syn_out_loc'][-2:]}{params['component']}'
+    input_directory = f'{params['home']}/{params['tdelay_loc']}/{params['phase_a_obs_out_loc'][-2:]}{params['component']}-{params['phase_a_syn_out_loc'][-2:]}{params['component']}'
 
     cores = params['cores']
 
