@@ -152,7 +152,10 @@ def filt_date_time_max(params, input_df):
 
     # Remove rows that fail QC above in dataframe
     if drop_list:
-        drop_list = toolkit.flatten_concatenation(drop_list)
+        try: 
+            drop_list = toolkit.flatten_concatenation(drop_list)
+        except:
+            pass
         output_df = input_df.drop(drop_list)
     else:
         output_df = input_df 
@@ -172,7 +175,10 @@ def filt_date_time_min(params, input_df):
 
     # Remove rows that fail QC above in dataframe
     if drop_list:
-        drop_list = toolkit.flatten_concatenation(drop_list)
+        try: 
+            drop_list = toolkit.flatten_concatenation(drop_list)
+        except:
+            pass
         output_df = input_df.drop(drop_list)
     else:
         output_df = input_df 

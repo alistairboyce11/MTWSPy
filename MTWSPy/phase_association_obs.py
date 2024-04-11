@@ -218,9 +218,9 @@ def write_params_outfile(input_dict, outfile):
     outfile.write('{0:<20s} {1:s} {2:s}\n'.format('columns format',' : ',params_in['phase_a_outfmt']))
     for h,header in enumerate(params_in['phase_a_outcols']):
         if h < len(params_in['phase_a_outcols']) - 1:
-            outfile.write('{0:s}'.format(f'header,'))
+            outfile.write('{0:s}'.format(f'{header},'))
         else:
-            outfile.write('{0:s}'.format(f'header\n'))
+            outfile.write('{0:s}'.format(f'{header}\n'))
     
     return outfile
 
@@ -356,10 +356,16 @@ def associate_twin_phase(input_dict, twin_in, twin_df, logfile, outfile, fail):
                 toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  got twin @ {row['t_peak']:.1f} for {phw} with {ndph} depth phases {', '.join([f'{phase} @ {ttimes[iph[p]]:.1f}s' for p,phase in enumerate([phs[i] for i in iph])])}')
                 ###
 
-                # Store results in df
-                df['phase'][index] = str(phw)
-                df['n_depth_phase'][index] = ndph
-                df['t_taup'][index] = ttimes[iph[0]]
+                # # Store results in df
+                # df['phase'][index] = str(phw)
+                # df['n_depth_phase'][index] = ndph
+                # df['t_taup'][index] = ttimes[iph[0]]
+
+                # Change of style: df.loc[row_indexer, "col"] = values
+                df.loc[index, "phase"] = str(phw)
+                df.loc[index, "n_depth_phase"] = ndph
+                df.loc[index, "t_taup"] = ttimes[iph[0]]
+
 
         # Merge twin_df with df and write out where no nans in line. of merged df.
         merged_df = pd.merge(twin_df, df, left_index = True, right_index = True)
