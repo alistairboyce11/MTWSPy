@@ -223,9 +223,9 @@ def write_params_outfile(input_dict, outfile):
     outfile.write('{0:<20s} {1:s} {2:s}\n'.format('columns format',' : ',params_in['phase_a_outfmt']))
     for h,header in enumerate(params_in['phase_a_outcols']):
         if h < len(params_in['phase_a_outcols']) - 1:
-            outfile.write('{0:s}'.format(header+','))
+            outfile.write('{0:s}'.format(f'{header},'))
         else:
-            outfile.write('{0:s}'.format(header+'\n'))
+            outfile.write('{0:s}'.format(f'{header}\n'))
     
     return outfile
 

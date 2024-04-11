@@ -73,8 +73,8 @@ def find_common_events(params_in):
     fold_obs = f'{fold_root}/obs/{cha_obs}'
     fold_syn = f'{fold_root}/syn/{cha_syn}'
 
-    files_obs = sorted(glob.glob(f'{fold_obs}/*.{cha_obs}.twin'))
-    files_syn = sorted(glob.glob(f'{fold_syn}/*.{cha_syn}.twin'))
+    files_obs = sorted(glob.glob(f'{fold_obs}/{params_in['year']}*.{cha_obs}.twin'))
+    files_syn = sorted(glob.glob(f'{fold_syn}/{params_in['year']}*.{cha_syn}.twin'))
 
     # Find common evid
     # First take full path-filename, remove path, remove cha.twin

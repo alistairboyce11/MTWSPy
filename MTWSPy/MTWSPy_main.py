@@ -54,7 +54,6 @@ def main():
     toolkit.execute(main_function, obs_input_directory, evt_id_tab, functions, params_in, phases)
 
 
-
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     #########     find_twin_syn.py           ##########
     # Synth: get travel times, filter seismograms, detect time windows, filter time windows, plot time windows (NO NEED FOR primary_qc)
@@ -107,6 +106,7 @@ def main():
     # (s|w10_twin_corr.m)
 
     main_function = [correlate_twin.process_one_event]
+
     functions = [correlate_twin.correlate_windows, correlate_twin.select_windows, correlate_twin.save_tdelay_files]
 
     toolkit.execute(main_function, syn_input_directory, evt_id_tab, functions, params_in, phases)
