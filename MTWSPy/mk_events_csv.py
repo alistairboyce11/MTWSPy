@@ -12,6 +12,7 @@ def open_log_file(params):
     '''
 
     lf_loc = f'{params['home']}/{params['log_loc']}/{str(params['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
+    
     if not os.path.exists(lf_loc):
         os.makedirs(lf_loc, exist_ok=True)
 
@@ -150,7 +151,7 @@ def get_dmt_catalog_year(params, logfile):
     toolkit.print_log(params, logfile, f'{log_statement:s}  ,  Requesting DMT catalog year {d_year:d}...')
     ###
 
-    f_loc = f'{params['data_loc']}/e{str(d_year)}/EVENTS-INFO/catalog_table.txt'
+    f_loc = f'{params['obs_loc']}/e{str(d_year)}/EVENTS-INFO/catalog_table.txt'
 
     if os.path.isfile(f_loc):  
         
@@ -350,6 +351,7 @@ def main():
 
     # Write matched catalog to csv
     write_match_catalog(params_in, match_catalog, logfile)
+
     return
 
 if __name__ == '__main__':

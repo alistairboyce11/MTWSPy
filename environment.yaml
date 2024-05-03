@@ -1,0 +1,8 @@
+name: MTWSPy
+channels:
+  - defaults
+dependencies:
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
