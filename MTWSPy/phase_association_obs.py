@@ -1,4 +1,4 @@
-import time,os,sys
+import time,os
 import pandas as pd
 import numpy as np
 from obspy.taup import TauPyModel
@@ -128,7 +128,7 @@ def write_params_logfile(input_dict, logfile):
     logfile.write('----------////               INPUT PARAMETERS                ////----------\n')
     logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('id_fmt_ctm',' : ',str(input_dict['id_fmt_ctm']), x = justify) )
 
-    params_list = ['data_loc','component', 'T1', 'Tc', 'T2','sig_win_ext', 'sig_win_type', 'min_snr_P', 'min_snr_A', 'npow']
+    params_list = ['obs_loc','component', 'T1', 'Tc', 'T2','sig_win_ext', 'sig_win_type', 'min_snr_P', 'min_snr_A', 'npow']
     for k, param in enumerate(params_list):
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format(param,' : ',str(params_in[param]), x = justify) )
 
@@ -141,7 +141,7 @@ def write_params_logfile(input_dict, logfile):
     logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('taup phases',' : ',str(phases[str(params_in['phases_key'])][str(params_in['component'])]), x = justify) )
     logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output loc', ' : ', f'{params_in['home']}/{params_in['phase_a_obs_out_loc']}{params_in['component']}', x = justify) )
     logfile.write('')
-    if '/specfem/' in input_dict['event']:
+    if '/syn/' in input_dict['event']:
         min_amp = float(params_in['min_amp_syn'])
         min_snr = float(params_in['min_snr_syn'])
         wsz_lim = params_in['wsz_lim_syn']
@@ -187,7 +187,7 @@ def write_params_outfile(input_dict, outfile):
     outfile.write('----------////               EVENT PARAMETERS                ////----------\n')
     outfile.write('----------\n')
     if params_in['filttwin']:
-        if '/specfem/' in input_dict['event']:
+        if '/syn/' in input_dict['event']:
             min_amp = float(params_in['min_amp_syn'])
             min_snr = float(params_in['min_snr_syn'])
             wsz_lim = params_in['wsz_lim_syn']
@@ -491,7 +491,7 @@ def main():
     params_in = toolkit.get_params('params_in.yaml')
 
     # Define input data directory and function list.
-    input_directory = f'{str(params_in['data_loc'])}/e{str(params_in['year'])}{str(params_in['fmt_data_loc'])}'
+    input_directory = f'{str(params_in['obs_loc'])}/e{str(params_in['year'])}{str(params_in['fmt_data_loc'])}'
 
     functions = [associate_twin_phase]
 

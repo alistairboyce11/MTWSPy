@@ -1,0 +1,3 @@
+# tests/test_phase_association_obs.py
+
+import MTWSPy.phase_association_obs as phase_association_obs

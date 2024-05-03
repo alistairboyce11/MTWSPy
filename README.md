@@ -31,14 +31,27 @@ Parallelisation is used to speed up post-processing of observed and synthetic da
 ## Installation
 ***
 
-1. Create a fresh python3 environment (used 3.12) with the following pacakges available ('obspy','numpy', 'scipy', 'pandas', 'matplotlib', 'sys', 'glob', 'shutil', 'os', 'time', 'warnings', 'datetime', 'inspect', 'yaml'). Obspy 1.4 installed using pip.
+<!-- 1. Create a fresh python3 environment (used 3.12) with the following pacakges available ('obspy','numpy', 'scipy', 'pandas', 'matplotlib', 'sys', 'glob', 'shutil', 'os', 'time', 'warnings', 'datetime', 'inspect', 'yaml'). Obspy 1.4 installed using pip.
 2. Ensure obspyDMT is installed and active on the system used for data download. (Version 2.2.11 available using pip)
 3. Ensure SPECFEM3D_GLOBE can be compiled and run using parameters appropriate to the system used to compute synthetics (typically HPC). v8.0.0 installed fresh from Github.
 4. Ensure the following 4 files are copied into a local bin directory and are available on your PATH:
     * parallel_proc_specfem_seis.py
     * parallel_proc_obspyDMT_seis.py
     * check_obspyDMT_SPECFEM_install.sh
-    * check_obspyDMT_SPECFEM_install.py
+    * check_obspyDMT_SPECFEM_install.py -->
+
+
+
+conda env create -f environment.yaml
+
+pip install -r requirements.txt
+
+pip install (-e) . for --editable
+
+May need to: export PYTHONPATH=./MTWSPy:$PYTHONPATH
+
+
+
 
 <!-- ######################################################################## -->
 

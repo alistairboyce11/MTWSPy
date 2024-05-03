@@ -1,0 +1,42 @@
+# Code specific:
+EVID_* 
+twin/
+tdelay/
+log/
+proc_tdelay/
+UNUSED
+MTWSPy/UNUSED
+MTWSPy/post_processing/UNUSED
+
+# Python-related files and directories
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+venv_*
+
+# Dependency directories
+# These directories may contain installed packages or cache files
+# You may want to include or exclude these based on your preference
+# Example:
+dist/
+build/
+# .eggs/
+*.egg-info/
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# Miscellaneous
+# *.bak
+.DS_Store
+*.csv
+# *.log
+# *.sqlite3
