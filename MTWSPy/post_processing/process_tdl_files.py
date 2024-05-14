@@ -118,12 +118,12 @@ def process_one_file(input_dict):
                 # Compute the midpoint
                 m = l.Position(0.5 * l.s13)
 
-                mp_df['dist'][index] = np.round(distdg,3)
-                mp_df['az'][index] = np.round(az,3)
-                mp_df['baz'][index] = np.round(baz,3)
+                mp_df.loc[index, "dist"] = np.round(distdg,3)
+                mp_df.loc[index, "az"] = np.round(az,3)
+                mp_df.loc[index, "baz"] = np.round(baz,3)
 
-                mp_df['mid_lat'][index] = np.round(m['lat2'],3)
-                mp_df['mid_lon'][index] = np.round(m['lon2'],3)
+                mp_df.loc[index, "mid_lat"] = np.round(m['lat2'],3)
+                mp_df.loc[index, "mid_lon"] = np.round(m['lon2'],3)
             
             # Merge the dataframes
             tdl_df = pd.merge(tdl_df, mp_df, left_index = True, right_index = True)
