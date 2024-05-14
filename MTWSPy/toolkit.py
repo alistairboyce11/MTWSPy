@@ -503,13 +503,13 @@ class Toolkit:
 
                 eq_df = pd.DataFrame(columns = ['evid','date_time','evt_lat','evt_lon','evt_dep','evt_mag','channel'], index = range(0,len(s_df)))
                 for index, row in eq_df.iterrows():
-                    eq_df['evid'][index] = str(evid)
-                    eq_df['date_time'][index] = str(date_time)
-                    eq_df['evt_lat'][index] = float(evt_lat)
-                    eq_df['evt_lon'][index] = float(evt_lon)
-                    eq_df['evt_dep'][index] = float(evt_dep)
-                    eq_df['evt_mag'][index] = float(evt_mag)
-                    eq_df['channel'][index] = channel
+                    eq_df.loc[index, "evid"] =  str(evid)
+                    eq_df.loc[index, "date_time"] =  str(date_time)
+                    eq_df.loc[index, "evt_lat"] =  float(evt_lat)
+                    eq_df.loc[index, "evt_lon"] =  float(evt_lon)
+                    eq_df.loc[index, "evt_dep"] =  float(evt_dep)
+                    eq_df.loc[index, "evt_mag"] =  float(evt_mag)
+                    eq_df.loc[index, "channel"] =  channel
 
                 # Merge eq_df, s_df and write out where no nans in line. of merged df.
                 merged_df = pd.merge(eq_df, s_df, left_index = True, right_index = True)
