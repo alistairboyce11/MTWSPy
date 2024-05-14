@@ -42,10 +42,10 @@ def main():
     # # Can choose between below
 
     # Create an instance of the match catalog as mc
-    # mc = MatchCatalog(params_in)
-    # evt_id_tab = mc.execute()
+    mc = MatchCatalog(params_in)
+    evt_id_tab = mc.execute()
     # ___OR___
-    evt_id_tab = tk.get_event_id_table(params_in)
+    # evt_id_tab = tk.get_event_id_table(params_in)
 
     # print(evt_id_tab)
 

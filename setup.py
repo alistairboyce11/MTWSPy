@@ -3,13 +3,12 @@ from setuptools import setup
 ENTRY_POINTS={
         'console_scripts': [
             'MTWSPy_main = MTWSPy.MTWSPy_main:main',
-            'mk_events_csv = MTWSPy.mk_events_csv:main',
-            'find_twin_obs = find_twin_obs.find_twin_obs:main',
-            'find_twin_syn = find_twin_syn.find_twin_syn:main',
-            'match_twin_files = match_twin_files.match_twin_files:main',
-            'phase_association_obs = phase_association_obs.phase_association_obs:main',
-            'phase_association_syn = phase_association_syn.phase_association_syn:main',
-            'correlate_twin = correlate_twin.correlate_twin:main',
+            'match_catalog = MTWSPy.match_catalog:main',
+            'find_twin = MTWSPy.find_twin:main',
+            'match_twin_files = MTWSPy.match_twin_files:main',
+            'phase_association = MTWSPy.phase_association:main',
+            'correlate_twin = MTWSPy.correlate_twin:main',
+            'process_tdl_files = MTWSPy.post_processing.process_tdl_files:main',
         ]}
 
 setup(
@@ -24,13 +23,16 @@ setup(
     packages=['MTWSPy', 'MTWSPy.post_processing',
                 'utils', 'utils.gcmt', 'utils.EarthScope_FetchData', 'utils.specfem'],
     package_dir={'MTWSPy': 'MTWSPy'},
-    package_data={'MTWSPy': ['data/gcmt_catalog.csv']},
+    package_data={'MTWSPy': ['data/gcmt_catalog.csv', 
+                             'data/obs/e2008/py_formatted/20080101063232/20080101063232_II_*T',
+                             'data/syn/e2008/py_formatted/20080101063232/20080101063232_II_*T']},
     python_requires='>=3.5',
     install_requires=[
         'numpy',
         'scipy',
         'pandas',
         'matplotlib',
+        'geographiclib',
         'obspy',
         'PyYAML',
         'pytest',

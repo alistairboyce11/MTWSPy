@@ -1,5 +1,6 @@
 # Code specific:
-EVID_* 
+EVID_*
+cmt-events*csv
 twin/
 tdelay/
 log/
@@ -37,6 +38,6 @@ build/
 # Miscellaneous
 # *.bak
 .DS_Store
-*.csv
+# *.csv
 # *.log
 # *.sqlite3
