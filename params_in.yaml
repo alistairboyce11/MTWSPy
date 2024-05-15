@@ -12,7 +12,7 @@
 #                                                                                     # 
 # ---                                                                             --- # 
 
-# home: '.' # Location where MTWSPy code is installed
+home: '.' # Location where MTWSPy code is installed
 
 log_loc: 'log' # Log location
 twin_loc: 'twin' # Time Window (twin) file location
