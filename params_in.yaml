@@ -12,7 +12,8 @@
 #                                                                                     # 
 # ---                                                                             --- # 
 
-home: '.' # Location where MTWSPy code is installed
+# home: '.' # Location where MTWSPy code is installed
+
 log_loc: 'log' # Log location
 twin_loc: 'twin' # Time Window (twin) file location
 tdelay_loc: 'tdelay' # Time delay (tdelay) file location
@@ -197,7 +198,7 @@ proc_tdl_loc: 'proc_tdelay'
 
 tt_out_f_name: 'Proc_tdl'
 date_time_min: '2008-01-01T00:00:00.000'
-date_time_max: '2018-12-31T00:00:00.000'
+date_time_max: '2008-12-31T00:00:00.000'
 networks: ['All'] # ['II', 'IU']
 components: ['T']
 sta_lat_max: 90
@@ -205,8 +206,8 @@ sta_lat_min: -90
 sta_lon_max: 180
 sta_lon_min: -180
 phases: ['All'] #  ['ScS', 'S']
-tdl_max: 25
-ccmx_min: 0.5 # Make this 0.8?
+tdl_max: 60 # 25
+ccmx_min: 0.0 # Make this 0.8?
 evt_lat_max: 90
 evt_lat_min: -90
 evt_lon_max: 180
