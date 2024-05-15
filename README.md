@@ -43,11 +43,17 @@ Parallelisation is used to speed up post-processing of observed and synthetic da
 ### MTWSPy
 
 `conda env create -f environment.yaml`
+
 `pip install -r requirements.txt`
+
 `pip install (-e) . for --editable`
+
 `May need to: export PYTHONPATH=./MTWSPy:$PYTHONPATH`
+
 `conda activate venv_MTWSPy`
+
 `pytest` (should pass all tests)
+
 `MTWSPy_main` (should run code on test data provided)
 
 
