@@ -41,22 +41,6 @@ echo  >> $LOG_FILE
 
 ###################################################################
 
-# First run a check to see if all modules/packages/codes are present
-echo  >> $LOG_FILE
-echo "Starting modules/packages/code check" >> $LOG_FILE
-
-${HOME}/bin/check_obspyDMT_SPECFEM_install.sh # OUTFILE = ${HOME}/tmp.check-sh
-mod_check=`tail -1 ${HOME}/tmp/tmp.check-sh | awk '{print $1}'`
-
-if [ $mod_check == 'YES' ]; then
-    echo "Finished modules/packages/code check" >> $LOG_FILE
-    echo  >> $LOG_FILE
-else
-    echo "FAILED modules/packages/code check"  >> $LOG_FILE
-    echo "Exiting..."  >> $LOG_FILE
-    exit
-fi
-
 cd $DIR
 OUTDIR=`echo ${DIR}/${MODEL}/e${YEAR}`
 
