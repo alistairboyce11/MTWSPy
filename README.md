@@ -48,7 +48,7 @@ Parallelisation is used to speed up post-processing of observed and synthetic da
 
 `pip install -e . (-e: for --editable)`
 
-`May need to: export PYTHONPATH=./MTWSPy:$PYTHONPATH`
+May need to: `export PYTHONPATH=./MTWSPy:$PYTHONPATH`
 
 `conda activate MTWSPy`
 
