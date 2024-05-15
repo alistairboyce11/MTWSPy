@@ -1,0 +1,206 @@
+#!/bin/sh
+
+if [ $# -ne 1 ];
+then
+    echo " Incorrect arguments given"
+    echo "USEAGE:   plot_phase.gmt <phase> "
+    echo "EXAMPLE:  plot_phase.gmt S"
+    echo
+    exit
+fi
+
+phase=$1
+
+
+
+########################### GMT GOES HERE.... #########################
+
+
+gmt set FONT 					= Helvetica
+gmt set FONT_TITLE				= 10p
+gmt set FONT_LABEL				= 10p
+gmt set FONT_ANNOT_PRIMARY		= 10p
+gmt set FONT_ANNOT_SECONDARY	= 10p
+gmt set PS_MEDIA 				= 19.5cx16c
+gmt set PS_PAGE_ORIENTATION 	= PORTRAIT
+gmt set PS_LINE_CAP 			= round
+gmt set FORMAT_DATE_IN 			= yyyymmdd
+
+gmt set MAP_FRAME_TYPE				= plain
+gmt set MAP_FRAME_PEN				= 2p
+gmt set MAP_TICK_LENGTH_PRIMARY  	= 4p/2p
+gmt set MAP_ANNOT_OFFSET_PRIMARY	= 3p
+gmt set MAP_ANNOT_OFFSET_SECONDARY	= 3p
+gmt set MAP_TITLE_OFFSET			= 3p
+gmt set MAP_LABEL_OFFSET			= 3p
+
+
+# base_path="/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code"
+base_path="/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Lei_Results"
+# base_path="/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/matlab_code"
+
+psfile=$base_path"/proc_tdelay/tdl_phase_${phase}.ps"
+pdffile=$base_path"/proc_tdelay/tdl_phase_${phase}.pdf"
+
+CPT_1=temp.cpt
+CPT_PAL="-Cpolar"
+gmt makecpt $CPT_PAL -T-10/10/0.2 -N > $CPT_1
+echo "B 255/1/1" >> $CPT_1
+echo "F 1/1/255" >> $CPT_1
+echo "N 127    " >> $CPT_1
+
+############# EQ and Station map ##################
+
+
+title="Stations and Earthquakes"
+PL="a45f45"
+MAP_SCALE="11.5c"
+MAP_RANGE="-Rg"
+MAP_PROJ="-JN0/$MAP_SCALE"
+BGN_MAP="$MAP_RANGE $MAP_PROJ -K"
+MID_MAP="$MAP_RANGE $MAP_PROJ -O -K"
+END_MAP="$MAP_RANGE $MAP_PROJ -O"
+
+gmt psbasemap $BGN_MAP -Bpx$PL -Bpy$PL -Bswne+t"Stations and Earthquakes" -Xf1c -Yf9c  > $psfile
+
+gmt psxy $MID_MAP -W1,white /Users/alistair/lib/bird_plates.xy >> $psfile
+gmt psxy $MID_MAP -W0.25,black /Users/alistair/lib/bird_plates.xy >> $psfile
+
+gmt pscoast $MID_MAP  -Dc -A10000 -W0.75 >> $psfile
+
+# Add earthquake locations.
+proc_tdl_file=$base_path"/proc_tdelay/proc_tdl.out"
+if [[ $phase == "all" ]]; then
+    awk 'NR>1' ${proc_tdl_file} | awk -F',' '{ print $4, $3}' | sort -u | gmt psxy $MID_MAP -Sc3p -W0.5 -Ggrey >> $psfile
+
+else
+    awk 'NR>1' ${proc_tdl_file} | awk -v var=$phase -F',' '{ if ($12 == var) print $4, $3}' | sort -u | gmt psxy $MID_MAP -Sc3p -W0.5 -Ggrey >> $psfile
+fi
+# Add station locations
+if [[ $phase == "all" ]]; then
+    awk 'NR>1' ${proc_tdl_file} | awk  -F',' '{ print $10, $9}' | sort -u | gmt psxy $MID_MAP -St3p -W0.5 -Gred >> $psfile
+
+else
+    awk 'NR>1' ${proc_tdl_file} | awk -v var=$phase -F',' '{ if ($12 == var) print $10, $9}' | sort -u | gmt psxy $MID_MAP -St3p -W0.5 -Gred >> $psfile
+fi
+
+gmt psbasemap -R0/11.5/0/5.85 -JX11.5c/5.85c -O -K -B+n >> $psfile
+
+# echo "8.75 -1 Durand et al., (2015)" | gmt pstext -N -R -J -O -K -F+f10,Helvetica,black+jLB >> $psfile
+echo "a" | gmt pstext -R0/11.5/0/5.85 -J -O -K -N -W1 -C0.1 -D0.1/-0.1 -F+f10,Helvetica,black+jLT+cLT >> $psfile
+
+
+############# Travel time map ##################
+
+gmt psbasemap $MID_MAP -Bpx$PL -Bpy$PL -Bswne+t"Station means" -Xf1c -Yf1.6c  >> $psfile
+
+gmt psxy $MID_MAP -W1,white /Users/alistair/lib/bird_plates.xy >> $psfile
+gmt psxy $MID_MAP -W0.25,black /Users/alistair/lib/bird_plates.xy >> $psfile
+
+gmt pscoast $MID_MAP  -Dc -A10000 -W0.75 >> $psfile
+
+# Add earthquake locations.
+proc_tdl_file_means=$base_path"/proc_tdelay/proc_tdl_station_means.out"
+
+if [[ $phase == "all" ]]; then
+    awk 'NR>1' ${proc_tdl_file_means} | awk -F',' '{print $3, $2, $7}' | gmt psxy $MID_MAP -Sc3p -W0.5 -C$CPT_1 >> $psfile
+
+else
+    awk 'NR>1' ${proc_tdl_file_means} | awk -v var=$phase -F',' '{ if ($6 == var) print $3, $2, $7}' | gmt psxy $MID_MAP -Sc3p -W0.5 -C$CPT_1 >> $psfile
+fi
+gmt psbasemap -R0/11.5/0/5.85 -JX11.5c/5.85c -O -K -B+n >> $psfile
+
+# echo "8.75 -1 Durand et al., (2015)" | gmt pstext -N -R -J -O -K -F+f10,Helvetica,black+jLB >> $psfile
+echo "b" | gmt pstext  -R -J -O -K -N -W1 -C0.1 -D0.1/-0.1 -F+f10,Helvetica,black+jLT+cLT >> $psfile
+
+
+xmin1=0
+xmax1=180
+ymin1=0
+ymax1=30000
+
+xmin2=0
+xmax2=400
+ymin2=0
+ymax2=30000
+
+xmin3=-45
+xmax3=45
+ymin3=0
+ymax3=30000
+
+RANGE1="-R"$xmin1"/"$xmax1"/"$ymin1"/"$ymax1
+RANGE2="-R"$xmin2"/"$xmax2"/"$ymin2"/"$ymax2
+RANGE3="-R"$xmin3"/"$xmax3"/"$ymin3"/"$ymax3
+
+PROJ1="-JX4c/4c"
+PROJ2="-JX4c/4c"
+PROJ3="-JX4c/4c"
+
+BGN1="$RANGE1 $PROJ1 -K"
+MID1="$RANGE1 $PROJ1 -O -K"
+MID2="$RANGE2 $PROJ2 -O -K"
+MID3="$RANGE3 $PROJ3 -O -K"
+END3="$RANGE3 $PROJ3 -O"
+
+########## Epicentral distance plot ############
+gmt psbasemap $MID1 -Bxa45f15+l"Epi. Dist" -Bpya10000f5000+l"Counts" -BWSne -Xf15c -Yf11c >> $psfile 
+
+# $21
+
+if [[ $phase == "all" ]]; then
+    awk 'NR>1' ${proc_tdl_file} | awk -F',' '{print $21}' | gmt pshistogram -BWSne $MID1 -Bx -By -W10 -F -P -Glightgrey -L0.5,black >> $psfile
+else
+    awk 'NR>1' ${proc_tdl_file} | awk -v var=$phase -F',' '{ if ($12 == var) print $21}' | gmt pshistogram -BWSne $MID1 -Bx -By -W10 -F -P -Glightgrey -L0.5,black >> $psfile
+fi 
+
+echo "c" | gmt pstext $MID1 -Gwhite -N -W1 -C0.1 -D0.2/-0.2 -F+f10,Helvetica,black+jLT+cLT >> $psfile
+
+# ########## Earthquake depth plot ############
+gmt psbasemap $MID2 -Bxa100f50+l"Eq. depth" -Bpya10000f5000+l"Counts" -BWSne -Xf15c -Yf6c >> $psfile 
+
+# # $5
+
+if [[ $phase == "all" ]]; then
+    awk 'NR>1' ${proc_tdl_file} | awk -F',' '{print $5}' | gmt pshistogram -BWSne $MID2 -Bx -By -W10 -F -P -Glightgrey -L0.5,black >> $psfile
+else
+    awk 'NR>1' ${proc_tdl_file} | awk -v var=$phase -F',' '{ if ($12 == var) print $5}' | gmt pshistogram -BWSne $MID2 -Bx -By -W10 -F -P -Glightgrey -L0.5,black >> $psfile
+fi
+
+echo "d" | gmt pstext $MID2 -Gwhite -N -W1 -C0.1 -D0.2/-0.2 -F+f10,Helvetica,black+jLT+cLT >> $psfile
+
+########## Time delay plot ############
+gmt psbasemap $MID3 -Bxa20f10+l"Time delay (s)" -Bpya10000f5000+l"Counts" -BWSne -Xf15c -Yf1c >> $psfile 
+
+# $13
+
+if [[ $phase == "all" ]]; then
+    awk 'NR>1' ${proc_tdl_file} | awk -F',' '{print $13}' | gmt pshistogram -BWSne $MID3 -Bx -By -W2 -F -P -Glightgrey -L0.5,black >> $psfile
+else
+    awk 'NR>1' ${proc_tdl_file} | awk -v var=$phase -F',' '{ if ($12 == var) print $13}' | gmt pshistogram -BWSne $MID3 -Bx -By -W2 -F -P -Glightgrey -L0.5,black >> $psfile
+fi
+
+echo "e" | gmt pstext $MID3 -Gwhite -N -W1 -C0.1 -D0.2/-0.2 -F+f10,Helvetica,black+jLT+cLT >> $psfile
+
+################################################################################
+#---------------------------- Add Scale ---------------------------------------#
+################################################################################
+gmt set MAP_FRAME_PEN				= 2p
+gmt set MAP_ANNOT_OFFSET_PRIMARY	= 3p
+gmt set MAP_ANNOT_OFFSET_SECONDARY	= 3p
+gmt set MAP_TITLE_OFFSET			= 6p
+gmt set MAP_LABEL_OFFSET			= 3p
+gmt set FONT_TITLE				= 10p
+gmt set FONT_LABEL				= 10p
+gmt set FONT_ANNOT_PRIMARY		= 10p
+gmt set FONT_ANNOT_SECONDARY	= 10p
+gmt psscale -Dx-10.75c/0c+w5c/0.25c+h -R -J -O -C$CPT_1 -Ba5f2.5+l"Travel time (s) for phase: "$phase"" -N  >> $psfile
+# @~\266@~V@-P@- (\045) -F+c0.15+gwhite+p0.5,black -t5
+
+
+
+
+
+gmt psconvert -Tf $psfile
+rm gmt.* temp.cpt $psfile
+open $pdffile

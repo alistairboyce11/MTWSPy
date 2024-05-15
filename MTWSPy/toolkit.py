@@ -465,22 +465,19 @@ class Toolkit:
                 while header:
                     fline = file.readline()
                     if 'event_name' in fline:
-                        evid = str(fline.split()[2])
+                        evid = str(fline.split()[-1])
                     if 'date_time' in fline:
-                        date_time = str(fline.split()[2])
+                        date_time = str(fline.split()[-1])
                     if 'latitude' in fline:
-                        evt_lat = str(fline.split()[2])
+                        evt_lat = str(fline.split()[-1])
                     if 'longitude' in fline:
-                        evt_lon = str(fline.split()[2])
+                        evt_lon = str(fline.split()[-1])
                     if 'depth' in fline:
-                        evt_dep = str(fline.split()[2])
+                        evt_dep = str(fline.split()[-1])
                     if 'Mw' in fline:
-                        evt_mag = str(fline.split()[2])
-                    if 'Channels' in fline:
-                        channel = fline.split()[2][-1]
-                    # if 'period band' in fline:
-                    #     per_band = [float(fline.split()[4].split(',')[0].split('[')[1]), float(fline.split()[5].split(',')[0].split(']')[0])]
-
+                        evt_mag = str(fline.split()[-1])
+                    if 'Channels' in fline or 'channels' in fline:
+                        channel = fline.split()[-1][-1]
                     if 'columns format' in fline:
                         header = 0
 

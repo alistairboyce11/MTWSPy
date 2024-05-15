@@ -384,10 +384,23 @@ class ProcessTdlFiles:
     #################################################################
     def filt_ccmx_min(self, params, input_df):
         '''
-        limit cross correlation maximum value
+        limit cross correlation minimum value
         '''
         limit = params['ccmx_min']
         output_df = input_df.query("ccmx >= @limit")
+    
+        return output_df
+
+
+
+
+    #################################################################
+    def filt_tderr_max(self, params, input_df):
+        '''
+        limit time delay error maximum value
+        '''
+        limit = params['max_tderr']
+        output_df = input_df.query("tderr <= @limit")
     
         return output_df
 
@@ -689,6 +702,7 @@ def main():
                         process_tdl_files.filt_phases,
                         process_tdl_files.filt_tdl_max,
                         process_tdl_files.filt_ccmx_min,
+                        process_tdl_files.filt_tderr_max,
                         process_tdl_files.filt_dist_max,
                         process_tdl_files.filt_dist_min]
 
