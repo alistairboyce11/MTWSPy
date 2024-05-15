@@ -51,7 +51,7 @@ def get_event_metadata(data_loc, year):
     # Execute Perl Scipt using subprocess
     service = f'export SERVICEBASE=http://service.iris.edu;'
     event = f'export EVENTWS=http://service.iris.edu/fdsnws/event/1;'
-    event_metadata = [f'{service} {event} /home/aboyce/bin/FetchEvent -s {year}-04-01,00:00:00.000 -e {year}-06-30,23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -o {data_loc}/e{year}/{year}_events.out']
+    event_metadata = [f'{service} {event} ~/bin/FetchEvent -s {year}-01-01,00:00:00.000 -e {year}-03-31,23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -o {data_loc}/e{year}/{year}_events.out']
     out = subprocess.check_output(event_metadata, shell=True)
 
     try:
@@ -141,7 +141,7 @@ def get_station_metadata(data_loc, year, channel, dc_name, dc_loc_string):
         channels = 'HH?'
 
 
-    station_metadata = [f'{service} {meta} /home/aboyce/bin/FetchMetadata -C {channels} -s {year}-01-01,00:00:00 -e {year}-12-31,23:59:59 -o {data_loc}/e{year}/{dc_name}_{year}_stations.out -X {data_loc}/e{year}/{dc_name}_{year}.xml -resp']
+    station_metadata = [f'{service} {meta} ~/bin/FetchMetadata -C {channels} -s {year}-01-01,00:00:00 -e {year}-12-31,23:59:59 -o {data_loc}/e{year}/{dc_name}_{year}_stations.out -X {data_loc}/e{year}/{dc_name}_{year}.xml -resp']
     out = subprocess.check_output(station_metadata, shell=True)
 
     # Read station metadata into df
@@ -357,7 +357,7 @@ def process_one_chunk(input_dict):
     # Syntax:
     # FetchData -l myselection.txt -o mydata.mseed
     # Execute perl script using subprocess:
-    station_data = [f'{service} {time} {meta} /home/aboyce/bin/FetchData -l {chunk_f_name} -o {mseed_f_name}']
+    station_data = [f'{service} {time} {meta} ~/bin/FetchData -l {chunk_f_name} -o {mseed_f_name}']
     out = subprocess.check_output(station_data, shell=True)
 
     # Add inventory to the dict
@@ -1455,7 +1455,7 @@ def main():
         channel = str(sys.argv[2])
         print(f"Downloading {year}, for search data channel: {channel}")
 
-    data_loc = '/home/aboyce/d_data_and_docs/iris_FetchData'
+    data_loc = '~/data/iris_FetchData'
     processing_channel = 'LH' # output of processing, channel -> processing_channel: e.g., LH,BH,HH -> LH
     packet_request_size = 100 # Number of files requested in each packet
     jobs = 12 # Number of independent/parallel requests executed 

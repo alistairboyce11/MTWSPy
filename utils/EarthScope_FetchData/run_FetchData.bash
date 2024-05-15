@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=MTWSPy
-#SBATCH --partition=Cascade,Cascade-flix
-#SBATCH --time=48:00:00
+#SBATCH --job-name=FetchD
+#SBATCH --partition=Cascade
+#SBATCH --time=168:00:00
 ###########################################################
 # USER PARAMETERS
 # Cascade # LF
@@ -33,9 +33,15 @@ module load impi/2021.9.0-intel-compilers-2023.1.0
 HOME=`echo ~`
 CODE_HOME=`pwd`
 source ${HOME}/.bash_profile
-conda activate venv_MTWSPy
+conda activate env3.12   
 export XDG_CACHE_HOME=${HOME}/tmp
 today=`date +%Y-%m-%d`
+
+year=2008
+s_chan='LH'
+
+###################################################################
+# Check path for download: Specified in dl script.
 
 ###################################################################
 
@@ -43,20 +49,7 @@ cd $SLURM_SUBMIT_DIR
 
 # Check we have the right number of cores requested in params file.
 
-p_cores=`grep "cores: " params_in.yaml | awk '{print $2}'`
-
-if [ ${SLURM_NTASKS_PER_NODE} != ${p_cores} ]; then
-    echo "Make sure number of cores is matching" 
-    echo "in params_in.yaml and run_MTWSPy.bash" 
-    echo "Currently: "${SLURM_NTASKS_PER_NODE}" & "${p_cores}
-    exit
-else
-    echo "Number of cores requested are equal" 
-    echo "Batch file: "${SLURM_NTASKS_PER_NODE}" & Params file: "${p_cores}
-    echo "Continue..." 
-fi
-
-${HOME}/anaconda3/envs/venv_MTWSPy/bin/python3.12 MTWSPy_main.py
+${HOME}/anaconda3/envs/venv_MTWSPy/bin/python3.12 FetchData.py ${year} ${s_chan}
 
 ####################################################################
 exit
