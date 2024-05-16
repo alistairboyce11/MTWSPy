@@ -388,7 +388,7 @@ class PhaseAssociationObs(PhaseAssociation):
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('taup phases',' : ',str(phases[str(params_in['phases_key'])][str(params_in['component'])]), x = justify) )
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output loc', ' : ', f'{params_in['home']}/{params_in['phase_a_obs_out_loc']}{params_in['component']}', x = justify) )
         logfile.write('')
-        if '/syn/' in input_dict['event']:
+        if 'syn' in input_dict['event']:
             min_amp = float(params_in['min_amp_syn'])
             min_snr = float(params_in['min_snr_syn'])
             wsz_lim = params_in['wsz_lim_syn']
@@ -434,7 +434,7 @@ class PhaseAssociationObs(PhaseAssociation):
         outfile.write('----------////               EVENT PARAMETERS                ////----------\n')
         outfile.write('----------\n')
         if params_in['filttwin']:
-            if '/syn/' in input_dict['event']:
+            if 'syn' in input_dict['event']:
                 min_amp = float(params_in['min_amp_syn'])
                 min_snr = float(params_in['min_snr_syn'])
                 wsz_lim = params_in['wsz_lim_syn']
@@ -665,7 +665,7 @@ class PhaseAssociationSyn(PhaseAssociation):
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('taup phases',' : ',str(phases[str(params_in['phases_key'])][str(params_in['component'])]), x = justify) )
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output loc',' : ',str(params_in['home']+'/'+params_in['phase_a_syn_out_loc']+params_in['component']), x = justify) )
         logfile.write('')
-        if '/syn/' in input_dict['event']:
+        if 'syn' in input_dict['event']:
             min_amp = float(params_in['min_amp_syn'])
             min_snr = float(params_in['min_snr_syn'])
             wsz_lim = params_in['wsz_lim_syn']
@@ -711,7 +711,7 @@ class PhaseAssociationSyn(PhaseAssociation):
         outfile.write('----------////               EVENT PARAMETERS                ////----------\n')
         outfile.write('----------\n')
         if params_in['filttwin']:
-            if '/syn/' in input_dict['event']:
+            if 'syn' in input_dict['event']:
                 min_amp = float(params_in['min_amp_syn'])
                 min_snr = float(params_in['min_snr_syn'])
                 wsz_lim = params_in['wsz_lim_syn']

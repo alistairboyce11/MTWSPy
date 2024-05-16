@@ -146,7 +146,7 @@ class MatchCatalog:
         tk.print_log(self.params, self.logfile, f'{log_statement:s}  ,  Requesting DMT catalog year {d_year:d}...')
         ###
 
-        f_loc_dmt = f'{self.params['obs_loc']}/e{str(d_year)}/EVENTS-INFO2/catalog_table.txt'
+        f_loc_dmt = f'{self.params['obs_loc']}/e{str(d_year)}/EVENTS-INFO/catalog_table.txt'
         f_loc_iris= f'{self.params['obs_loc']}/e{str(d_year)}/{str(d_year)}_events.out'
 
         if os.path.isfile(f_loc_dmt):  
@@ -369,10 +369,15 @@ class MatchCatalog:
 
         return self.match_catalog
 
-if __name__ == '__main__':
+def main():
     
     from toolkit import Toolkit
     tk = Toolkit()
 
     params_in = tk.get_params("params_in.yaml")
     match_catalog = MatchCatalog(params_in)
+    evt_id_tab = match_catalog.execute()
+
+if __name__ == '__main__':
+    main()
+    

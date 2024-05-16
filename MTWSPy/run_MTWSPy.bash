@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=MTWSPy
-#SBATCH --partition=Cascade,Cascade-flix
+#SBATCH --partition=Cascade-flix
 #SBATCH --time=48:00:00
 ###########################################################
 # USER PARAMETERS
@@ -33,7 +33,7 @@ module load impi/2021.9.0-intel-compilers-2023.1.0
 HOME=`echo ~`
 CODE_HOME=`pwd`
 source ${HOME}/.bash_profile
-conda activate venv_MTWSPy
+conda activate MTWSPy
 export XDG_CACHE_HOME=${HOME}/tmp
 today=`date +%Y-%m-%d`
 
@@ -56,7 +56,8 @@ else
     echo "Continue..." 
 fi
 
-${HOME}/anaconda3/envs/venv_MTWSPy/bin/python3.12 MTWSPy_main.py
+# ${HOME}/anaconda3/envs/MTWSPy/bin/python3.12 MTWSPy_main.py
+MTWSPy_main
 
 ####################################################################
 exit

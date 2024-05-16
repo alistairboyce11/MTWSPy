@@ -300,7 +300,7 @@ class FindTwin:
             id = np.where(e ==  b)[0]  # max extrema
             
             ### Execute for observed data
-            if '/obs/' in input_dict['event']:
+            if 'obs' in input_dict['event']:
                 
                 # Recover from input_dict values for the specified keys: tlim,id_sig,id_noise
                 tlim, id_sig, id_noise = self.read_from_dict(input_dict,['tlim', 'id_sig', 'id_noise'])
@@ -321,7 +321,7 @@ class FindTwin:
                 bool_2 = params_in['min_snr'] > 0
             
             ### Execute for synthetic data
-            if '/syn/' in input_dict['event']:
+            if 'syn' in input_dict['event']:
 
                 # Recover from input_dict values for the specified keys: tlim,id_sig
                 tlim, id_sig = self.read_from_dict(input_dict,['tlim', 'id_sig'])
@@ -440,7 +440,7 @@ class FindTwin:
                 #### Recover from input_dict values for the specified keys:
                 t,e_noi_m,nslc,stel,stla,stlo,e1, i1, id_pks, i2,twin_span = self.read_from_dict(input_dict,['t','e_noi_m', 'nslc', 'stel', 'stla', 'stlo', 'e1', 'i1', 'id_pks', 'i2', 'twin_span'])
 
-                if '/syn/' in input_dict['event']:
+                if 'syn' in input_dict['event']:
                     min_amp = float(params_in['min_amp_syn'])
                     min_snr = float(params_in['min_snr_syn'])
                     wsz_lim = params_in['wsz_lim_syn']
@@ -638,11 +638,11 @@ class FindTwin:
                 ax1.plot(t, b, ls = '-', lw = 0.5, color = [0.1, 0.6, 0.3], label = f'{input_dict['mxf_win']:.1f} s movmax')
 
                 # background SNR level
-                if '/obs/' in input_dict['event']:
+                if 'obs' in input_dict['event']:
                     ax1.axhline(y = e_noi_m * params_in['min_snr'], xmin = t[0], xmax = t[-1], ls = '--', lw = 0.25, color = 'c',label = f'mean(env(noise)) * [1, {params_in['min_snr']}]')
                     pic_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['twin_obs_pic_loc']}{params_in['component']}'
 
-                if '/syn/' in input_dict['event']:
+                if 'syn' in input_dict['event']:
                     ax1.axhline(y = e_sig_m, xmin = t[0], xmax = t[-1], ls = '--', lw = 0.25, color = 'c',label = f'median(env(sigwin))')
                     pic_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['twin_syn_pic_loc']}{params_in['component']}'
 
@@ -990,7 +990,7 @@ class FindTwinObs(FindTwin):
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('taup phases',' : ',str(phases[str(params_in['phases_key'])][str(params_in['component'])]), x = justify) )
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output loc',' : ', f'{params_in['home']}/{params_in['twin_obs_out_loc']}{params_in['component']}', x = justify) )
         logfile.write('')
-        if '/syn/' in input_dict['event']:
+        if 'syn' in input_dict['event']:
             min_amp = float(params_in['min_amp_syn'])
             min_snr = float(params_in['min_snr_syn'])
             wsz_lim = params_in['wsz_lim_syn']
@@ -1032,7 +1032,7 @@ class FindTwinObs(FindTwin):
         outfile.write('----------////               EVENT PARAMETERS                ////----------\n')
         outfile.write('----------\n')
         if params_in['filttwin']:
-            if '/syn/' in input_dict['event']:
+            if 'syn' in input_dict['event']:
                 min_amp = float(params_in['min_amp_syn'])
                 min_snr = float(params_in['min_snr_syn'])
                 wsz_lim = params_in['wsz_lim_syn']
@@ -1243,7 +1243,7 @@ class FindTwinSyn(FindTwin):
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('taup phases',' : ',str(phases[str(params_in['phases_key'])][str(params_in['component'])]), x = justify) )
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('output loc',' : ', f'{params_in['home']}/{params_in['twin_syn_out_loc']}{params_in['component']}', x = justify) )
         logfile.write('')
-        if '/syn/' in input_dict['event']:
+        if 'syn' in input_dict['event']:
             min_amp = float(params_in['min_amp_syn'])
             min_snr = float(params_in['min_snr_syn'])
             wsz_lim = params_in['wsz_lim_syn']
@@ -1286,7 +1286,7 @@ class FindTwinSyn(FindTwin):
         outfile.write('----------////               EVENT PARAMETERS                ////----------\n')
         outfile.write('----------\n')
         if params_in['filttwin']:
-            if '/syn/' in input_dict['event']:
+            if 'syn' in input_dict['event']:
                 min_amp = float(params_in['min_amp_syn'])
                 min_snr = float(params_in['min_snr_syn'])
                 wsz_lim = params_in['wsz_lim_syn']

@@ -21,21 +21,21 @@ tdelay_loc: 'tdelay' # Time delay (tdelay) file location
 # File paths
 obs_loc: './MTWSPy/data/obs' # Observed data location: requires "obs" somewhere in full path
 syn_loc: './MTWSPy/data/syn' # Synthetic data location: requires "syn" somewhere in full path
+
 fmt_data_loc: '/py_formatted' # file path suffix after obs_loc or syn_loc
 
 year: 2008 # year of data to process
 parallel: True # Run parallel processing
-cores: 8 # Number of cores to execute parallel
+cores: 4 # Number of cores to execute parallel
 verbose: True # Print progress to terminal, otherwise just to logfile.
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 #                                                                                     #
-#                                   mk_events_csv.py                                  #
+#                                   match_catalog.py                                  #
 #                                                                                     # 
 # ---                                                                             --- # 
-min_year: 2008
-max_year: 2008 # Just used to make a csv file with more than one year (not entirely necessary)
-cmt_infile: './MTWSPy/data/gcmt_catalog.csv'
+
+cmt_infile: 'MTWSPy/data/gcmt_catalog.csv'
 cmt_outfile: 'cmt-events'
 match_error_time: 5 # seconds
 match_error_lat: 0.5 # degrees
@@ -47,9 +47,9 @@ match_cat_outcols: ['evtm','evla','evlo','evdp','mag','id_cmt','id_ctm','id_dmt'
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 #                                                                                     #
-#                                   find_twin_obs.py                                  #
+#                                   find_twin.py                                      #
 #                                                                                     # 
-# ---                                                                             --- #
+# ---                                 OBSERVED                                    --- #
 
 twin_obs_out_loc: 'raw/obs/OS' # observed twin file out location
 twin_obs_pic_loc: 'pic/obs/OS' # observed twin image out location
@@ -100,9 +100,10 @@ twin_x_major: 500 # Plotting specifics (not likely to be changed)
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 #                                                                                     #
-#                                   find_twin_syn.py                                  #
+#                                   find_twin.py                                      #
 #                                                                                     # 
-# ---                                                                             --- #
+# ---                                SYNTHETIC                                    --- #
+
 twin_syn_out_loc: 'raw/syn/MX' # synth twin file out location
 twin_syn_pic_loc: 'pic/syn/MX' # synth twin image out location
 # synth twin outfile formatting parameters (do not change)
@@ -127,9 +128,9 @@ mtf_prefix: 'EVID' # Prefix for matched twin file
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 #                                                                                     #
-#                              phase_association_obs.py                               #
+#                              phase_association.py                                   #
 #                                                                                     # 
-# ---                                                                             --- #
+# ---                               OBSERVED                                      --- #
 phase_a_obs_out_loc: 'phs/obs/OS' # phase associated observed twin file out location
 # phase associated twin outfile formatting parameters (do not change)
 phase_a_outcols: ['nslc','latitude','longitude','elevation','t_left','t_peak','t_right','A_left','A_peak','A_right','A_noise','phase','n_depth_phase','t_taup']
@@ -139,11 +140,11 @@ max_tshift: 45 # Peak of tw is less than this value from the predicted travel ti
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 #                                                                                     #
-#                              phase_association_syn.py                               #
+#                              phase_association.py                                   #
 #                                                                                     # 
-# ---                                                                             --- #
-phase_a_syn_out_loc: 'phs/syn/MX' # phase associated synth twin file out location
+# ---                              SYNTHETIC                                      --- #
 
+phase_a_syn_out_loc: 'phs/syn/MX' # phase associated synth twin file out location
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 #                                                                                     #
