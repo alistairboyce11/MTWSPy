@@ -8,6 +8,8 @@ proc_tdelay/
 UNUSED
 MTWSPy/UNUSED
 MTWSPy/post_processing/UNUSED
+output_*.txt
+stderr_*.txt
 
 # Python-related files and directories
 __pycache__/

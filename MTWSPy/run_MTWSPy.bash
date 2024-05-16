@@ -33,7 +33,7 @@ module load impi/2021.9.0-intel-compilers-2023.1.0
 HOME=`echo ~`
 CODE_HOME=`pwd`
 source ${HOME}/.bash_profile
-conda activate venv_MTWSPy
+conda activate MTWSPy
 export XDG_CACHE_HOME=${HOME}/tmp
 today=`date +%Y-%m-%d`
 
