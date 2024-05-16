@@ -49,7 +49,7 @@ cd $SLURM_SUBMIT_DIR
 
 # Check we have the right number of cores requested in params file.
 
-${HOME}/anaconda3/envs/venv_MTWSPy/bin/python3.12 FetchData.py ${year} ${s_chan}
+${HOME}/anaconda3/envs/MTWSPy/bin/python3.12 FetchData.py ${year} ${s_chan}
 
 ####################################################################
 exit

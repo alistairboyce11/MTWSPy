@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=MTWSPy
-#SBATCH --partition=Cascade,Cascade-flix
+#SBATCH --partition=Cascade-flix
 #SBATCH --time=48:00:00
 ###########################################################
 # USER PARAMETERS
@@ -56,7 +56,8 @@ else
     echo "Continue..." 
 fi
 
-${HOME}/anaconda3/envs/venv_MTWSPy/bin/python3.12 MTWSPy_main.py
+# ${HOME}/anaconda3/envs/MTWSPy/bin/python3.12 MTWSPy_main.py
+MTWSPy_main
 
 ####################################################################
 exit
