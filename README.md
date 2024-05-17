@@ -44,13 +44,13 @@ Parallelisation is used to speed up post-processing of observed and synthetic da
 
 `conda env create -f environment.yaml`
 
+`conda activate MTWSPy`
+
 `pip install -r requirements.txt`
 
-`pip install -e . (-e: for --editable)`
+`pip install -e .` (-e: for --editable)
 
 May need to: `export PYTHONPATH=./MTWSPy:$PYTHONPATH`
-
-`conda activate MTWSPy`
 
 `pytest` (should pass all tests)
 
@@ -106,7 +106,7 @@ navigate to `home`
 
 #### Description:
 
-The overall philospy of the code is to have a setup where we can just hit `GO` or `MTWSPY_main from the directory where the code is installed.
+The overall philospy of the code is to have a setup where we can just hit `GO` i.e. `MTWSPY_main` anywhere that can see you conda path.
 
 To do this we rely heavily on an input parameter file `params_in.yaml` which must be studied and adapted for purpose before using the code. All parameters are described/commented and are grouped with each relevant part of the code. This file is loaded before the execution of any part of the code.
 
@@ -115,7 +115,7 @@ To do this we rely heavily on an input parameter file `params_in.yaml` which mus
 
 Where possible the code also relies on a toolkit of global functions in `toolkit.py` these should not be changed but are crucial to the effective running of the code (e.g., initialising parallelisation of commands).
 
-Although each step of the code can be launched individually (using the executable created by conda at `XXX.py`) recommended usage is carried out by executing the full code: `MTWSPy_main` 
+Although each step of the code can be launched individually (using the executable created by conda e.g., type  `which match_catalog`). Recommended usage is carried out by executing the full code: `MTWSPy_main` 
 
 All steps of the code that utilise parallelisation (also written to work in serial) have a common input format:
 

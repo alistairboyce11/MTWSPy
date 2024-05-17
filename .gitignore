@@ -1,6 +1,7 @@
 # Code specific:
 EVID_*
 cmt-events*csv
+*_CMT
 twin/
 tdelay/
 log/

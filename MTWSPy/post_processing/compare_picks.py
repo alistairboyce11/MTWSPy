@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from toolkit import Toolkit
@@ -10,8 +11,22 @@ matplotlib.rcParams['font.sans-serif'] = ['Arial']
 matplotlib.rcParams['font.size'] = 8
 from matplotlib.ticker import (MultipleLocator)
 
+
 class CompareTdlFiles(ProcessTdlFiles):
-    tk = Toolkit()
+    '''
+    Class to handle the comparison of time delay (.tdl)
+    outputs by the MTWSPy algorithm when using differing parameters
+    May operate in parallel using parameters in param_in.yaml file
+
+    Applies certain filters to the output dataset
+    Finds common time delays between datasets
+    Plots time delay correlation, histogram of differences and 
+    time delays against distance 
+
+    Also saves output if process_tl_files not run previously.
+    '''
+    
+        tk = Toolkit()
 
     def __init__(self):
         super().__init__()
@@ -114,12 +129,12 @@ class CompareTdlFiles(ProcessTdlFiles):
         return comp_df
 
 
-    def plot_comparison(self, comp_df):
+    def plot_comparison(self, comp_df, output_directory, filename):
         '''
         Try to plot the correlation between tdelay_df1 and tdelay_df2
         And a histogram of the differences
+        And a travel time against distance plot
         '''
-
 
         # Initialise Figure and add axes with constraints
         fig = plt.figure(figsize  = (14,6))
@@ -152,7 +167,7 @@ class CompareTdlFiles(ProcessTdlFiles):
         ax0.set_xlabel('tdelay df1 [s]',fontsize = 14)
         ax0.set_ylabel('tdelay df2 [s]',fontsize = 14)
 
-        ax0.scatter(comp_df["tdelay_df1"], comp_df["tdelay_df2"], s = 2, color = 'k') # , label = f'{params_in['component']} waveform'
+        ax0.scatter(comp_df["tdelay_df1"], comp_df["tdelay_df2"], s = 2, color = 'k') # , label = f'{params['component']} waveform'
 
         ax0.plot([-60,60], [-60,60], ls = '-', lw = 0.5, color = 'g')
 
@@ -172,7 +187,7 @@ class CompareTdlFiles(ProcessTdlFiles):
 
         # Dist tdelay plot:
 
-        dist_t_df2 = ax2.scatter(comp_df["dist"], comp_df["ttaup"] + comp_df["tdelay_df2"], s = 2, color = 'b', label = f'df2') # , label = f'{params_in['component']} waveform'
+        dist_t_df2 = ax2.scatter(comp_df["dist"], comp_df["ttaup"] + comp_df["tdelay_df2"], s = 2, color = 'b', label = f'df2') # , label = f'{params['component']} waveform'
         dist_t_df1 = ax2.scatter(comp_df["dist"], comp_df["ttaup"] + comp_df["tdelay_df1"], s = 2, color = 'r', label = f'df1') # 
 
         # Add labels and title
@@ -186,21 +201,47 @@ class CompareTdlFiles(ProcessTdlFiles):
         ax2.yaxis.set_minor_locator(MultipleLocator(250))
         ax2.yaxis.set_major_locator(MultipleLocator(1000))
 
-
-
         # ax2.legend(loc = 'upper right', fontsize = 10)
         plt.sca(ax2)
         plt.legend([dist_t_df1, dist_t_df2], ['df1', 'df2'], loc = 'lower right', fontsize = 10)
-
 
         ax0.annotate('a',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',fontsize = 12,textcoords = 'offset points', color = 'k', backgroundcolor = 'none',ha = 'left', va = 'top', bbox = dict(facecolor = 'white',edgecolor = 'black', pad = 2.0))
         ax1.annotate('b',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',fontsize = 12,textcoords = 'offset points', color = 'k', backgroundcolor = 'none',ha = 'left', va = 'top', bbox = dict(facecolor = 'white',edgecolor = 'black', pad = 2.0))
         ax2.annotate('c',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',fontsize = 12,textcoords = 'offset points', color = 'k', backgroundcolor = 'none',ha = 'left', va = 'top', bbox = dict(facecolor = 'white',edgecolor = 'black', pad = 2.0))
 
+
+        # Save plot:
+
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory, exist_ok=True)
+
+        filename_out = f'{output_directory}{filename}.png'
+
+        print(f'Sending output to: {str(filename_out)}')
+
+        plt.savefig(filename_out, format = 'png')
+
         # plt.savefig(f'{pic_loc}/{pic_filename}', format = 'pdf')
-        plt.savefig(f'compare_codes.pdf', format = 'pdf')
+        # plt.savefig(f'compare_codes.pdf', format = 'png')
 
         return
+
+
+     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    def load_dataframe(self, params, filter_functions, output_directory, filename):
+        '''
+        Load csv file from filepath if it exists
+        Else use apply to make the dataframe:
+        '''
+
+        if os.path.isfile(f'{output_directory}{filename}.out'):
+            # Read:
+            input_df = self.read_dataframe(f'{output_directory}{filename}.out')
+        else:
+            input_df = self.apply_stuff(params, filter_functions)
+            self.write_dataframe(output_directory, filename, input_df)
+
+        return input_df
 
 
 def main():
@@ -210,12 +251,11 @@ def main():
 
     # Create instance of toolkit as tk
     tk = Toolkit()
-    params_in = tk.get_params('params_in.yaml')
+    params = tk.get_params('params_in.yaml')
 
     # Instantiate the classes and call their methods as needed
     compare_tdl_files = CompareTdlFiles()
 
-    params_in['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code' # Location where MTWSPy code is installed
 
     filter_functions = [compare_tdl_files.filt_date_time_max,
                         compare_tdl_files.filt_date_time_min,
@@ -238,33 +278,99 @@ def main():
                         compare_tdl_files.filt_ccmx_min,
                         compare_tdl_files.filt_tderr_max,
                         compare_tdl_files.filt_dist_max,
-                        compare_tdl_files.filt_dist_min]
+                        compare_tdl_files.filt_dist_min]    
 
-    al_python_filtered_df = compare_tdl_files.apply_stuff(params_in, filter_functions)
-    
-    print(al_python_filtered_df)
 
-    # Lei original results
-    params_in['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Lei_Results' # Location where MTWSPy code is installed
+    ######################### AL 2008 data - Zaroli #########################
+    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code' # Location where MTWSPy code is installed
 
-    lei_matlab_filtered_df = compare_tdl_files.apply_stuff(params_in, filter_functions)
-    
+    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
+    filename = f'{params['tt_out_f_name']}'
+
+    al_python_filtered_ZR_df = compare_tdl_files.load_dataframe(params, filter_functions, output_directory, filename)
+    print(al_python_filtered_ZR_df)
+
+    ######################### Lei original results 2008 data - XC matlab#########################
+    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Lei_Results' # Location where MTWSPy code is installed
+    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
+
+    lei_matlab_filtered_df = compare_tdl_files.load_dataframe(params, filter_functions, output_directory, filename)
     print(lei_matlab_filtered_df)
 
-    # # # Lei original code, al results
-    params_in['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/matlab_code' # Location where MTWSPy code is installed
+    ######################### Lei original code, al results #########################
+    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/matlab_code' # Location where MTWSPy code is installed
+    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
 
-    al_matlab_filtered_df = compare_tdl_files.apply_stuff(params_in, filter_functions)
-    
+    al_matlab_filtered_df = compare_tdl_files.load_dataframe(params, filter_functions, output_directory, filename)
     print(al_matlab_filtered_df)
 
+    ######################### AL 2008 data - XC #########################
+    params['home'] = '/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy' # Location where MTWSPy code is installed
 
-    comp_df = compare_tdl_files.find_common_picks(al_python_filtered_df, lei_matlab_filtered_df)
-    comp_mat_df = compare_tdl_files.find_common_picks(al_matlab_filtered_df, lei_matlab_filtered_df)
+    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
 
-    print(comp_df)
+    al_python_filtered_XC_df = compare_tdl_files.load_dataframe(params, filter_functions, output_directory, filename)
+    print(al_python_filtered_XC_df)
 
-    compare_tdl_files.plot_comparison(comp_df)
+
+    comp_al_py_XC_lei_mat_XC_df_all = compare_tdl_files.find_common_picks(al_python_filtered_XC_df, lei_matlab_filtered_df)
+    comp_al_mat_XC_lei_mat_XC_df_all = compare_tdl_files.find_common_picks(al_matlab_filtered_df, lei_matlab_filtered_df)
+    comp_al_py_ZR_lei_mat_XC_df_all = compare_tdl_files.find_common_picks(al_python_filtered_ZR_df, lei_matlab_filtered_df)
+    comp_al_py_XC_al_py_ZR_df_all  = compare_tdl_files.find_common_picks(al_python_filtered_XC_df, al_python_filtered_ZR_df)
+    comp_al_mat_XC_al_py_ZR_df_all = compare_tdl_files.find_common_picks(al_matlab_filtered_df, al_python_filtered_ZR_df)
+    comp_al_mat_XC_al_py_XC_df_all = compare_tdl_files.find_common_picks(al_matlab_filtered_df, al_python_filtered_XC_df)
+
+    out_dir = '/Users/alistair/Google_Drive/Lyon_Pdoc/MTWS_code_comps/'
+    compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_all, out_dir, 'comp_al_py_XC_lei_mat_XC_df_all')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_all, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_all')
+    compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_all, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_all')
+    compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_all, out_dir, 'comp_al_py_XC_al_py_ZR_df_all')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_all, out_dir, 'comp_al_mat_XC_al_py_ZR_df_all')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_all, out_dir, 'comp_al_mat_XC_al_py_XC_df_all')
+
+
+    comp_al_py_XC_lei_mat_XC_df_S = comp_al_py_XC_lei_mat_XC_df_all.query("phase == 'S'")
+    comp_al_mat_XC_lei_mat_XC_df_S = comp_al_mat_XC_lei_mat_XC_df_all.query("phase == 'S'")
+    comp_al_py_ZR_lei_mat_XC_df_S = comp_al_py_ZR_lei_mat_XC_df_all.query("phase == 'S'")
+    comp_al_py_XC_al_py_ZR_df_S  = comp_al_py_XC_al_py_ZR_df_all.query("phase == 'S'")
+    comp_al_mat_XC_al_py_ZR_df_S = comp_al_mat_XC_al_py_ZR_df_all.query("phase == 'S'")
+    comp_al_mat_XC_al_py_XC_df_S = comp_al_mat_XC_al_py_XC_df_all.query("phase == 'S'")
+
+    comp_al_py_XC_lei_mat_XC_df_SS = comp_al_py_XC_lei_mat_XC_df_all.query("phase == 'SS'")
+    comp_al_mat_XC_lei_mat_XC_df_SS = comp_al_mat_XC_lei_mat_XC_df_all.query("phase == 'SS'")
+    comp_al_py_ZR_lei_mat_XC_df_SS = comp_al_py_ZR_lei_mat_XC_df_all.query("phase == 'SS'")
+    comp_al_py_XC_al_py_ZR_df_SS  = comp_al_py_XC_al_py_ZR_df_all.query("phase == 'SS'")
+    comp_al_mat_XC_al_py_ZR_df_SS = comp_al_mat_XC_al_py_ZR_df_all.query("phase == 'SS'")
+    comp_al_mat_XC_al_py_XC_df_SS = comp_al_mat_XC_al_py_XC_df_all.query("phase == 'SS'")
+
+    compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_S, out_dir, 'comp_al_py_XC_lei_mat_XC_df_S')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_S, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_S')
+    compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_S, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_S')
+    compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_S, out_dir, 'comp_al_py_XC_al_py_ZR_df_S')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_S, out_dir, 'comp_al_mat_XC_al_py_ZR_df_S')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_S, out_dir, 'comp_al_mat_XC_al_py_XC_df_S')
+
+
+    compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_SS, out_dir, 'comp_al_py_XC_lei_mat_XC_df_SS')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_SS, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_SS')
+    compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_SS, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_SS')
+    compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_SS, out_dir, 'comp_al_py_XC_al_py_ZR_df_SS')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_SS, out_dir, 'comp_al_mat_XC_al_py_ZR_df_SS')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_SS, out_dir, 'comp_al_mat_XC_al_py_XC_df_SS')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
