@@ -36,8 +36,9 @@ gmt set MAP_LABEL_OFFSET			= 3p
 
 
 # base_path="/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code"
-base_path="/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Lei_Results"
+# base_path="/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Lei_Results"
 # base_path="/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/matlab_code"
+base_path="/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy"
 
 psfile=$base_path"/proc_tdelay/tdl_phase_${phase}.ps"
 pdffile=$base_path"/proc_tdelay/tdl_phase_${phase}.pdf"

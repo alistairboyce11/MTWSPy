@@ -17,6 +17,18 @@ import obspy.geodetics
 
 
 class ProcessTdlFiles:
+    '''
+    Class to handle the post-processing of time delay (.tdl)
+    files output by the MTWSPy algorithm
+    Operates in parallel using parameters in param_in.yaml file
+
+    Applies certain filters to the output dataset
+    Computes station means
+    Phase differences (e.g., S-SS)
+
+    Saves output files to a proc_tdelay location.
+    '''
+
     tk = Toolkit()
 
     def __init__(self):
@@ -489,31 +501,31 @@ class ProcessTdlFiles:
 
         return output_df
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    def write_station_means(self, params, input_df):
-        '''
-        Writes travel time delay file for station means.
+    # # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # def write_station_means(self, params, input_df):
+    #     '''
+    #     Writes travel time delay file for station means.
         
-        Parameters
-        ----------
-        params : dict parameter file
-        input_df : dataframe of tdl measurements to save
+    #     Parameters
+    #     ----------
+    #     params : dict parameter file
+    #     input_df : dataframe of tdl measurements to save
 
-        Returns
-        -------
-        outputs : saved output file: filename_out
-        '''
+    #     Returns
+    #     -------
+    #     outputs : saved output file: filename_out
+    #     '''
 
-        output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
+    #     output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
 
-        if not os.path.exists(output_directory):
-            os.makedirs(output_directory, exist_ok=True)
+    #     if not os.path.exists(output_directory):
+    #         os.makedirs(output_directory, exist_ok=True)
 
-        filename_out = f'{output_directory}{params['tt_out_f_name']}_station_means.out'
+    #     filename_out = f'{output_directory}{params['tt_out_f_name']}_station_means.out'
 
-        input_df.to_csv(filename_out, index=False) 
+    #     input_df.to_csv(filename_out, index=False) 
 
-        return
+    #     return
 
 
     ############################################################################
@@ -600,61 +612,91 @@ class ProcessTdlFiles:
         return output_df
 
 
+    # # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # def write_tdl_summary_file(self, params, input_df):
+    #     '''
+    #     Writes travel time delay summary file.
+        
+    #     Parameters
+    #     ----------
+    #     params : dict parameter file
+    #     input_df : dataframe of tdl measurements to save
+
+    #     Returns
+    #     -------
+    #     outputs : saved output file: filename_out
+    #     '''
+
+    #     output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
+
+    #     if not os.path.exists(output_directory):
+    #         os.makedirs(output_directory, exist_ok=True)
+
+    #     print(f'Sending output to: {str(output_directory)}')
+
+    #     filename_out = f'{output_directory}{params['tt_out_f_name']}.out'
+
+    #     input_df.to_csv(filename_out, index=False) 
+
+    #     print(f'Written travel time delay summary file to: {str(filename_out)}')
+
+    #     return
+
+    # # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # def write_tt_diff_summary_file(self, params, input_df):
+    #     '''
+    #     Writes travel time difference delay summary file.
+        
+    #     Parameters
+    #     ----------
+    #     params : dict parameter file
+    #     input_df : dataframe of tdl measurements to save
+
+    #     Returns
+    #     -------
+    #     outputs : saved output file: filename_out
+    #     '''
+
+    #     output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
+
+    #     if not os.path.exists(output_directory):
+    #         os.makedirs(output_directory, exist_ok=True)
+        # filename_out = f'{output_directory}{params['tt_out_f_name']}_{str(params['diff_phases'][0])}-{str(params['diff_phases'][1])}.out'
+
+    #     input_df.to_csv(filename_out, index=False) 
+
+    #     print(f'Written travel time diffs delay summary file to: {str(filename_out)}')
+    #     return
+
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    def write_tdl_summary_file(self, params, input_df):
+    def write_dataframe(self, output_directory, filename, input_df):
         '''
-        Writes travel time delay summary file.
+        Writes dataframe to file.
         
         Parameters
         ----------
-        params : dict parameter file
+        output_directory : str
+        filename : str
         input_df : dataframe of tdl measurements to save
 
         Returns
         -------
         outputs : saved output file: filename_out
         '''
-
-        output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
 
         if not os.path.exists(output_directory):
             os.makedirs(output_directory, exist_ok=True)
 
         print(f'Sending output to: {str(output_directory)}')
 
-        filename_out = f'{output_directory}{params['tt_out_f_name']}.out'
+        filename_out = f'{output_directory}{filename}.out'
 
         input_df.to_csv(filename_out, index=False) 
 
-        print(f'Written travel time delay summary file to: {str(filename_out)}')
+        print(f'Written dataframe to file to: {str(filename_out)}')
 
         return
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    def write_tt_diff_summary_file(self, params, input_df):
-        '''
-        Writes travel time difference delay summary file.
-        
-        Parameters
-        ----------
-        params : dict parameter file
-        input_df : dataframe of tdl measurements to save
-
-        Returns
-        -------
-        outputs : saved output file: filename_out
-        '''
-
-        output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
-
-        if not os.path.exists(output_directory):
-            os.makedirs(output_directory, exist_ok=True)
-        filename_out = f'{output_directory}{params['tt_out_f_name']}_{str(params['diff_phases'][0])}-{str(params['diff_phases'][1])}.out'
-
-        input_df.to_csv(filename_out, index=False) 
-
-        print(f'Written travel time diffs delay summary file to: {str(filename_out)}')
-        return
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def read_dataframe(self, file_path):
@@ -709,17 +751,25 @@ def main():
     filtered_df = process_tdl_files.apply_stuff(params, filter_functions)
     
     print(filtered_df)
-
     print('applied sort functions')
+
     # Write outfile
-    process_tdl_files.write_tdl_summary_file(params, filtered_df)
+    # process_tdl_files.write_tdl_summary_file(params, filtered_df)
+
+    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
+
+    filename = f'{params['tt_out_f_name']}'
+    process_tdl_files.write_dataframe(output_directory, filename, filtered_df)
 
 
     # Get station means per phase:
 
     stat_means_df = process_tdl_files.get_station_means(params, filtered_df)
 
-    process_tdl_files.write_station_means(params, stat_means_df)
+    # process_tdl_files.write_station_means(params, stat_means_df)
+
+    filename = f'{params['tt_out_f_name']}_station_means'
+    process_tdl_files.write_dataframe(output_directory, filename, stat_means_df)
 
 
     # Find travel time differences
@@ -729,7 +779,10 @@ def main():
     print(tt_diff_output)
 
     # # Write out file...
-    process_tdl_files.write_tt_diff_summary_file(params, tt_diff_output)
+    # process_tdl_files.write_tt_diff_summary_file(params, tt_diff_output)
+
+    filename = f'{params['tt_out_f_name']}_{str(params['diff_phases'][0])}-{str(params['diff_phases'][1])}'
+    process_tdl_files.write_dataframe(output_directory, filename, tt_diff_output)
 
 
 if __name__ == '__main__':
