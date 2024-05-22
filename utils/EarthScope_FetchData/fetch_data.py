@@ -62,7 +62,7 @@ class FetchData:
         # Execute Perl Scipt using subprocess
         service = f'export SERVICEBASE=http://service.iris.edu;'
         event = f'export EVENTWS=http://service.iris.edu/fdsnws/event/1;'
-        event_metadata = [f'{service} {event} ~/bin/FetchEvent -s {year}-01-01,00:00:00.000 -e {year}-03-31,23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -o {data_loc}/e{year}/{year}_events.out']
+        event_metadata = [f'{service} {event} /home/aboyce/bin/FetchEvent -s {year}-01-01,00:00:00.000 -e {year}-01-01,23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -o {data_loc}/e{year}/{year}_events.out']
 
         out = subprocess.check_output(event_metadata, shell=True)
 
@@ -153,59 +153,64 @@ class FetchData:
             channels = 'HH?'
 
 
-        station_metadata = [f'{service} {meta} ~/bin/FetchMetadata -C {channels} -s {year}-01-01,00:00:00 -e {year}-12-31,23:59:59 -o {data_loc}/e{year}/{dc_name}_{year}_stations.out -X {data_loc}/e{year}/{dc_name}_{year}.xml -resp']
+        station_metadata = [f'{service} {meta} /home/aboyce/bin/FetchMetadata -C {channels} -s {year}-01-01,00:00:00 -e {year}-12-31,23:59:59 -o {data_loc}/e{year}/{dc_name}_{year}_stations.out -X {data_loc}/e{year}/{dc_name}_{year}.xml -resp']
         out = subprocess.check_output(station_metadata, shell=True)
 
-        # Read station metadata into df
-        sta_table = pd.read_csv(f'{data_loc}/e{year}/{dc_name}_{year}_stations.out', delimiter="|", dtype={'loc': 'str'})
-        sta_table.rename(columns={"#net": "net"}, inplace=True)
+        try:
+            # Read station metadata into df
+            sta_table = pd.read_csv(f'{data_loc}/e{year}/{dc_name}_{year}_stations.out', delimiter="|", dtype={'loc': 'str'})
+            sta_table.rename(columns={"#net": "net"}, inplace=True)
 
-        # Correct '00' errors
-        sta_table['loc'] = sta_table['loc'].replace(0.0, '00')
+            # Correct '00' errors
+            sta_table['loc'] = sta_table['loc'].replace(0.0, '00')
 
-        unique_net_sta = sta_table[['net', 'sta']].drop_duplicates()
+            unique_net_sta = sta_table[['net', 'sta']].drop_duplicates()
 
-        # Deal with the heirachy of requesting channels
-        out_stat_df = pd.DataFrame(columns=sta_table.columns)
+            # Deal with the heirachy of requesting channels
+            out_stat_df = pd.DataFrame(columns=sta_table.columns)
 
-        for iter, row in unique_net_sta.iterrows():
-            network = row['net']
-            station = row['sta']
-            
-            tab = sta_table.query("(net == @network) and (sta == @station)")
-            if channel == 'LH':
-                keep = tab[tab['chan'].str.contains('LH')]
-                if len(keep) == 0:
+            for iter, row in unique_net_sta.iterrows():
+                network = row['net']
+                station = row['sta']
+                
+                tab = sta_table.query("(net == @network) and (sta == @station)")
+                if channel == 'LH':
+                    keep = tab[tab['chan'].str.contains('LH')]
+                    if len(keep) == 0:
+                        keep = tab[tab['chan'].str.contains('BH')]
+                        if len(keep) == 0:
+                            keep = tab[tab['chan'].str.contains('HH')]
+                elif channel == 'BH':
                     keep = tab[tab['chan'].str.contains('BH')]
                     if len(keep) == 0:
                         keep = tab[tab['chan'].str.contains('HH')]
-            elif channel == 'BH':
-                keep = tab[tab['chan'].str.contains('BH')]
-                if len(keep) == 0:
+                elif channel == 'HH':
                     keep = tab[tab['chan'].str.contains('HH')]
-            elif channel == 'HH':
-                keep = tab[tab['chan'].str.contains('HH')]
 
-            # now append keep to overall df
-            if len(keep) > 0:
-                # Can have multiple start times, locs, channels BH1,2,E,N,Z
-                # Sort and keep first three.
-                if len(keep) > 3:
-                    keep = keep.sort_values(['start', 'loc', 'chan'], ascending=[True, True, True])[0:3]
+                # now append keep to overall df
+                if len(keep) > 0:
+                    # Can have multiple start times, locs, channels BH1,2,E,N,Z
+                    # Sort and keep first three.
+                    if len(keep) > 3:
+                        keep = keep.sort_values(['start', 'loc', 'chan'], ascending=[True, True, True])[0:3]
 
-                if len(out_stat_df) == 0:
-                    out_stat_df = keep.copy()
-                else:
-                    out_stat_df = pd.concat([out_stat_df, keep], ignore_index=True)
+                    if len(out_stat_df) == 0:
+                        out_stat_df = keep.copy()
+                    else:
+                        out_stat_df = pd.concat([out_stat_df, keep], ignore_index=True)
 
-        # Remove nan locations and exchange for empty string.
-        out_stat_df['loc'] = out_stat_df['loc'].replace(np.nan, '*', regex=True)
+            # Remove nan locations and exchange for empty string.
+            out_stat_df['loc'] = out_stat_df['loc'].replace(np.nan, '*', regex=True)
 
-        # Read downloaded inventory for inst. resp. removal:
-        inv_loc = f'{data_loc}/e{year}/{dc_name}_{year}.xml'
+            # Read downloaded inventory for inst. resp. removal:
+            inv_loc = f'{data_loc}/e{year}/{dc_name}_{year}.xml'
+        
+        except:
+            out_stat_df = pd.DataFrame()
+            inv_loc = f'{data_loc}/e{year}/temp.out'
+
         if not os.path.exists(inv_loc):
-            print(f'Somehow we did not download a station xml file at: {inv_loc}')
-            sys.exit()
+            print(f'Somehow we did not download a station xml file for {dc_name}, {year} at: {inv_loc}')
 
         return out_stat_df, inv_loc
 
@@ -369,7 +374,7 @@ class FetchData:
         # Syntax:
         # FetchData -l myselection.txt -o mydata.mseed
         # Execute perl script using subprocess:
-        station_data = [f'{service} {time} {meta} ~/bin/FetchData -l {chunk_f_name} -o {mseed_f_name}']
+        station_data = [f'{service} {time} {meta} /home/aboyce/bin/FetchData -l {chunk_f_name} -o {mseed_f_name}']
         out = subprocess.check_output(station_data, shell=True)
 
         # Add inventory to the dict
@@ -476,51 +481,52 @@ class FetchData:
             # Get station metadata
             out_stat_df, inv_loc = self.get_station_metadata(data_loc, year, channel, dc_name, dc_loc_string)
 
-            # Loop through CMT_table and then out_stat_df and create a combined request_df.
-            column_headers = ['ev_time','ev_id','net','sta','loc','chan','start','end']
-            request_list = []
-            for j, cmt_row in cmt_table.iterrows():
-                ev_time = UTCDateTime(cmt_row['ev_time'])
-                ev_id = cmt_row['ev_id']
-                s_time = ev_time - 60
-                e_time = ev_time + 7200
-                start = f'{s_time.year:4d}-{s_time.month:02d}-{s_time.day:02d}T{s_time.hour:02d}:{s_time.minute:02d}:{s_time.second:02d}'
-                end = f'{e_time.year:4d}-{e_time.month:02d}-{e_time.day:02d}T{e_time.hour:02d}:{e_time.minute:02d}:{e_time.second:02d}'
+            if not out_stat_df.empty:
+                # Loop through CMT_table and then out_stat_df and create a combined request_df.
+                column_headers = ['ev_time','ev_id','net','sta','loc','chan','start','end']
+                request_list = []
+                for j, cmt_row in cmt_table.iterrows():
+                    ev_time = UTCDateTime(cmt_row['ev_time'])
+                    ev_id = cmt_row['ev_id']
+                    s_time = ev_time - 60
+                    e_time = ev_time + 7200
+                    start = f'{s_time.year:4d}-{s_time.month:02d}-{s_time.day:02d}T{s_time.hour:02d}:{s_time.minute:02d}:{s_time.second:02d}'
+                    end = f'{e_time.year:4d}-{e_time.month:02d}-{e_time.day:02d}T{e_time.hour:02d}:{e_time.minute:02d}:{e_time.second:02d}'
 
-                for k, sta_row in out_stat_df.iterrows():
-                    request_list.append([ev_time, ev_id, sta_row['net'], sta_row['sta'], sta_row['loc'], sta_row['chan'], start, end])
+                    for k, sta_row in out_stat_df.iterrows():
+                        request_list.append([ev_time, ev_id, sta_row['net'], sta_row['sta'], sta_row['loc'], sta_row['chan'], start, end])
 
 
-            request_df = pd.DataFrame(request_list, columns = column_headers)
+                request_df = pd.DataFrame(request_list, columns = column_headers)
 
-            # Split request_df into chunks 
-            chunks, ev_ids, ev_id_counts = self.split_dataframe_by_ev_id(request_df, packet_request_size)
+                # Split request_df into chunks 
+                chunks, ev_ids, ev_id_counts = self.split_dataframe_by_ev_id(request_df, packet_request_size)
 
-            # Collate chunks and other info into input_dicts
-            if len(chunks) == len(ev_ids) and len(ev_ids) == len(ev_id_counts):
+                # Collate chunks and other info into input_dicts
+                if len(chunks) == len(ev_ids) and len(ev_ids) == len(ev_id_counts):
 
-                for i in range(len(chunks)):
-                    input_dict = {}
-                    chunk = chunks[i]
-                    output_directory = ev_ids[i]
-                    ev_id_count = ev_id_counts[i]
+                    for i in range(len(chunks)):
+                        input_dict = {}
+                        chunk = chunks[i]
+                        output_directory = ev_ids[i]
+                        ev_id_count = ev_id_counts[i]
 
-                    chunk_f_name = self.write_chunk_file(data_loc, year, output_directory, ev_id_count, chunk)
+                        chunk_f_name = self.write_chunk_file(data_loc, year, output_directory, ev_id_count, chunk)
 
-                    input_dict['data_loc'] = data_loc
-                    input_dict['year'] = year
-                    input_dict['channel'] = channel
-                    input_dict['processing_channel'] = processing_channel
-                    input_dict['packet_request_size'] = packet_request_size
-                    input_dict['functions'] = function_list
-                    input_dict['dc_name'] = dc_name
-                    input_dict['dc_loc_string'] = dc_loc_string
-                    input_dict['inv_loc'] = inv_loc
-                    input_dict['output_directory'] = output_directory
-                    input_dict['chunk_f_name'] = chunk_f_name
-                    input_dict['cmt_line'] = cmt_table.query('ev_id == @output_directory')
-                    input_dict['out_stat_df'] = out_stat_df
-                    input_dicts.append(input_dict)
+                        input_dict['data_loc'] = data_loc
+                        input_dict['year'] = year
+                        input_dict['channel'] = channel
+                        input_dict['processing_channel'] = processing_channel
+                        input_dict['packet_request_size'] = packet_request_size
+                        input_dict['functions'] = function_list
+                        input_dict['dc_name'] = dc_name
+                        input_dict['dc_loc_string'] = dc_loc_string
+                        input_dict['inv_loc'] = inv_loc
+                        input_dict['output_directory'] = output_directory
+                        input_dict['chunk_f_name'] = chunk_f_name
+                        input_dict['cmt_line'] = cmt_table.query('ev_id == @output_directory')
+                        input_dict['out_stat_df'] = out_stat_df
+                        input_dicts.append(input_dict)
 
         # Send input dicts to main_function for processing.
         if input_dicts:
@@ -854,7 +860,7 @@ class FetchData:
             
             # Finds files, makes input dictionary of files, functions, inputs
                 
-            vert_files = sorted(glob.glob(f'{output_directory}/{year}??????????_??_*.{processing_channel}Z'))
+            vert_files = sorted(glob.glob(f'{output_directory}/{year}??????????_*_*.{processing_channel}Z'))
             num_files = len(vert_files)
 
 
@@ -1476,10 +1482,10 @@ def main():
         channel = str(sys.argv[2])
         print(f"Downloading {year}, for search data channel: {channel}")
 
-    data_loc = '~/data/iris_FetchData'
+    data_loc = '/home/aboyce/d_data_obs/iris_FetchData'
     processing_channel = 'LH' # output of processing, channel -> processing_channel: e.g., LH,BH,HH -> LH
     packet_request_size = 100 # Number of files requested in each packet
-    jobs = 12 # Number of independent/parallel requests executed 
+    jobs = 24 # Number of independent/parallel requests executed 
     if jobs > 1 and jobs <= 96:
         do_parallel = True
 
@@ -1518,7 +1524,11 @@ def main():
 
    
     # Sometimes there remains some N & E files, since they have no associated vertical component.
-    del_list = glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_??_*.{processing_channel}E') + glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_??_*.{processing_channel}N')
+    del_list = glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_??_*.{processing_channel}E') + 
+                glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_??_*.{processing_channel}N') +
+                glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_?_*.{processing_channel}E') +
+                glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_?_*.{processing_channel}N')
+
     # print(del_list)
     for file in del_list:
         os.remove(file)

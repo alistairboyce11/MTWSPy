@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=FetchD
-#SBATCH --partition=Cascade
+#SBATCH --partition=Cascade-flix
 #SBATCH --time=168:00:00
 ###########################################################
 # USER PARAMETERS
@@ -33,7 +33,7 @@ module load impi/2021.9.0-intel-compilers-2023.1.0
 HOME=`echo ~`
 CODE_HOME=`pwd`
 source ${HOME}/.bash_profile
-conda activate env3.12   
+conda activate MTWSPy  
 export XDG_CACHE_HOME=${HOME}/tmp
 today=`date +%Y-%m-%d`
 
@@ -49,7 +49,7 @@ cd $SLURM_SUBMIT_DIR
 
 # Check we have the right number of cores requested in params file.
 
-${HOME}/anaconda3/envs/MTWSPy/bin/python3.12 fetch_data.py ${year} ${s_chan}
+${HOME}/anaconda3/envs/MTWSPy/bin/python3.12 /home/aboyce/d_data_obs/iris_FetchData/fetch_data.py ${year} ${s_chan}
 
 ####################################################################
 exit
