@@ -33,10 +33,10 @@ def main():
 
 
     ######## Check for presence of Data files #########
-    tk.check_files(obs_input_directory, params_in['year'], params_in['component'])
+    # tk.check_files(obs_input_directory, params_in['year'], params_in['component'])
     
     ######## Check for presence of Synth files #########
-    tk.check_files(syn_input_directory, params_in['year'], params_in['component'])
+    # tk.check_files(syn_input_directory, params_in['year'], params_in['component'])
 
     # #########          match_catalog.py        #########
    
