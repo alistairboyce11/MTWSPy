@@ -561,20 +561,20 @@ class CorrelateTwin:
                                             ###
                                             continue
 
-                                        auto_obs_max_pos = np.argmax(auto_obs) # COMMENT
-                                        lags_auto_obs = signal.correlation_lags(x_obs.size, x_obs.size, mode = "full")  * params_in['interp_delta'] # COMMENT
+                                        # auto_obs_max_pos = np.argmax(auto_obs) # COMMENT
+                                        # lags_auto_obs = signal.correlation_lags(x_obs.size, x_obs.size, mode = "full")  * params_in['interp_delta'] # COMMENT
 
-                                        print(f'len(auto_syn): {len(auto_syn)}, np.argmax(auto_syn): {auto_syn_max_pos}, max auto_syn: {auto_syn[auto_syn_max_pos]:.3f} at {lags_auto_syn[auto_syn_max_pos]:.3f}s')  # COMMENT
-                                        print(f'len(auto_obs): {len(auto_obs)}, np.argmax(auto_obs): {auto_obs_max_pos}, max auto_obs: {auto_obs[auto_obs_max_pos]:.3f} at {lags_auto_obs[auto_obs_max_pos]:.3f}s') # COMMENT
+                                        # print(f'len(auto_syn): {len(auto_syn)}, np.argmax(auto_syn): {auto_syn_max_pos}, max auto_syn: {auto_syn[auto_syn_max_pos]:.3f} at {lags_auto_syn[auto_syn_max_pos]:.3f}s')  # COMMENT
+                                        # print(f'len(auto_obs): {len(auto_obs)}, np.argmax(auto_obs): {auto_obs_max_pos}, max auto_obs: {auto_obs[auto_obs_max_pos]:.3f} at {lags_auto_obs[auto_obs_max_pos]:.3f}s') # COMMENT
 
 
                                         start_ind_shift = int((t_obs[i_obs][0] - t_syn[i_syn][0])/params_in['interp_delta'])
-                                        print(f'start_ind_shift = int((t_obs[0] - t_syn[0])/delta_t): {start_ind_shift} = int (({t_obs[i_obs][0]} - {t_syn[i_syn][0]}) / {params_in['interp_delta']}))') # COMMENT
+                                        # print(f'start_ind_shift = int((t_obs[0] - t_syn[0])/delta_t): {start_ind_shift} = int (({t_obs[i_obs][0]} - {t_syn[i_syn][0]}) / {params_in['interp_delta']}))') # COMMENT
 
                                         # Time delay based on XC
                                         XC_tdl = np.round(lag + t_obs[i_obs][0] - t_syn[i_syn][0], 4)
                                         XC_ind_shift =  auto_syn_max_pos - i_ccmx + start_ind_shift
-                                        print(f'XC_ind_shift = auto_syn_max_pos - i_ccmx + start_ind_shift: {XC_ind_shift:d} = {auto_syn_max_pos:d} - {i_ccmx:d} + {start_ind_shift:d}') # COMMENT
+                                        # print(f'XC_ind_shift = auto_syn_max_pos - i_ccmx + start_ind_shift: {XC_ind_shift:d} = {auto_syn_max_pos:d} - {i_ccmx:d} + {start_ind_shift:d}') # COMMENT
 
                                         t_min = np.min([t_syn[0], t_obs[0]])
                                         t_max = np.max([t_syn[-1], t_obs[-1]])
@@ -643,10 +643,10 @@ class CorrelateTwin:
                                             tdl = np.round(ax_time_F3[F3_peak_ind], 4)
                                             ax_time_zero = np.argmin(np.abs(ax_time_F3))
                                             ind_shift = ax_time_zero - F3_peak_ind
-                                            print(f'ind_shift_Z = ax_time_zero - F3_peak_ind: {ind_shift:d} = {ax_time_zero:d} - {F3_peak_ind:d}') # COMMENT
+                                            # print(f'ind_shift_Z = ax_time_zero - F3_peak_ind: {ind_shift:d} = {ax_time_zero:d} - {F3_peak_ind:d}') # COMMENT
 
-                                            print(f'ZR ALIGNED TRACES IND_SHIFT: {ind_shift}') # COMMENT
-                                            print(f'XC ALIGNED TRACES IND_SHIFT: {XC_ind_shift}') # COMMENT
+                                            # print(f'ZR ALIGNED TRACES IND_SHIFT: {ind_shift}') # COMMENT
+                                            # print(f'XC ALIGNED TRACES IND_SHIFT: {XC_ind_shift}') # COMMENT
 
                                             ccmx = F3_output[F3_peak_ind]
                                         else:
