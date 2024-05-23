@@ -34,7 +34,7 @@ class FetchData:
     '''
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    def get_event_metadata(self, data_loc, year):
+    def get_event_metadata(self, data_loc, year, month):
         '''
         Use Iris Event server to find all events for given year using 
         FetchEvent perl script. Try to read this into pandas df
@@ -62,13 +62,25 @@ class FetchData:
         # Execute Perl Scipt using subprocess
         service = f'export SERVICEBASE=http://service.iris.edu;'
         event = f'export EVENTWS=http://service.iris.edu/fdsnws/event/1;'
-        event_metadata = [f'{service} {event} /home/aboyce/bin/FetchEvent -s {year}-01-01,00:00:00.000 -e {year}-01-01,23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -o {data_loc}/e{year}/{year}_events.out']
+
+        # Get months sorted for request
+        if month == 4 or month == 6 or month == 9 or month == 11:
+            num_days = 30
+        elif month == 2:#mois de Février, attention aux années bisextiles.
+            if np.mod(year,4) == 0:
+                num_days = 29
+            else:
+                num_days = 28
+        else:
+            num_days = 31
+            
+        event_metadata = [f'{service} {event} /home/aboyce/bin/FetchEvent -s {year}-{month:02d}-01,00:00:00.000 -e {year}-{month:02d}-{num_days},23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -o {data_loc}/e{year}/{year}-{month:02d}_events.out']
 
         out = subprocess.check_output(event_metadata, shell=True)
 
         try:
             # Read cmt table, sort and re-index.
-            cmt_table = pd.read_csv(f'{data_loc}/e{year}/{year}_events.out', delimiter="|", header=None, names = ['ev_num','ev_time','lat', 'lon', 'depth', 'cat', 'temp_cat', 'cmt_id', 'mag', 'location'])
+            cmt_table = pd.read_csv(f'{data_loc}/e{year}/{year}-{month:02d}_events.out', delimiter="|", header=None, names = ['ev_num','ev_time','lat', 'lon', 'depth', 'cat', 'temp_cat', 'cmt_id', 'mag', 'location'])
             cmt_table = cmt_table.sort_values(by='ev_time').reset_index(drop=True)
 
             # Add ev_ids
@@ -109,7 +121,7 @@ class FetchData:
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def get_station_metadata(self, data_loc, year, channel, dc_name, dc_loc_string):
+    def get_station_metadata(self, data_loc, year, month, channel, dc_name, dc_loc_string):
         '''
         Use Given datacenter server to find all available stations for given
          year using FetchMetadata perl script. Try to read this into pandas df
@@ -122,7 +134,9 @@ class FetchData:
         data_loc : str
             Location to save data
         year : int/str
-            Year of data investigated.    
+            Year of data downloaded    
+        month : int/str
+            Month of data downloaded
         channel : str
             Search channel
         dc_name : str
@@ -152,13 +166,23 @@ class FetchData:
         elif channel == 'HH':
             channels = 'HH?'
 
+        # Get months sorted for request
+        if month == 4 or month == 6 or month == 9 or month == 11:
+            num_days = 30
+        elif month == 2:#mois de Février, attention aux années bisextiles.
+            if np.mod(year,4) == 0:
+                num_days = 29
+            else:
+                num_days = 28
+        else:
+            num_days = 31
 
-        station_metadata = [f'{service} {meta} /home/aboyce/bin/FetchMetadata -C {channels} -s {year}-01-01,00:00:00 -e {year}-12-31,23:59:59 -o {data_loc}/e{year}/{dc_name}_{year}_stations.out -X {data_loc}/e{year}/{dc_name}_{year}.xml -resp']
+        station_metadata = [f'{service} {meta} /home/aboyce/bin/FetchMetadata -C {channels} -s {year}-{month:02d}-01,00:00:00 -e {year}-{month:02d}-{num_days:02d},23:59:59 -o {data_loc}/e{year}/{dc_name}_{year}-{month:02d}_stations.out -X {data_loc}/e{year}/{dc_name}_{year}-{month:02d}.xml -resp']
         out = subprocess.check_output(station_metadata, shell=True)
 
         try:
             # Read station metadata into df
-            sta_table = pd.read_csv(f'{data_loc}/e{year}/{dc_name}_{year}_stations.out', delimiter="|", dtype={'loc': 'str'})
+            sta_table = pd.read_csv(f'{data_loc}/e{year}/{dc_name}_{year}-{month:02d}_stations.out', delimiter="|", dtype={'loc': 'str'})
             sta_table.rename(columns={"#net": "net"}, inplace=True)
 
             # Correct '00' errors
@@ -203,7 +227,7 @@ class FetchData:
             out_stat_df['loc'] = out_stat_df['loc'].replace(np.nan, '*', regex=True)
 
             # Read downloaded inventory for inst. resp. removal:
-            inv_loc = f'{data_loc}/e{year}/{dc_name}_{year}.xml'
+            inv_loc = f'{data_loc}/e{year}/{dc_name}_{year}-{month:02d}.xml'
         
         except:
             out_stat_df = pd.DataFrame()
@@ -293,7 +317,7 @@ class FetchData:
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def write_chunk_file(self, data_loc, year, output_directory, ev_id_count, chunk):
+    def write_chunk_file(self, data_loc, year, month, output_directory, ev_id_count, chunk):
         '''
         Write out the chunk request file to the correct location
 
@@ -301,6 +325,7 @@ class FetchData:
         -------
         data_loc : str : location of download
         year : int/str : year of download
+        month : int/str : month of download
         output_directory : str : ev_id formatted name
         ev_id_count : int : unique number of request for given earthquake
         chunk : list : request file contents
@@ -401,31 +426,30 @@ class FetchData:
                         for function in functions:
                             input_dict, seis, fail = function(input_dict, seis, fail)
 
-
-            # Tidy up the mseed files.
-            tidy_loc = f'{data_loc}/e{year}/py_formatted/{output_directory}/request_files/'
-            if not os.path.exists(tidy_loc):
-                os.makedirs(tidy_loc, exist_ok=True)      
-            try:
-                # Move mseed file to tidy loc
-                shutil.move(mseed_f_name, tidy_loc)
-            except:
-                pass
-
-            try:
-                # Move chunk file to tidy loc
-                shutil.move(chunk_f_name, tidy_loc)
-            except:
-                pass
-
         else:
             print(f'Cannot find .mseed file at {mseed_f_name}')
+
+        # Tidy up the mseed files.
+        tidy_loc = f'{data_loc}/e{year}/py_formatted/{output_directory}/request_files/'
+        if not os.path.exists(tidy_loc):
+            os.makedirs(tidy_loc, exist_ok=True)      
+        try:
+            # Move mseed file to tidy loc
+            shutil.move(mseed_f_name, tidy_loc)
+        except:
+            pass
+
+        try:
+            # Move chunk file to tidy loc
+            shutil.move(chunk_f_name, tidy_loc)
+        except:
+            pass
 
         return
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def get_data(self, data_loc, year, channel, main_function, function_list, packet_request_size, do_parallel, jobs, processing_channel):
+    def get_data(self, data_loc, year, month, channel, main_function, function_list, packet_request_size, do_parallel, jobs, processing_channel):
         '''
         Main function for data downloadn and post processing.
         Collects, Events, Datacenters, Stations, chunks
@@ -437,7 +461,9 @@ class FetchData:
         data_loc : str
             Location to save data
         year : int/str
-            Year of data investigated.    
+            Year of  data request    
+        Month : int/str
+            Month of data request    
         channel : str
             Search channel
         main_function : list
@@ -460,10 +486,10 @@ class FetchData:
         '''
 
         # Get events
-        cmt_table = self.get_event_metadata(data_loc, year)
+        cmt_table = self.get_event_metadata(data_loc, year, month)
         
         if cmt_table.empty:
-            print(f'No events found for {year}... Return')
+            print(f'No events found for {year}, {month:02d}... Return')
             return
 
         # Get datacenter details for download
@@ -479,7 +505,7 @@ class FetchData:
             dc_loc_string = dc_row['loc']
 
             # Get station metadata
-            out_stat_df, inv_loc = self.get_station_metadata(data_loc, year, channel, dc_name, dc_loc_string)
+            out_stat_df, inv_loc = self.get_station_metadata(data_loc, year, month, channel, dc_name, dc_loc_string)
 
             if not out_stat_df.empty:
                 # Loop through CMT_table and then out_stat_df and create a combined request_df.
@@ -511,7 +537,7 @@ class FetchData:
                         output_directory = ev_ids[i]
                         ev_id_count = ev_id_counts[i]
 
-                        chunk_f_name = self.write_chunk_file(data_loc, year, output_directory, ev_id_count, chunk)
+                        chunk_f_name = self.write_chunk_file(data_loc, year, month, output_directory, ev_id_count, chunk)
 
                         input_dict['data_loc'] = data_loc
                         input_dict['year'] = year
@@ -820,7 +846,7 @@ class FetchData:
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def get_input_dicts_rotate(self, year, channel, data_loc, function_list, do_parallel, jobs, processing_channel):
+    def get_input_dicts_rotate(self, year, month, channel, data_loc, function_list, do_parallel, jobs, processing_channel):
         '''
         Parallel processing needs a list of inputs for each iteration
         So put all input into a dict and create a list of dicts
@@ -851,16 +877,14 @@ class FetchData:
                     channel : desired output data channel
         '''
 
-
-        ev_list = glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????')
+        ev_list = glob.glob(f'{data_loc}/e{year}/py_formatted/{year}{month:02d}????????')
         input_dicts = []
         
         for output_directory in ev_list:
-
             
             # Finds files, makes input dictionary of files, functions, inputs
                 
-            vert_files = sorted(glob.glob(f'{output_directory}/{year}??????????_*_*.{processing_channel}Z'))
+            vert_files = sorted(glob.glob(f'{output_directory}/{year}{month:02d}????????_*_*.{processing_channel}Z'))
             num_files = len(vert_files)
 
 
@@ -897,7 +921,7 @@ class FetchData:
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def apply_serial(self, data_loc, year, channel, main_function, function_list, do_parallel, jobs, processing_channel):
+    def apply_serial(self, data_loc, year, month, channel, main_function, function_list, do_parallel, jobs, processing_channel):
         '''
         Takes a list of functions, reads all input files, applies each 
         function to all files.
@@ -926,7 +950,7 @@ class FetchData:
         Functions can write to logfile & outfile.
         '''
 
-        input_dicts = self.get_input_dicts_rotate(year, channel, data_loc, function_list, do_parallel, jobs, processing_channel)
+        input_dicts = self.get_input_dicts_rotate(year, month, channel, data_loc, function_list, do_parallel, jobs, processing_channel)
 
         if input_dicts:
 
@@ -942,7 +966,7 @@ class FetchData:
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def apply_parallel(self, data_loc, year, channel, main_function, function_list, do_parallel, jobs, processing_channel):
+    def apply_parallel(self, data_loc, year, month, channel, main_function, function_list, do_parallel, jobs, processing_channel):
         '''
         Takes a list of functions, reads all input files, applies 
         each function to all of the files.
@@ -970,7 +994,7 @@ class FetchData:
         The functions must return all input variables
         Functions can write to logfile & outfile.
         '''
-        input_dicts = self.get_input_dicts_rotate(year, channel, data_loc, function_list, do_parallel, jobs, processing_channel)
+        input_dicts = self.get_input_dicts_rotate(year, month, channel, data_loc, function_list, do_parallel, jobs, processing_channel)
 
         if input_dicts:
             # Parallel processing
@@ -984,17 +1008,17 @@ class FetchData:
             pass
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def execute(self, data_loc, year, channel, main_function, function_list, do_parallel, jobs, processing_channel):
+    def execute(self, data_loc, year, month, channel, main_function, function_list, do_parallel, jobs, processing_channel):
         '''
         Takes main function inputs and passes to serial or parallel 
         executer, see below.
         '''
         if do_parallel:
             # Execute in parallel
-            self.apply_parallel(data_loc, year, channel, main_function, function_list, do_parallel, jobs, processing_channel)
+            self.apply_parallel(data_loc, year, month, channel, main_function, function_list, do_parallel, jobs, processing_channel)
         else:
             # Execute in series
-            self.apply_serial(data_loc, year, channel, main_function, function_list, do_parallel, jobs, processing_channel)
+            self.apply_serial(data_loc, year, month, channel, main_function, function_list, do_parallel, jobs, processing_channel)
         return
 
 
@@ -1468,10 +1492,10 @@ def main():
 
     start_time = time.time()
 
-    if len(sys.argv) != 3:
-        print("Please specify year and search channel required")
-        print("USAGE:   python fetch_data.py <year> <channel>")
-        print("EXAMPLE: python fetch_data.py 2008 LH")
+    if len(sys.argv) != 4:
+        print("Please specify year & month and search channel required")
+        print("USAGE:   python fetch_data.py <year> <month> <channel>")
+        print("EXAMPLE: python fetch_data.py 2008 01 LH")
         sys.exit()
     else:
         year = int(sys.argv[1])
@@ -1479,8 +1503,9 @@ def main():
             print("Directory given is not present.... ")
             os.makedirs('e' + str(year))
 
-        channel = str(sys.argv[2])
-        print(f"Downloading {year}, for search data channel: {channel}")
+        month = int(sys.argv[2])
+        channel = str(sys.argv[3])
+        print(f"Downloading {year}, {month:02d} for search data channel: {channel}")
 
     data_loc = '/home/aboyce/d_data_obs/iris_FetchData'
     processing_channel = 'LH' # output of processing, channel -> processing_channel: e.g., LH,BH,HH -> LH
@@ -1503,7 +1528,7 @@ def main():
                     fetch_data.interpolate_seis, 
                     fetch_data.save_seis]
 
-    fetch_data.get_data(data_loc, year, channel, main_function, 
+    fetch_data.get_data(data_loc, year, month, channel, main_function, 
                         function_list, packet_request_size, do_parallel, 
                         jobs, processing_channel)
 
@@ -1519,14 +1544,14 @@ def main():
                     fetch_data.cleanup_files]
 
     # Execute functions to Rotate the data to ZRT
-    fetch_data.execute(data_loc, year, channel, main_function, 
+    fetch_data.execute(data_loc, year, month, channel, main_function, 
                         function_list, do_parallel, 96, processing_channel)
 
    
     # Sometimes there remains some N & E files, since they have no associated vertical component.
-    del_list = glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_??_*.{processing_channel}E') + 
-                glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_??_*.{processing_channel}N') +
-                glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_?_*.{processing_channel}E') +
+    del_list = glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_??_*.{processing_channel}E') + \
+                glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_??_*.{processing_channel}N') + \
+                glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_?_*.{processing_channel}E') + \
                 glob.glob(f'{data_loc}/e{year}/py_formatted/{year}??????????/{year}??????????_?_*.{processing_channel}N')
 
     # print(del_list)

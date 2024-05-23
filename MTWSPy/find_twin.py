@@ -162,7 +162,8 @@ class FindTwin:
             # Pre-process seismograms
             seis.detrend()
             seis.taper(max_percentage = 0.05, type = 'cosine')
-            seis.filter('bandpass',freqmin = 1/params_in['T2']*2*dt,freqmax = 1/params_in['T1']*2*dt,corners = 4,zerophase = True)
+            # seis.filter('bandpass',freqmin = 1/params_in['T2']*2*dt,freqmax = 1/params_in['T1']*2*dt,corners = 4,zerophase = True)
+            seis.filter('bandpass',freqmin = 1/params_in['T2']*2,freqmax = 1/params_in['T1']*2,corners = 4,zerophase = True)
 
 
             if len(id_sig) ==  0 or len(id_noise) ==  0:
@@ -237,7 +238,8 @@ class FindTwin:
             dt = seis[0].stats['delta']
             seis.detrend()
             seis.taper(max_percentage = 0.05, type = 'cosine')
-            seis.filter('bandpass',freqmin = 1/params_in['T2']*2*dt,freqmax = 1/params_in['T1']*2*dt,corners = 4,zerophase = True)
+            # seis.filter('bandpass',freqmin = 1/params_in['T2']*2*dt,freqmax = 1/params_in['T1']*2*dt,corners = 4,zerophase = True)
+            seis.filter('bandpass',freqmin = 1/params_in['T2']*2,freqmax = 1/params_in['T1']*2,corners = 4,zerophase = True)
 
             ###
             self.tk.print_log(params_in, logfile, f'{log_statement:s}  ,  Filtered synthetic to match observed')
@@ -329,7 +331,7 @@ class FindTwin:
                 e_sig_m = np.median(e[id_sig]) # median of signal window
                 e_sig_sd = np.std(e[id_sig]) # std of signal window
 
-                logfile.write(f'{log_statement:s}  ,  e_sig_m = {e_sig_m:.2e}, e_sig_sd = {e_sig_sd:.2e}\n')
+                self.tk.print_log(params_in, logfile, f'{log_statement:s}  ,  e_sig_m = {e_sig_m:.2e}, e_sig_sd = {e_sig_sd:.2e}')
 
                 id_low = e[id] < e_sig_m * params_in['k_em']
 
