@@ -351,13 +351,17 @@ class CorrelateTwin:
 
                     # t_obs = seis_obs[0].times(reftime = UTCDateTime(str(input_dict['evtm'])))
                     dt_obs = seis_obs[0].stats['delta']
-                    seis_obs.filter('bandpass',freqmin = 1/params_in['T2']*2*dt_obs,freqmax = 1/params_in['T1']*2*dt_obs,corners = 4,zerophase = True)
+                    # seis_obs.filter('bandpass',freqmin = 1/params_in['T2']*2*dt_obs,freqmax = 1/params_in['T1']*2*dt_obs,corners = 4,zerophase = True)
+                    seis_obs.filter('bandpass',freqmin = 1/params_in['T2']*2,freqmax = 1/params_in['T1']*2,corners = 4,zerophase = True)
+
                     seis_obs.detrend()
                     seis_obs.taper(max_percentage = 0.1)
 
                     # t_syn = seis_syn[0].times(reftime = UTCDateTime(str(input_dict['evtm'])))
                     dt_syn = seis_syn[0].stats['delta']
-                    seis_syn.filter('bandpass',freqmin = 1/params_in['T2']*2*dt_syn,freqmax = 1/params_in['T1']*2*dt_syn,corners = 4,zerophase = True)
+                    # seis_syn.filter('bandpass',freqmin = 1/params_in['T2']*2*dt_syn,freqmax = 1/params_in['T1']*2*dt_syn,corners = 4,zerophase = True)
+                    seis_syn.filter('bandpass',freqmin = 1/params_in['T2']*2,freqmax = 1/params_in['T1']*2,corners = 4,zerophase = True)
+
                     seis_syn.detrend()
                     seis_syn.taper(max_percentage = 0.1)
 
@@ -557,11 +561,20 @@ class CorrelateTwin:
                                             ###
                                             continue
 
+                                        auto_obs_max_pos = np.argmax(auto_obs) # COMMENT
+                                        lags_auto_obs = signal.correlation_lags(x_obs.size, x_obs.size, mode = "full")  * params_in['interp_delta'] # COMMENT
 
-                                        start_ind_shift = int((t_syn[i_syn][0]-t_obs[i_obs][0])/params_in['interp_delta'])
+                                        print(f'len(auto_syn): {len(auto_syn)}, np.argmax(auto_syn): {auto_syn_max_pos}, max auto_syn: {auto_syn[auto_syn_max_pos]:.3f} at {lags_auto_syn[auto_syn_max_pos]:.3f}s')  # COMMENT
+                                        print(f'len(auto_obs): {len(auto_obs)}, np.argmax(auto_obs): {auto_obs_max_pos}, max auto_obs: {auto_obs[auto_obs_max_pos]:.3f} at {lags_auto_obs[auto_obs_max_pos]:.3f}s') # COMMENT
+
+
+                                        start_ind_shift = int((t_obs[i_obs][0] - t_syn[i_syn][0])/params_in['interp_delta'])
+                                        print(f'start_ind_shift = int((t_obs[0] - t_syn[0])/delta_t): {start_ind_shift} = int (({t_obs[i_obs][0]} - {t_syn[i_syn][0]}) / {params_in['interp_delta']}))') # COMMENT
+
                                         # Time delay based on XC
                                         XC_tdl = np.round(lag + t_obs[i_obs][0] - t_syn[i_syn][0], 4)
                                         XC_ind_shift =  auto_syn_max_pos - i_ccmx + start_ind_shift
+                                        print(f'XC_ind_shift = auto_syn_max_pos - i_ccmx + start_ind_shift: {XC_ind_shift:d} = {auto_syn_max_pos:d} - {i_ccmx:d} + {start_ind_shift:d}') # COMMENT
 
                                         t_min = np.min([t_syn[0], t_obs[0]])
                                         t_max = np.max([t_syn[-1], t_obs[-1]])
@@ -583,7 +596,7 @@ class CorrelateTwin:
                                             # self.tk.print_log(params_in, logfile, f'{log_statement:s}  ,  Using Zaroli Delay time calculation...')
                                             ###
                                             # stz = time.time()
-                                            F3_output = Func_3(x_obs, x_syn, t_obs[i_obs], t_syn[i_syn], ax_time, ax_time_F3, params_in['interp_delta']) # Roughly 1s for the calculation
+                                            F3_output = self.Func_3(x_obs, x_syn, t_obs[i_obs], t_syn[i_syn], ax_time, ax_time_F3, params_in['interp_delta']) # Roughly 1s for the calculation
                                             # print("Got Zaroli F3 in --- %s seconds ---" % (time.time() - stz))
 
                                             # Check peaks in F3 function
@@ -630,6 +643,11 @@ class CorrelateTwin:
                                             tdl = np.round(ax_time_F3[F3_peak_ind], 4)
                                             ax_time_zero = np.argmin(np.abs(ax_time_F3))
                                             ind_shift = ax_time_zero - F3_peak_ind
+                                            print(f'ind_shift_Z = ax_time_zero - F3_peak_ind: {ind_shift:d} = {ax_time_zero:d} - {F3_peak_ind:d}') # COMMENT
+
+                                            print(f'ZR ALIGNED TRACES IND_SHIFT: {ind_shift}') # COMMENT
+                                            print(f'XC ALIGNED TRACES IND_SHIFT: {XC_ind_shift}') # COMMENT
+
                                             ccmx = F3_output[F3_peak_ind]
                                         else:
                                             # Just use cross correlation output.
@@ -639,6 +657,11 @@ class CorrelateTwin:
                                                                                     
                                             tdl = XC_tdl
                                             ind_shift = XC_ind_shift
+                                            F3_output = []
+                                            F3_peaks_ind = []
+                                            F3_peak_dicts = {}
+                                            F3_sort_args = []
+                                            F3_peak_ind = []
 
 
                                         if np.abs(XC_tdl - tdl) > params_in['XC_Zaroli_diff']:
@@ -668,7 +691,7 @@ class CorrelateTwin:
 
                                         # Execute plotting for correlated twin
                                         if params_in['corr_plot_pic']:
-                                            corr_twin_plot(input_dict, params_in, logfile, log_statement, nslc, 
+                                            self.corr_twin_plot(input_dict, params_in, logfile, log_statement, nslc, 
                                                 row_obs, t_obs, x_obs, i_obs, freqs_obs, mags_obs, max_mags_obs, 
                                                 row_syn, t_syn, x_syn, i_syn, freqs_syn, mags_syn, max_mags_syn,
                                                 auto_syn, lags_auto_syn, correlation,
@@ -741,7 +764,7 @@ class CorrelateTwin:
 
         ############### Aligned traces ##############
 
-        obs_shifted = shift_and_truncate(x_obs, t_obs[i_obs], ind_shift, ax_time, 1/params_in['interp_delta'])
+        obs_shifted = self.shift_and_truncate(x_obs, t_obs[i_obs], ind_shift, ax_time, 1/params_in['interp_delta'])
 
         obs, = ax_tw_aligned.plot(ax_time, obs_shifted , 'b')
         synth, = ax_tw_aligned.plot(t_syn[i_syn],x_syn,'r')
@@ -775,10 +798,10 @@ class CorrelateTwin:
 
         ################## Norm XC and Zaroli F3 ##################
 
-        xc_norm_shifted = shift_and_truncate(norm_xc, lags, -start_ind_shift, ax_time_F3, 1/params_in['interp_delta'])
+        xc_norm_shifted = self.shift_and_truncate(norm_xc, lags, start_ind_shift, ax_time_F3, 1/params_in['interp_delta'])
 
         n_xc, = ax_XC_Zr.plot(ax_time_F3, xc_norm_shifted, 'k')
-        n_xc_peak_time = lags[i_ccmx_norm]-(start_ind_shift * params_in['interp_delta'])
+        n_xc_peak_time = lags[i_ccmx_norm]+(start_ind_shift * params_in['interp_delta'])
         n_xc_peak, = ax_XC_Zr.plot([n_xc_peak_time, n_xc_peak_time], [0,norm_xc[i_ccmx_norm]], 'k--')
 
         if params_in['Zaroli']:
@@ -786,7 +809,7 @@ class CorrelateTwin:
             F3_peak, = ax_XC_Zr.plot([ax_time_F3[F3_peak_ind],ax_time_F3[F3_peak_ind]], [0,F3_output[F3_peak_ind]], 'r--', markersize = 10)
             ax_XC_Zr.set_title('Norm. Cross Corr. & Zaroli et al 2010 F3', fontsize = 14)
             for arg in F3_sort_args[1:]:
-                F3_peaks, = ax_XC_Zr.plot(ax_time_F3[F3_peaks_ind[arg]], F3_peak_dicts['peak_heights'][arg], 'r + ', markersize = 8)
+                F3_peaks, = ax_XC_Zr.plot(ax_time_F3[F3_peaks_ind[arg]], F3_peak_dicts['peak_heights'][arg], 'r+', markersize = 8)
 
             ax_XC_Zr.legend([n_xc, n_xc_peak, F3_l, F3_peak, F3_peaks], ['XC', 'XC peak', 'F3', 'F3 peak', 'F3 2nd peaks'],loc = 'upper right',fontsize = 8)
 
@@ -794,7 +817,9 @@ class CorrelateTwin:
             ax_XC_Zr.legend([n_xc, n_xc_peak], ['XC', 'XC peak'],loc = 'upper right',fontsize = 8)
             ax_XC_Zr.set_title('Norm. Cross Corr. Function', fontsize = 14)
 
-        ax_XC_Zr.set_xlim([lags[0] - (start_ind_shift * params_in['interp_delta']),lags[-1] - (start_ind_shift * params_in['interp_delta'])])
+        # ax_XC_Zr.set_xlim([lags[0] + (start_ind_shift * params_in['interp_delta']), lags[-1] + (start_ind_shift * params_in['interp_delta'])])
+        ax_XC_Zr.set_xlim([ax_time_F3[0], ax_time_F3[-1]])
+
         ax_XC_Zr.set_ylabel('Amplitude', fontsize = 14)
         ax_XC_Zr.set_xlabel('Lag [s]', fontsize = 14)
         ax_XC_Zr.xaxis.set_minor_locator(MultipleLocator(5))
@@ -825,7 +850,7 @@ class CorrelateTwin:
 
             pic_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
 
-            pic_filename = f'Event {input_dict['id_cmt']}_{nslc}_{row_obs['phase']:s}_{row_obs['t_taup']:.2f}s.pdf'
+            pic_filename = f'Event_{input_dict['id_cmt']}_{nslc}_{row_obs['phase']:s}_{row_obs['t_taup']:.2f}s.pdf'
 
             ###
             self.tk.print_log(params_in, logfile, f'{log_statement:s}  ,  Save {pic_loc}/{pic_filename}')
