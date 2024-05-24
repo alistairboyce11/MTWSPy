@@ -493,6 +493,7 @@ class CorrelateTwin:
 
                                         # Normalise correlation function
                                         norm_xc = np.round(np.sqrt((np.maximum(correlation, 0) / np.max(auto_syn)) * (np.maximum(correlation, 0) /  np.max(auto_obs))),4)
+                                        i_ccmx = np.argmax(norm_xc)
 
                                         # Check peaks in Normed XC function
                                         XC_peaks_ind, XC_peak_dicts = signal.find_peaks(norm_xc, height = params_in['XC_min_peak_search'], distance = params_in['XC_min_peak_distance']) # Find peaks in XC
@@ -563,6 +564,9 @@ class CorrelateTwin:
 
                                         # auto_obs_max_pos = np.argmax(auto_obs) # COMMENT
                                         # lags_auto_obs = signal.correlation_lags(x_obs.size, x_obs.size, mode = "full")  * params_in['interp_delta'] # COMMENT
+                                        
+                                        # print(f'len(i_obs): {len(t_obs[i_obs])}, len(t_syn[i_syn]): {len(t_syn[i_syn])}: np.abs(len(t_syn[i_syn]) - len(t_obs[i_obs])): {np.abs(len(t_syn[i_syn]) - len(t_obs[i_obs]))}')  # COMMENT
+
 
                                         # print(f'len(auto_syn): {len(auto_syn)}, np.argmax(auto_syn): {auto_syn_max_pos}, max auto_syn: {auto_syn[auto_syn_max_pos]:.3f} at {lags_auto_syn[auto_syn_max_pos]:.3f}s')  # COMMENT
                                         # print(f'len(auto_obs): {len(auto_obs)}, np.argmax(auto_obs): {auto_obs_max_pos}, max auto_obs: {auto_obs[auto_obs_max_pos]:.3f} at {lags_auto_obs[auto_obs_max_pos]:.3f}s') # COMMENT
@@ -573,8 +577,8 @@ class CorrelateTwin:
 
                                         # Time delay based on XC
                                         XC_tdl = np.round(lag + t_obs[i_obs][0] - t_syn[i_syn][0], 4)
-                                        XC_ind_shift =  auto_syn_max_pos - i_ccmx + start_ind_shift
-                                        # print(f'XC_ind_shift = auto_syn_max_pos - i_ccmx + start_ind_shift: {XC_ind_shift:d} = {auto_syn_max_pos:d} - {i_ccmx:d} + {start_ind_shift:d}') # COMMENT
+                                        # XC_ind_shift = auto_syn_max_pos - i_ccmx - start_ind_shift
+                                        # print(f'XC_ind_shift = auto_syn_max_pos - i_ccmx - start_ind_shift: {XC_ind_shift:d} = {auto_syn_max_pos:d} - {i_ccmx:d} - {start_ind_shift:d}') # COMMENT
 
                                         t_min = np.min([t_syn[0], t_obs[0]])
                                         t_max = np.max([t_syn[-1], t_obs[-1]])
@@ -641,8 +645,8 @@ class CorrelateTwin:
 
                                             # Get time delay (tdl) and ind_shift (for plotting) and equivalent of Normed Cross correlation coeffecient from F3
                                             tdl = np.round(ax_time_F3[F3_peak_ind], 4)
-                                            ax_time_zero = np.argmin(np.abs(ax_time_F3))
-                                            ind_shift = ax_time_zero - F3_peak_ind
+                                            # ax_time_zero = np.argmin(np.abs(ax_time_F3))
+                                            # ind_shift = ax_time_zero - F3_peak_ind
                                             # print(f'ind_shift_Z = ax_time_zero - F3_peak_ind: {ind_shift:d} = {ax_time_zero:d} - {F3_peak_ind:d}') # COMMENT
 
                                             # print(f'ZR ALIGNED TRACES IND_SHIFT: {ind_shift}') # COMMENT
@@ -656,7 +660,7 @@ class CorrelateTwin:
                                             ###
                                                                                     
                                             tdl = XC_tdl
-                                            ind_shift = XC_ind_shift
+                                            Z_tdl = []
                                             F3_output = []
                                             F3_peaks_ind = []
                                             F3_peak_dicts = {}
@@ -694,8 +698,8 @@ class CorrelateTwin:
                                             self.corr_twin_plot(input_dict, params_in, logfile, log_statement, nslc, 
                                                 row_obs, t_obs, x_obs, i_obs, freqs_obs, mags_obs, max_mags_obs, 
                                                 row_syn, t_syn, x_syn, i_syn, freqs_syn, mags_syn, max_mags_syn,
-                                                auto_syn, lags_auto_syn, correlation,
-                                                ax_time, ax_time_F3, start_ind_shift, ind_shift, norm_xc, lags, i_ccmx_norm,
+                                                auto_syn, lags_auto_syn, correlation, XC_tdl, tdl,
+                                                ax_time, ax_time_F3, start_ind_shift, norm_xc, lags, i_ccmx_norm,
                                                 F3_output, F3_peaks_ind, F3_peak_dicts, F3_sort_args, F3_peak_ind,
                                                 tdl_err)
 
@@ -716,8 +720,8 @@ class CorrelateTwin:
     def corr_twin_plot(self, input_dict, params_in, logfile, log_statement, nslc, 
                 row_obs, t_obs, x_obs, i_obs, freqs_obs, mags_obs, max_mags_obs, 
                 row_syn, t_syn, x_syn, i_syn, freqs_syn, mags_syn, max_mags_syn,
-                auto_syn, lags_auto_syn, correlation,
-                ax_time, ax_time_F3, start_ind_shift, ind_shift, norm_xc, lags, i_ccmx_norm,
+                auto_syn, lags_auto_syn, correlation, XC_tdl, Z_tdl,
+                ax_time, ax_time_F3, start_ind_shift, norm_xc, lags, i_ccmx_norm,
                 F3_output, F3_peaks_ind, F3_peak_dicts, F3_sort_args, F3_peak_ind,
                 tdl_err):
         '''
@@ -764,11 +768,20 @@ class CorrelateTwin:
 
         ############### Aligned traces ##############
 
-        obs_shifted = self.shift_and_truncate(x_obs, t_obs[i_obs], ind_shift, ax_time, 1/params_in['interp_delta'])
-
-        obs, = ax_tw_aligned.plot(ax_time, obs_shifted , 'b')
         synth, = ax_tw_aligned.plot(t_syn[i_syn],x_syn,'r')
-        ax_tw_aligned.legend([obs, synth], ['Obs','Syn'],loc = 'upper right',fontsize = 8)
+
+        # print(f'XC_tdl: {XC_tdl}')
+        XC_obs_shifted = self.shift_and_truncate(x_obs, t_obs[i_obs], -XC_tdl/params_in['interp_delta'], ax_time, 1/params_in['interp_delta'])
+        XC_obs, = ax_tw_aligned.plot(ax_time, XC_obs_shifted , 'b')
+        
+        if params_in['Zaroli']:
+            # print(f'Z_tdl: {Z_tdl}')
+            ZR_obs_shifted = self.shift_and_truncate(x_obs, t_obs[i_obs], -Z_tdl/params_in['interp_delta'], ax_time, 1/params_in['interp_delta'])
+            ZR_obs, = ax_tw_aligned.plot(ax_time, ZR_obs_shifted , 'g')
+
+            ax_tw_aligned.legend([ZR_obs, XC_obs, synth], ['ZR_obs','XC_obs','Syn'],loc = 'upper right',fontsize = 8)
+        else:
+            ax_tw_aligned.legend([obs, synth], ['Obs','Syn'],loc = 'upper right',fontsize = 8)
 
         ax_tw_aligned.set_title('Aligned Synth & Obs windows', fontsize = 14)
         ax_tw_aligned.set_ylabel('Amplitude', fontsize = 14)
