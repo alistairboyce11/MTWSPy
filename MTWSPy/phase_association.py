@@ -479,7 +479,7 @@ class PhaseAssociationObs(PhaseAssociation):
         '''
         params_in = input_dict['params_in']
 
-        lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
+        lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}_obs'
         
         if not os.path.exists(lf_loc):
             os.makedirs(lf_loc, exist_ok=True)
@@ -756,7 +756,7 @@ class PhaseAssociationSyn(PhaseAssociation):
         '''
         params_in = input_dict['params_in']
 
-        lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
+        lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}_syn'
 
         if not os.path.exists(lf_loc):
             os.makedirs(lf_loc, exist_ok=True)
