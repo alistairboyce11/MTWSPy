@@ -15,7 +15,7 @@ import concurrent.futures
 
 class ParallelProcSpecfemSeis:
 
-    '''
+    """
     Class to handle serial/parallel post processing of SPECFEM3D simulations
     to format the data ready for MTWSPy travel time picking
     
@@ -23,17 +23,24 @@ class ParallelProcSpecfemSeis:
     Then apply a common series of functions to all data files produced by 
     SPECFEM and save output to a formatted directory.
 
-    '''
+    """
 
     def __init__(self):
         pass
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def generate_triangular_source_time_function(self, half_duration, dt):
-        '''
+        """
         return triangular source time function using 
         half duration and dt
-        '''
+
+        :param half_duration: half_duration of source time function
+        :type half_duration: float
+        :param dt: sample interval (s)
+        :type dt: float
+        :return stf: stf normalised to unit area
+        :type stf: np.array
+        """
         t = np.arange(0, half_duration * 2, dt) 
         tri_wave = np.maximum(0, 1 - np.abs(t - half_duration) / half_duration)
         return tri_wave / np.sum(tri_wave)  # Normalize to have unit area
@@ -41,14 +48,14 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def read_CMTSOLUTION(self, file):
-        '''
+        """
         Read CMTSOLUTION file into dict
 
-        Parameters
-        ----------
-        file: str
-            CMTSOLUTION file name
-        
+        :param file: file name of CMT file to be read
+        :type file: str
+        :return cmt_dict: dictionary of CMT parameters
+        :type cmt_dict: dict
+
         Returns
         ----------
         cmt_dict : dict 
@@ -62,7 +69,7 @@ class ParallelProcSpecfemSeis:
             evlon : event longitude
             evdep : event depth
             evmag : event magnitude
-        '''
+        """
         cmt_dict = {}
 
         f=open(file,'r')
@@ -125,18 +132,14 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def read_STATION_file(self, file):
-        '''
+        """
         Read STATION file into pandas dataframe
 
-        Parameters
-        ----------
-        file: str
-            STATION file name
-        
-        Returns
-        ----------
-        stations_df : df 
-        '''
+        :param file: file name of station file to be read
+        :type file: str
+        :return stations_df: dictionary of station parameters
+        :type stations_df: pd.df
+        """
 
         with open(file, 'r') as f:
             # Skip header lines
@@ -157,36 +160,37 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def get_sacfile_dict(self, input_sacfile, cmt_dict, stations_df, channel):
-        '''
+        """
         Read input_sacfilename get parameter for processing.
 
-        Parameters
-        ----------
-        input_sacfile: str
-            filename of input sac file
-        cmt_dict : dict
-            CMTSOLUTION dataframe
-        stations_df : df 
-            Stations dataframe
-        channel : str
-            desired data channel after processing
-        
+        :param input_sacfile: filename of input sac file
+        :type input_sacfile: str
+        :param cmt_dict: CMTSOLUTION dataframe
+        :type cmt_dict: dict
+        :param stations_df : Stations dataframe
+        :type stations_df: pd.df 
+        :param channel : desired data channel after processing
+        :type channel: str
+                   
+        :return sacfile_dict: dict of sac file details
+        :type sacfile_dict: dict
+
         Returns
         ----------
         sacfile_dict : dict 
-        input_sacfile : input sacfile name
-        ntwrk : network name
-        kstnm : station name
-        chan_in : input channel
-        comp_in : input component
-        kstloc : station location
-        : station component
-        output_sacfile : output sacfile name
-        stlat : station lat
-        stlon : station lon
-        stel : station elevation
-        stdp : station depth
-        '''
+            input_sacfile : input sacfile name
+            ntwrk : network name
+            kstnm : station name
+            chan_in : input channel
+            comp_in : input component
+            kstloc : station location
+            : station component
+            output_sacfile : output sacfile name
+            stlat : station lat
+            stlon : station lon
+            stel : station elevation
+            stdp : station depth
+        """
 
         sacfile_dict = {}
         sacfile_dict['input_sacfile'] = input_sacfile
@@ -222,21 +226,23 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def get_input_dicts(self, input_directory, functions, do_parallel, jobs, channel):
-        '''
+        """
         Parallel processing needs a list of inputs for each independent iteration
         So put all input into a dict and create a list of dicts
 
-        Parameters
-        ----------
-        input_directory: str
-            input_directory name where all the data is.
-        functions : list
-            list of functions to apply to inputs
-        do_parallel : bool
-        jobs :  int
-            number of paralle workers
-        channel : str
-            required output channel of seismograms
+        :param input_directory: input_directory name where the data is
+        :type input_directory: str
+        :param functions : list of functions to apply to inputs
+        :type functions: list
+        :param do_parallel: Execute in parallel or not
+        :type do_parallel : bool
+        :param jobs: number of parallel workers
+        :type jobs: int
+        :param channel: sesimogram channel used in processing
+        :type channel: str
+
+        :return input_dicts: list of dicts with info on files to be processed
+        :type input_dicts: list
             
         Returns
         ----------
@@ -252,7 +258,7 @@ class ParallelProcSpecfemSeis:
                     do_parallel : boolean
                     jobs : number of jobs
                     channel : desired output data channel
-        '''
+        """
 
         # Get CMT solutions
         cmt_filepath = input_directory + '/CMTSOLUTION'
@@ -324,41 +330,33 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def apply_serial(self, main_function, input_directory, functions, do_parallel, jobs, channel):
-        '''
+        """
         Takes a list of functions, reads all input files, applies each function to all files
         IN SERIES...
 
-        Parameters
-        ----------
-        main_function : list
-            Length one list containing main function.
-        input_directory: str
-            input_directory name where all the data is.
-        functions : list
-            list of functions to apply to inputs
-        do_parallel : bool
-        jobs :  int
-            number of paralle workers
-        channel : str
-            required output channel of seismograms
-
-        Returns
-        ----------
-        Nothing : None
-            Functions take care of returns/writing to file  
+        :param main_function : list of the 1 main function applied to inputs
+        :type main_function: list
+        :param input_directory: input_directory name where the data is
+        :type input_directory: str
+        :param functions : list of functions to apply to inputs
+        :type functions: list
+        :param do_parallel: Execute in parallel or not
+        :type do_parallel : bool
+        :param jobs: number of parallel workers
+        :type jobs: int
+        :param channel: sesimogram channel used in processing
+        :type channel: str
             
         The functions in the list must take the following inputs: 
 
         input_dict : dict
         file : file location string
         seis : obspy stream object read into memory onwhich operations are performed.
-        # logfile : open logfile to report progress
-        # outfile : open outfile to report results
         fail : int - fail flag = 1 if function fails, else 0.
         
         The functions must return all input variables
         Functions can write to logfile & outfile.
-        '''
+        """
 
         # get input dicts
         input_dicts = self.get_input_dicts(input_directory, functions, do_parallel, jobs, channel)
@@ -376,41 +374,33 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def apply_parallel(self, main_function, input_directory, functions, do_parallel, jobs, channel):
-        '''
+        """
         Takes a list of functions, reads all input files, applies each function to all of the files
         IN PARALLEL...
 
-        Parameters
-        ----------
-        main_function : list
-            Length one list containing main function.
-        input_directory: str
-            input_directory name where all the data is.
-        functions : list
-            list of functions to apply to inputs
-        do_parallel : bool
-        jobs :  int
-            number of paralle workers
-        channel : str
-            required output channel of seismograms
-
-        Returns
-        ----------
-        Nothing : None
-            Functions take care of returns/writing to file  
+        :param main_function : list of the 1 main function applied to inputs
+        :type main_function: list
+        :param input_directory: input_directory name where the data is
+        :type input_directory: str
+        :param functions : list of functions to apply to inputs
+        :type functions: list
+        :param do_parallel: Execute in parallel or not
+        :type do_parallel : bool
+        :param jobs: number of parallel workers
+        :type jobs: int
+        :param channel: sesimogram channel used in processing
+        :type channel: str
             
         The functions in the list must take the following inputs: 
 
         input_dict : dict
         file : file location string
         seis : obspy stream object read into memory onwhich operations are performed.
-        # logfile : open logfile to report progress
-        # outfile : open outfile to report results
         fail : int - fail flag = 1 if function fails, else 0.
         
         The functions must return all input variables
         Functions can write to logfile & outfile.
-        '''
+        """
 
         # get input dicts
         input_dicts = self.get_input_dicts(input_directory, functions, do_parallel, jobs, channel)
@@ -427,10 +417,25 @@ class ParallelProcSpecfemSeis:
             pass
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def execute(self, main_function, input_directory, functions, do_parallel, jobs, channel):
-        '''
-        Takes main function inputs and passes to serial or parallel executer, see below.
-        '''
+    def execute(self, main_function, input_directory, functions, do_parallel, 
+                jobs, channel):
+        """
+        Takes main function inputs and passes to serial or parallel 
+        executer, see below.
+
+        :param main_function : list of the 1 main function applied to inputs
+        :type main_function: list
+        :param input_directory: input_directory name where the data is
+        :type input_directory: str
+        :param functions : list of functions to apply to inputs
+        :type functions: list
+        :param do_parallel: Execute in parallel or not
+        :type do_parallel : bool
+        :param jobs: number of parallel workers
+        :type jobs: int
+        :param channel: sesimogram channel used in processing
+        :type channel: str
+        """
         if do_parallel:
             # Execute in parallel
             self.apply_parallel(main_function, input_directory, functions, do_parallel, jobs, channel)
@@ -442,28 +447,27 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def process_one_file(self, input_dict):
-        '''
-        Processes one file reading the file, applying the list functions to them
+        """
+        Processes one file reading the file, applying the list functions 
+        to them
+
+        :return input_dict: dictionary of info used in processing
+        :type input_dict: dict
 
         Parameters
         ----------
-        input_dicts : list (of dictionaries as below)
-            input_dict : dict : specific to each file
-                input dictionary containing:
-                    file : file name to process.
-                    sacfile_dict : dict of parameters describing file
-                    output_directory : formatted output dir
-                    cmt_dict : dictionary of CMTSOLUTION parameters from Specfem execution
-                    stations_df : STATION file from Specfem execution as pd df
-                    functions : list of functions to execute on sacfile
-                    do_parallel : boolean
-                    jobs : number of jobs
-                    channel : desired output data channel
-
-        Returns
-        ----------
-        Nothing: None
-        '''
+        input_dict : dict : specific to each file
+            input dictionary containing:
+                file : file name to process.
+                sacfile_dict : dict of parameters describing file
+                output_directory : formatted output dir
+                cmt_dict : dictionary of CMTSOLUTION parameters from Specfem execution
+                stations_df : STATION file from Specfem execution as pd df
+                functions : list of functions to execute on sacfile
+                do_parallel : boolean
+                jobs : number of jobs
+                channel : desired output data channel
+        """
 
         file = input_dict['file']
         functions = input_dict['functions']
@@ -492,15 +496,19 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def update_headers_seis(self, input_dict, file, seis, fail):
-        '''
+        """
         Updates all headers of the seismogram
 
-        Inputs and returns:
-            input_dict : dict
-            file : seismogram file name
-            seis : obspy stream
-            fail : 1/0
-        '''
+        Inputs and returns same/updated parameters
+        :param input_dict : details for processing
+        :type input_dict: dict
+        :param file: seismogram file name
+        :type file: str
+        :param seis: seismic data in python format in memory
+        :type seis: obspy stream
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
 
         if fail:
             ###
@@ -541,15 +549,19 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def convolve_seis(self, input_dict, file, seis, fail):
-        '''
-        Colvolve seismogram with appropriate sourcetime function
+        """
+        Convolve seismogram with appropriate sourcetime function
 
-        Inputs and returns:
-            input_dict : dict
-            file : seismogram file name
-            seis : obspy stream
-            fail : 1/0
-        '''
+        Inputs and returns same/updated parameters
+        :param input_dict : details for processing
+        :type input_dict: dict
+        :param file: seismogram file name
+        :type file: str
+        :param seis: seismic data in python format in memory
+        :type seis: obspy stream
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
 
         if fail:
             ###
@@ -582,15 +594,19 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def remove_trend_taper(self, input_dict, file, seis, fail):
-        '''
+        """
         Removes trend and tapers seismogram
 
-        Inputs and returns:
-            input_dict : dict
-            file : seismogram file name
-            seis : obspy stream
-            fail : 1/0
-        '''
+        Inputs and returns same/updated parameters
+        :param input_dict : details for processing
+        :type input_dict: dict
+        :param file: seismogram file name
+        :type file: str
+        :param seis: seismic data in python format in memory
+        :type seis: obspy stream
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
 
         if fail:
             ###
@@ -608,15 +624,19 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def filter_seis(self, input_dict, file, seis, fail):
-        '''
+        """
         Filter seismogram
 
-        Inputs and returns:
-            input_dict : dict
-            file : seismogram file name
-            seis : obspy stream
-            fail : 1/0
-        '''
+        Inputs and returns same/updated parameters
+        :param input_dict : details for processing
+        :type input_dict: dict
+        :param file: seismogram file name
+        :type file: str
+        :param seis: seismic data in python format in memory
+        :type seis: obspy stream
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
 
         if fail:
             ###
@@ -640,15 +660,19 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def interpolate_seis(self, input_dict, file, seis, fail):
-        '''
+        """
         Interpolate seismogram
 
-        Inputs and returns:
-            input_dict : dict
-            file : seismogram file name
-            seis : obspy stream
-            fail : 1/0
-        '''
+        Inputs and returns same/updated parameters
+        :param input_dict : details for processing
+        :type input_dict: dict
+        :param file: seismogram file name
+        :type file: str
+        :param seis: seismic data in python format in memory
+        :type seis: obspy stream
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
 
         if fail:
             ###
@@ -669,15 +693,19 @@ class ParallelProcSpecfemSeis:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def save_seis(self, input_dict, file, seis, fail):
-        '''
+        """
         Saves processed sac file
 
-        Inputs and returns:
-            input_dict : dict
-            file : seismogram file name
-            seis : obspy stream
-            fail : 1/0
-        '''
+        Inputs and returns same/updated parameters
+        :param input_dict : details for processing
+        :type input_dict: dict
+        :param file: seismogram file name
+        :type file: str
+        :param seis: seismic data in python format in memory
+        :type seis: obspy stream
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
 
         out_filename = input_dict['output_directory'] + '/' + input_dict['sacfile_dict']['output_sacfile']
         

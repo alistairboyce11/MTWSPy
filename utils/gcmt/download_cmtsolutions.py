@@ -11,24 +11,23 @@ class DownloadCMTSolutions:
         pass
 
     def get_CMTSOLUTIONS(self, listyear, min_depth, max_depth, min_mag, max_mag):
-        '''
+        """
         Takes a list of years, depth and magnitude range
         Downloads all CMT solutions for each year
         Formats for SPECFEM3D 
-        
-        Parameters
-        ----------
+   
+        listyear :List of years for which to fetch CMT solutions
         listyear : list
-            List of years for which to fetch CMT solutions
-        min_depth, max_depth : float/int
-            Depth constraints on CMTs
-        min_mag, max_mag : float/int
-            Magnitude constraints on CMTs
+        max_depth: Depth constraints on CMTs
+        max_depth: float/int
+        min_depth: Depth constraints on CMTs
+        min_depth: float/int
+        min_mag: Magnitude constraints on CMTs
+        min_mag: float/int
+        max_mag: Magnitude constraints on CMTs
+        max_mag: float/int
 
-        Returns
-        -------
-        None
-        '''
+        """
 
         for year in listyear:
             j=0

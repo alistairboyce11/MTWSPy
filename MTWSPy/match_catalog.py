@@ -5,22 +5,40 @@ import numpy as np
 import inspect
 
 class MatchCatalog:
+    """
+    Class to handle matching observed and synthetic data earthquake catalogs
+    """
+
     def __init__(self, params):
+        """
+        On initiation of class load params and write header of logfile
+        """
+
         self.params = params
         self.logfile = self.open_log_file()
         self.write_params_logfile()
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def open_log_file(self):
+        """
+        Open a logfile for the match_catalog process
+        Use params to define name and filepath
+        Return open logfile
+        """
+
         lf_loc = f"{self.params['home']}/{self.params['log_loc']}/{str(self.params['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}"
         if not os.path.exists(lf_loc):
             os.makedirs(lf_loc, exist_ok=True)
         lf_name = f"{lf_loc}/match_catalog.log"
         return open(lf_name, "w")
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def write_params_logfile(self):
+        """
+        Write header to match_catalog logfile
+        """
+        
         justify = 30
         self.logfile.write(" ")
         self.logfile.write("----------////               INPUT PARAMETERS                ////----------\n")
@@ -29,10 +47,9 @@ class MatchCatalog:
             self.logfile.write("{0:>{x}s} {1:s} {2:s}\n".format(param, " : ", str(self.params[param]), x=justify))
         self.logfile.write("----------////               INPUT PARAMETERS                ////----------\n")
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    # Existing get_cmt_catalog function, modified to use self.params and self.logfile
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def get_cmt_catalog(self):
-        '''
+        """
         Read CMT catalog file into pandas dataframe
         It has the following columns:
         
@@ -50,7 +67,14 @@ class MatchCatalog:
         id_fmt_htm: format string for hypocentral time
         id_dmt_fmt_ctm: format string for dmt centroid time
         id_dmt_fmt_htm: format string for dmt hypocentral time
-        '''
+
+        :param self.params: dict inc loc of cmt_infile
+        :type self.params: dict
+
+        :return cat: dataframe of cmt catalog with added columns as above
+        :type cat: pd.df
+        """
+
         from toolkit import Toolkit
         tk = Toolkit()
 
@@ -121,17 +145,23 @@ class MatchCatalog:
         return cat
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    # Existing get_data_catalog_year function, modified to use self.params and self.logfile
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def get_data_catalog_year(self):
-        '''
-        Read obspy dmt catalog_table.txt file into pandas dataframe
+        """
+        Read obspy dmt catalog_table.txt file or
+        IRIS FetchData ????_events.out file into pandas dataframe
         With the following columns:
 
         'N','LAT', 'LON', 'DEP', 'DATETIME', 'MAG', 'EV_ID'
 
         Return dataframe
-        '''
+
+        :param self.params: dict inc loc of data catalog
+        :type self.params: dict
+
+        :return data_cat: dataframe of data catalog with columns as above
+        :type data_cat: pd.df
+        """
         from toolkit import Toolkit
         tk = Toolkit()
 
@@ -149,7 +179,8 @@ class MatchCatalog:
         f_loc_dmt = f'{self.params['obs_loc']}/e{str(d_year)}/EVENTS-INFO/catalog_table.txt'
         f_loc_iris= f'{self.params['obs_loc']}/e{str(d_year)}/{str(d_year)}_events.out'
 
-        if os.path.isfile(f_loc_dmt):  
+        if os.path.isfile(f_loc_dmt): 
+            # Data downloaded from IRIS dmt (old version) 
             
             ###
             tk.print_log(self.params, self.logfile, f'{log_statement:s}  ,  Reading DMT file : {f_loc_dmt:s}')
@@ -161,9 +192,12 @@ class MatchCatalog:
             file.close()
 
             out_cat = []
-            N = []; LAT = []; LON = []; DEP = []; DATETIME = []; MAG = []; EV_ID = []
+            N = []; LAT = []; LON = []; DEP = []
+            DATETIME = []; MAG = []; EV_ID = []
+
             for line in lines:
-                if 'Command' in line or 'pyDMT' in line or 'DATETIME' in line or '--' in line or len(line) <= 1:
+                if 'Command' in line or 'pyDMT' in line or \
+                    'DATETIME' in line or '--' in line or len(line) <= 1:
                     # Headers
                     continue
                 else:
@@ -177,7 +211,8 @@ class MatchCatalog:
 
                     out_cat.append([int(line.split()[0]), float(line.split()[1]), 
                                     float(line.split()[2]), float(line.split()[3]), 
-                                    str(UTCDateTime(str(line.split()[4]))), float(line.split()[5]),str(line.split()[7])])
+                                    str(UTCDateTime(str(line.split()[4]))), 
+                                    float(line.split()[5]),str(line.split()[7])])
 
             column_names = ['N','LAT', 'LON', 'DEP', 'DATETIME', 'MAG', 'EV_ID']
             data_cat = pd.DataFrame(sorted(out_cat), columns = column_names)
@@ -191,7 +226,7 @@ class MatchCatalog:
 
 
         elif os.path.isfile(f_loc_iris):
-
+            # Data downloaded using iris FetchData
             
             ###
             tk.print_log(self.params, self.logfile, f'{log_statement:s}  ,  Reading IRIS event file : {f_loc_iris:s}')
@@ -201,7 +236,8 @@ class MatchCatalog:
 
             try:
                 # Read cmt table, sort and re-index.
-                data_cat = pd.read_csv(f'{f_loc_iris}', delimiter="|", header=None, names = ['N', 'DATETIME', 'LAT', 'LON', 'DEP', 'CAT', 'TEMP_CAT', 'CMT_ID', 'MAG', 'LOC'])
+                nms = ['N', 'DATETIME', 'LAT', 'LON', 'DEP', 'CAT', 'TEMP_CAT', 'CMT_ID', 'MAG', 'LOC']
+                data_cat = pd.read_csv(f'{f_loc_iris}', delimiter="|", header=None, names = nms)
                 data_cat = data_cat.sort_values(by='DATETIME').reset_index(drop=True)
 
                 # Add ev_ids
@@ -241,15 +277,29 @@ class MatchCatalog:
         return data_cat
 
 
-
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    # Existing get_match_catalog function, modified to use self.params, self.cmt_cat, self.data_cat, and self.logfile
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def get_match_catalog(self):
-        '''
-        For every line in DMT catalog, search for matched event in cmt catalog
-        Using error values in params (time, lat, lon, depth, magnitude)
-        If match found, output to dataframe
-        '''
+        """
+        For every line in the data catalog, search for matched event 
+        in cmt catalog. Using error values in params (time, lat, lon, 
+        depth, magnitude). If match found, output to dataframe
+
+        :param self.data_cat: data catalog dataframe
+        :type self.data_cat: pd.df
+        :param self.cmt_cat: cmt catalog dataframe
+        :type self.cmt_cat: pd.df
+        :param match_error_lat: acceptable for lat difference from params file
+        :type match_error_lat: float
+        :param match_error_lon: acceptable for lon difference from params file
+        :type match_error_lon: float
+        :param match_error_dep: acceptable for dep difference from params file
+        :type match_error_dep: float
+        :param match_error_mag: acceptable for mag difference from params file
+        :type match_error_mag: float
+
+        :return df_out: matched dataframe with all necessary details
+        :type df_out: pd.df
+        """
         from toolkit import Toolkit
         tk = Toolkit()
 
@@ -320,14 +370,15 @@ class MatchCatalog:
         return df_out
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    # Existing write_match_catalog function, modified to use self.params, self.match_catalog, and self.logfile
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def write_match_catalog(self):
-        '''
-        Input: matched event catalog dataframe
-        Saves: matched event catalog as csv
-        Returns: Nothing
-        '''
+        """
+        Takes input matched event catalog dataframe
+        Saves matched event catalog as csv, returns nothing
+
+        :param self.match_catalog: input matched_catalog
+        :type self.match_catalog: pd.df
+        """
         from toolkit import Toolkit
         tk = Toolkit()
 
@@ -346,13 +397,15 @@ class MatchCatalog:
         return
 
     def execute(self):
-        ''' 
+        """ 
         Execute all functions in main, using arguments in params
 
-        Input: params dict from main code.
+        :param self.params:cdict from main code
+        :type self.params: dict
         
-        Returns: matched catalog dataframe object.
-        '''
+        :return self.match_catalog: matched catalog dataframe object
+        :type self.match_catalog: pd.df
+        """
         # Execute already defined within __init__
 
         # Get CMT catalog

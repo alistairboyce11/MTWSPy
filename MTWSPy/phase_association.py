@@ -8,34 +8,42 @@ from toolkit import Toolkit
 
 
 class PhaseAssociation:
+    """
+    Class to handle association of defined seismic phases to
+    identified time windows (twins)
+    """
+
     tk = Toolkit()
 
     def __init__(self):
         pass
 
-    def common_function(self):
-        # Common function used by both phase_association_obs.py and phase_association_syn.py
-        pass
-
-
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def associate_twin_phase(self, input_dict, twin_in, twin_df, logfile, outfile, fail):
-        '''
+        """
         Takes dataframe of twin file, iterates through unique stations
         Collects predicted travel times
         Attempts to locate phases within max_tshift of each time window
         rejects twins with multiple phases in a window, that are not depth phases.
         Saves associated time windows to file.
         
-        Reads & Returns
         ----------
-        input_dict : dict
-        twin_in : twin file location string
-        twin_df : twin dataframe object
-        logfile : open logfile to report progress
-        outfile : open outfile to report results
-        fail : int - fail flag = 1 if function fails, else 0.
-        '''
+        Reads and returns same inputs/outputs
+        ** param == return **
+
+        :param input_dict: event details for processing 
+        :type input_dict: dict
+        :param twin_in: twin_in file location string
+        :type twin_in: str
+        :param twin_df: twin dataframe object
+        :type twin_df: pd.df
+        :param logfile: open logfile to report progress
+        :type: logfile: open textfile for writing
+        :param outfile: open outfile to report results
+        :type: outfile: open textfile for writing
+        :param fail: fail flag = 1 if function fails, else 0
+        :type fail: int
+        """
         params_in = input_dict['params_in']
         phases = input_dict['phases']
 
@@ -149,12 +157,7 @@ class PhaseAssociation:
                     self.tk.print_log(params_in, logfile, f'{log_statement:s}  ,  got twin @ {row['t_peak']:.1f} for {phw} with {ndph} depth phases {', '.join([f'{phase} @ {ttimes[iph[p]]:.1f}s' for p,phase in enumerate([phs[i] for i in iph])])}')
                     ###
 
-                    # # Store results in df
-                    # df['phase'][index] = str(phw)
-                    # df['n_depth_phase'][index] = ndph
-                    # df['t_taup'][index] = ttimes[iph[0]]
-
-                    # Change of style: df.loc[row_indexer, "col"] = values
+                    # Store results in df
                     df.loc[index, "phase"] = str(phw)
                     df.loc[index, "n_depth_phase"] = ndph
                     df.loc[index, "t_taup"] = ttimes[iph[0]]
@@ -234,29 +237,40 @@ class PhaseAssociation:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def strip_first_letter(self, uphs):
-        '''
-        This function takes an array of phase names and strips any starting with 's' or 'p'
+        """
+        This function takes an array of phase names and 
+        strips any starting with 's' or 'p'
         Returns unique array without depth phases
-        '''
+
+        :param uphs: array of phase names
+        :type uphs: array of strings
+
+        :return result: array of phase names without depth phases
+        :type result: array
+        """
         result = [phase[1:] if phase[0] in {'s', 'p'} else phase for phase in uphs]
         return np.unique(np.array(result))
 
 
 class PhaseAssociationObs(PhaseAssociation):
+    """
+    Class to handle association of phases to observed data
+    """
+    
     tk = Toolkit()
 
     def __init__(self):
         super().__init__()
 
-    def obs_specific_function(self):
-        # Function specific to phase_association_obs.py
-        pass
-
-
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def process_one_event(self, input_dict):
-        '''
+        """
         Processes one event (earthquake), reading the file, applying the list functions to them
+
+        :param input_dict: dictionary as below
+        :type  input_dict: dict
+        :return input_dict: dictionary
+        :type  input_dict: dict
 
         Parameters
         ----------
@@ -275,11 +289,7 @@ class PhaseAssociationObs(PhaseAssociation):
                 phases : phases : dict
                 functions : list of functions to execute
                 params_in : input paramters
-
-        Returns : input_dict
-        ----------
-        Nothing: None
-        '''
+        """
         # event = input_dict['event']
         # event_id = input_dict['event_id']
         id_ctm = input_dict['id_ctm']
@@ -363,9 +373,16 @@ class PhaseAssociationObs(PhaseAssociation):
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def write_params_logfile(self, input_dict, logfile):
-        '''
-        write key params to logfile. To be changed for each script
-        '''
+        """
+        write key params to logfile
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :param logfile: open logfile to write params
+        :type logfile: open txt file
+        :return logfile: open logfile
+        :type logfile: open txt file
+        """
         justify = 30
 
         params_in = input_dict['params_in']
@@ -416,9 +433,16 @@ class PhaseAssociationObs(PhaseAssociation):
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def write_params_outfile(self, input_dict, outfile):
-        '''
-        write key params to outfile. To be changed for each script
-        '''
+        """
+        write key params to outfile
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :param outfile: open outfile to write code output
+        :type outfile: open txt file
+        :return outfile: open outfile
+        :type outfile: open txt file        
+        """
         justify = 30
         params_in = input_dict['params_in']
         phases = input_dict['phases']
@@ -474,9 +498,15 @@ class PhaseAssociationObs(PhaseAssociation):
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def open_log_file(self, input_dict):
-        '''
-        Return an open log file in log_loc/'code_start_time'/'filename'/event_name.log
-        '''
+        """
+        Return an open log file in 
+        log_loc/'code_start_time'/'filename'/event_name.log
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :return logfile: open logfile to write code output
+        :type logfile: open txt file
+        """
         params_in = input_dict['params_in']
 
         lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}_obs'
@@ -492,9 +522,15 @@ class PhaseAssociationObs(PhaseAssociation):
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def open_outfile_file(self, input_dict):
-        '''
-        Return an open twin file in twin_loc/filename_out_loc + component/event_name."OS/MX" + component.twin
-        '''
+        """
+        Return an open twin file in 
+        twin_loc/filename_out_loc+component/event_name."OS/MX"+component.twin
+        
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :return outfile: open outfile to write code output
+        :type outfile: open txt file
+        """
         params_in = input_dict['params_in']
 
         of_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['phase_a_obs_out_loc']}{params_in['component']}'
@@ -508,25 +544,25 @@ class PhaseAssociationObs(PhaseAssociation):
         return outfile
 
 
-
-
-
 class PhaseAssociationSyn(PhaseAssociation):
+    """
+    Class to handle association of phases to synthetic data
+    """
+
     tk = Toolkit()
 
     def __init__(self):
         super().__init__()
 
-    def syn_specific_function(self):
-        # Function specific to phase_association_syn.py
-        pass
-
-
-
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def process_one_event(self, input_dict):
-        '''
+        """
         Processes one event (earthquake), reading the file, applying the list functions to them
+
+        :param input_dict: dictionary as below
+        :type  input_dict: dict
+        :return input_dict: dictionary
+        :type  input_dict: dict
 
         Parameters
         ----------
@@ -545,11 +581,7 @@ class PhaseAssociationSyn(PhaseAssociation):
                 phases : phases : dict
                 functions : list of functions to execute
                 params_in : input paramters
-
-        Returns : input_dict
-        ----------
-        Nothing: None
-        '''
+        """
         # event = input_dict['event']
         # event_id = input_dict['event_id']
         id_ctm = input_dict['id_ctm']
@@ -640,9 +672,16 @@ class PhaseAssociationSyn(PhaseAssociation):
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def write_params_logfile(self, input_dict, logfile):
-        '''
-        write key params to logfile. To be changed for each script
-        '''
+        """
+        write key params to logfile
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :param logfile: open logfile to write params
+        :type logfile: open txt file
+        :return logfile: open logfile
+        :type logfile: open txt file
+        """
         justify = 30
 
         params_in = input_dict['params_in']
@@ -693,9 +732,16 @@ class PhaseAssociationSyn(PhaseAssociation):
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def write_params_outfile(self, input_dict, outfile):
-        '''
-        write key params to outfile. To be changed for each script
-        '''
+        """
+        write key params to outfile
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :param outfile: open outfile to write code output
+        :type outfile: open txt file
+        :return outfile: open outfile
+        :type outfile: open txt file
+        """
         justify = 30
         params_in = input_dict['params_in']
         phases = input_dict['phases']
@@ -751,9 +797,15 @@ class PhaseAssociationSyn(PhaseAssociation):
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def open_log_file(self, input_dict):
-        '''
-        Return an open log file in log_loc/'code_start_time'/'filename'/event_name.log
-        '''
+        """
+        Return an open log file in 
+        log_loc/'code_start_time'/'filename'/event_name.log
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :return logfile: open logfile to write code output
+        :type logfile: open txt file
+        """
         params_in = input_dict['params_in']
 
         lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}_syn'
@@ -769,9 +821,16 @@ class PhaseAssociationSyn(PhaseAssociation):
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def open_outfile_file(self, input_dict):
-        '''
-        Return an open twin file in twin_loc/filename_out_loc+component/event_name."OS/MX"+component.twin
-        '''
+        """
+        Return an open twin file in 
+        twin_loc/filename_out_loc+component/event_name."OS/MX"+component.twin
+        
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :return outfile: open outfile to write code output
+        :type outfile: open txt file
+        """
+
         params_in = input_dict['params_in']
 
         of_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['phase_a_syn_out_loc']}{params_in['component']}'
@@ -785,7 +844,6 @@ class PhaseAssociationSyn(PhaseAssociation):
 
 
 def main():
-
 
     # Create instance of toolkit as tk
     tk = Toolkit()

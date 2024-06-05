@@ -9,13 +9,23 @@ import subprocess
 #     print("{0:<11} {1}".format(key,  URL_MAPPINGS[key])) 
 
 class SpecfemStations:
+    """
+    Class to handle generation of specfem station files
+    """
 
     def __init__(self):
         pass
 
-    # Get unique network and station values
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def unique(self, list1):
+        """
+        Get unique network and station values
         
+        :param list1: list of network and station pairs
+        :type list1: list
+        :param unique_list: unique list of network and station pairs
+        :type unique_list: list
+        """
         # initialize a null list
         unique_list = []
         # traverse for all elements
@@ -26,8 +36,28 @@ class SpecfemStations:
     
         return unique_list
 
-
-    def get_inventory(self, home, year, clients, network, station, location, channel):
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
+    def get_inventory(self, home, year, clients, network, station, 
+                      location, channel):
+        """
+        Get inventory of stations for given year, data clients, 
+        networks, locations, channels etc
+        
+        :param home: base string where inv will be saved
+        :type home: str
+        :param year: year of data 
+        :type year: str/int
+        :param clients: list of data clients/centers, "*"
+        :type clients: list
+        :param network: network string "*"
+        :type network: str
+        :param station station string "*"
+        :type station: str
+        :param location: location string "*"
+        :type location: str
+        :param channel: channel string "LH"
+        :type channel: str
+        """
 
         starttime = UTCDateTime(str(year)+"-01-01T00:00:00")
         endtime = UTCDateTime(str(year)+"-12-31T23:59:59")
@@ -36,7 +66,10 @@ class SpecfemStations:
             print (i, str(client_name))
             client = Client(str(client_name))
             try:
-                inv_1 = client.get_stations(network=network, station=station, loc=location, channel=channel, starttime=starttime, endtime=endtime, level='channel')
+                inv_1 = client.get_stations(network=network, station=station, 
+                                            loc=location, channel=channel, 
+                                            starttime=starttime, 
+                                            endtime=endtime, level='channel')
             except:
                 continue
 
@@ -49,13 +82,16 @@ class SpecfemStations:
 
 
     def write_inventory(self, home, year, inventory):
-        '''
+        """
         Write inventory to station xml and Specfem format.
-        Inputs:
-        home : str
-        year : str/int
-        inventory : obspy station inventory
-        '''
+
+        :param home: base string where inv will be saved
+        :type home: str
+        :param year: year of data 
+        :type year: str/int
+        :param inventory: obspy station inventory to write to file
+        :type inventory: obspy inventory
+        """
 
         # Make the directory for the outputs
         if not os.path.exists(home+'/e'+str(year)):

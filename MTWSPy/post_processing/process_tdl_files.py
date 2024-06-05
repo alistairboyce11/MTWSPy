@@ -17,7 +17,7 @@ import obspy.geodetics
 
 
 class ProcessTdlFiles:
-    '''
+    """
     Class to handle the post-processing of time delay (.tdl)
     files output by the MTWSPy algorithm
     Operates in parallel using parameters in param_in.yaml file
@@ -27,7 +27,7 @@ class ProcessTdlFiles:
     Phase differences (e.g., S-SS)
 
     Saves output files to a proc_tdelay location.
-    '''
+    """
 
     tk = Toolkit()
 
@@ -39,22 +39,18 @@ class ProcessTdlFiles:
     #########################################################
 
     def apply_stuff(self, params, sort_functions):
-        '''
-        Takes a list of functions, reads all tdl files, applies each sort function to all of the tdl files 
+        """
+        Takes a list of functions, reads all tdl files, applies each sort 
+        function to all of the tdl files 
         returns result as concatenated dataframe
 
-        Parameters
-        ----------
-        input_directory: str
-            input_directory name where all the data is.
-        sort functions : list
-            list of functions for sorting tdl measurements
-            
-        Returns
-        -------
-        outputs_all : dataframe
-            contains the dataframe output of all the sort functions.
-        '''
+        :param params: loaded parameter file
+        :type params: dict
+        :param sort_functions: list of functions for sorting tdl measurements
+        :type sort_functions: list
+        :return outputs_all: dataframe output of all the sort functions
+        :type outputs_all: pd.df
+        """
         input_directory = f'{params['home']}/{params['tdelay_loc']}/{params['phase_a_obs_out_loc'][-2:]}{params['component']}-{params['phase_a_syn_out_loc'][-2:]}{params['component']}'
 
         cores = params['cores']
@@ -95,21 +91,16 @@ class ProcessTdlFiles:
     #########################################################
 
     def process_one_file(self, input_dict):
-        '''
+        """
         Processes one file, reading the models in the file, applying functions
         Also adds, dist, az, baz, mid-lat, mid-lon
 
-        Parameters
-        ----------
-        input_dict : dict
-            input dictionary containing the file name (file), the list of functions (functions)
-
-        Returns
-        -------
-        outputs : dataframe
-            tdl measurements from a given file that pass all sort criteria
-
-        '''
+        :param input_dict: input dict containing the file name (file), 
+                    the list of functions (functions)
+        :type input_dict: dict
+        :return outputs: tdelays from file that pass all sort criteria
+        :type outputs: pd.df
+        """
         
         file = input_dict['file']
         functions = input_dict['sort_functions']
@@ -158,9 +149,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_date_time_max(self, params, input_df):
-        '''
+        """
         limit pick date/time
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         drop_list = []
         for index, row in input_df.iterrows():
 
@@ -181,9 +179,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_date_time_min(self, params, input_df):
-        '''
+        """
         limit pick date/time
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         drop_list = []
         for index, row in input_df.iterrows():
 
@@ -204,9 +209,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_evt_lat_max(self, params, input_df):
-        '''
+        """
         limit pick location
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['evt_lat_max']
         output_df = input_df.query("evt_lat <= @limit")
 
@@ -214,9 +226,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_evt_lat_min(self, params, input_df):
-        '''
+        """
         limit pick location
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['evt_lat_min']
         output_df = input_df.query("evt_lat >= @limit")
     
@@ -224,9 +243,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_evt_lon_max(self, params, input_df):
-        '''
+        """
         limit pick location
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['evt_lon_max']
         output_df = input_df.query("evt_lon <= @limit")
     
@@ -234,9 +260,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_evt_lon_min(self, params, input_df):
-        '''
+        """
         limit pick location
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['evt_lon_min']
         output_df = input_df.query("evt_lon >= @limit")
     
@@ -244,9 +277,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_evt_dep_max(self, params, input_df):
-        '''
+        """
         limit pick location
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['evt_dep_max']
         output_df = input_df.query("evt_dep <= @limit")
     
@@ -254,9 +294,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_evt_dep_min(self, params, input_df):
-        '''
+        """
         limit pick location
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['evt_dep_min']
         output_df = input_df.query("evt_dep >= @limit")
     
@@ -264,9 +311,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_evt_mag_max(self, params, input_df):
-        '''
+        """
         limit pick magnitude
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['evt_mag_max']
         output_df = input_df.query("evt_mag <= @limit")
     
@@ -274,9 +328,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_evt_mag_min(self, params, input_df):
-        '''
+        """
         limit pick magnitude
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['evt_mag_min']
         output_df = input_df.query("evt_mag >= @limit")
     
@@ -284,9 +345,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_networks(self, params, input_df):
-        '''
+        """
         limit network name
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         if not params['networks'][0] == 'All':
             output_df = pd.DataFrame()
 
@@ -305,9 +373,16 @@ class ProcessTdlFiles:
         
     #################################################################
     def filt_components(self, params, input_df):
-        '''
+        """
         limit Component
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         if not params['components'][0] == 'All':
             output_df = pd.DataFrame()
 
@@ -325,9 +400,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_phases(self, params, input_df):
-        '''
+        """
         limit phases
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         if not params['phases'][0] == 'All':
             output_df = pd.DataFrame()
 
@@ -344,9 +426,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_sta_lat_max(self, params, input_df):
-        '''
+        """
         limit station location
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['sta_lat_max']
         output_df = input_df.query("stla <= @limit")
     
@@ -354,9 +443,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_sta_lat_min(self, params, input_df):
-        '''
+        """
         limit station location
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['sta_lat_min']
         output_df = input_df.query("stla >= @limit")
     
@@ -364,9 +460,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_sta_lon_max(self, params, input_df):
-        '''
+        """
         limit station location
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['sta_lon_max']
         output_df = input_df.query("stlo <= @limit")
     
@@ -374,9 +477,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_sta_lon_min(self, params, input_df):
-        '''
+        """
         limit station location
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['sta_lon_min']
         output_df = input_df.query("stlo >= @limit")
     
@@ -384,9 +494,16 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_tdl_max(self, params, input_df):
-        '''
+        """
         limit time delay
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['tdl_max']
         output_df = input_df.query("tdelay <= @limit")
         limit = -1 * limit
@@ -395,22 +512,34 @@ class ProcessTdlFiles:
 
     #################################################################
     def filt_ccmx_min(self, params, input_df):
-        '''
+        """
         limit cross correlation minimum value
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['ccmx_min']
         output_df = input_df.query("ccmx >= @limit")
     
         return output_df
 
 
-
-
     #################################################################
     def filt_tderr_max(self, params, input_df):
-        '''
+        """
         limit time delay error maximum value
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['max_tderr']
         output_df = input_df.query("tderr <= @limit")
     
@@ -418,9 +547,16 @@ class ProcessTdlFiles:
 
     # #################################################################
     def filt_dist_max(self, params, input_df):
-        '''
+        """
         limit epicentral distance
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['dist_max']
         output_df = input_df.query("dist <= @limit")
     
@@ -428,20 +564,34 @@ class ProcessTdlFiles:
 
     # #################################################################
     def filt_dist_min(self, params, input_df):
-        '''
+        """
         limit epicentral distance
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of tdls that pass criteria
+        :type output_df: pd.df
+        """
         limit = params['dist_min']
         output_df = input_df.query("dist >= @limit")
     
         return output_df
 
 
-    ############################################################################
+    ######################################################################
     def get_station_means(self, params, input_df):
-        '''
+        """
         Get station means by phase for given delay time dataframe
-        '''
+
+        :param params: loaded parameter file
+        :type params: dict
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :return output_df: dataframe of mean tdls per station
+        :type output_df: pd.df
+        """
 
         if len(params['phases']) == 1 and params['phases'][0] == 'All':
             # Make unique_phases list.
@@ -454,18 +604,12 @@ class ProcessTdlFiles:
         print(f'Producing station means for {n_phases} phases....')
         print(f'For the following: {unique_phases}')
 
-        column_names = ['nslc','stla','stlo','stel','channel','phase','av_tdelay','av_tderr','av_ccmx','n_picks']
+        column_names = ['nslc','stla','stlo','stel','channel',
+                        'phase','av_tdelay','av_tderr','av_ccmx','n_picks']
         
         out_df = []
         
         for p, phase in enumerate(unique_phases):
-
-
-
-            # Make phase data frame
-            # ph_df = input_df.query("phase == @phase")  
-
-            # ph_df = input_df[input_df['phase'] == str(phase)]
 
             ph_df = input_df[input_df['phase'].str.fullmatch(phase, case=True)]
 
@@ -493,56 +637,37 @@ class ProcessTdlFiles:
 
                         # Maybe only add if we have actually taken a mean....
                         if n_picks > 1: 
-                            out_df.append([nslc,stla,stlo,stel,channel,str(phase),av_tdelay,av_tderr,av_ccmx,n_picks])
+                            out_df.append([nslc,stla,stlo,stel,channel,
+                                           str(phase),av_tdelay,av_tderr,
+                                           av_ccmx,n_picks])
                         
-
         output_df = pd.DataFrame(sorted(out_df), columns = column_names)
-        print(output_df)
+        # print(output_df)
 
         return output_df
 
-    # # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    # def write_station_means(self, params, input_df):
-    #     '''
-    #     Writes travel time delay file for station means.
-        
-    #     Parameters
-    #     ----------
-    #     params : dict parameter file
-    #     input_df : dataframe of tdl measurements to save
 
-    #     Returns
-    #     -------
-    #     outputs : saved output file: filename_out
-    #     '''
-
-    #     output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
-
-    #     if not os.path.exists(output_directory):
-    #         os.makedirs(output_directory, exist_ok=True)
-
-    #     filename_out = f'{output_directory}{params['tt_out_f_name']}_station_means.out'
-
-    #     input_df.to_csv(filename_out, index=False) 
-
-    #     return
-
-
-    ############################################################################
+    ######################################################################
     def compute_tt_diffs(self, input_df, diff_phases):
-        '''
-        Compute travel time differences between phases in diff_phases for dataframe input_df
-        '''
+        """
+        Compute travel time differences between phases in 
+        diff_phases for dataframe input_df
+
+        :param input_df: dataframe of input tdls
+        :type input_df: pd.df
+        :param diff_phases: phases to be differenced
+        :type diff_phases: list (of strings)
+        :return output_df: dataframe of tdl diffs
+        :type output_df: pd.df
+        """
 
         if len(diff_phases) != 2:
             print('Can only difference two phases')
             return pd.DataFrame()
 
-
         # Get unique event ids
         unique_evid = list(input_df['evid'].unique())
         n_evid = len(unique_evid)
-        
         
         out_df = []
         # Loop through all unique evids
@@ -582,8 +707,10 @@ class ProcessTdlFiles:
                         stlo = float(ph1_df['stlo'].iloc[0])
                         stel = float(ph1_df['stel'].iloc[0])
                         phase = f'{str(diff_phases[0])}-{str(diff_phases[1])}'
-                        tderr = np.round(np.mean([ph1_df['tderr'].iloc[0], ph2_df['tderr'].iloc[0]]),3)
-                        ccmx = np.round(np.mean([ph1_df['ccmx'].iloc[0], ph2_df['ccmx'].iloc[0]]),3)
+                        tderr = np.round(np.mean([ph1_df['tderr'].iloc[0], 
+                                                  ph2_df['tderr'].iloc[0]]),3)
+                        ccmx = np.round(np.mean([ph1_df['ccmx'].iloc[0], 
+                                                 ph2_df['ccmx'].iloc[0]]),3)
                         tdelay_p1 = float(ph1_df['tdelay'].iloc[0])
                         ttaup_p1 = float(ph1_df['ttaup'].iloc[0])
                         tdelay_p2 = float(ph2_df['tdelay'].iloc[0])
@@ -596,13 +723,21 @@ class ProcessTdlFiles:
                         mid_lon = float(ph1_df['mid_lon'].iloc[0])
 
                         # Add values to list for dataframe
-                        out_df.append([evid,date_time,evt_lat,evt_lon,evt_dep,evt_mag,channel,nslc,stla,stlo,stel,phase,tdelay,tderr,ccmx,tdelay_p1,ttaup_p1,tdelay_p2,ttaup_p2,dist,az,baz,mid_lat,mid_lon])
+                        out_df.append([evid,date_time,evt_lat,evt_lon,evt_dep,
+                                       evt_mag,channel,nslc,stla,stlo,stel,
+                                       phase,tdelay,tderr,ccmx,tdelay_p1,
+                                       ttaup_p1,tdelay_p2,ttaup_p2,dist,az,
+                                       baz,mid_lat,mid_lon])
 
                 else:
                     print('No unique stations found')
         
             # Make the dataframe
-            column_names = ['evid','date_time','evt_lat','evt_lon','evt_dep','evt_mag','channel','nslc','stla','stlo','stel','phase','tdelay','tderr','ccmx','tdelay_p1','ttaup_p1','tdelay_p2','ttaup_p2','dist','az','baz','mid_lat','mid_lon']
+            column_names = ['evid','date_time','evt_lat','evt_lon','evt_dep',
+                            'evt_mag','channel','nslc','stla','stlo','stel',
+                            'phase','tdelay','tderr','ccmx','tdelay_p1',
+                            'ttaup_p1','tdelay_p2','ttaup_p2','dist','az',
+                            'baz','mid_lat','mid_lon']
             output_df = pd.DataFrame(sorted(out_df), columns = column_names)
 
         else:
@@ -612,77 +747,18 @@ class ProcessTdlFiles:
         return output_df
 
 
-    # # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    # def write_tdl_summary_file(self, params, input_df):
-    #     '''
-    #     Writes travel time delay summary file.
-        
-    #     Parameters
-    #     ----------
-    #     params : dict parameter file
-    #     input_df : dataframe of tdl measurements to save
-
-    #     Returns
-    #     -------
-    #     outputs : saved output file: filename_out
-    #     '''
-
-    #     output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
-
-    #     if not os.path.exists(output_directory):
-    #         os.makedirs(output_directory, exist_ok=True)
-
-    #     print(f'Sending output to: {str(output_directory)}')
-
-    #     filename_out = f'{output_directory}{params['tt_out_f_name']}.out'
-
-    #     input_df.to_csv(filename_out, index=False) 
-
-    #     print(f'Written travel time delay summary file to: {str(filename_out)}')
-
-    #     return
-
-    # # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    # def write_tt_diff_summary_file(self, params, input_df):
-    #     '''
-    #     Writes travel time difference delay summary file.
-        
-    #     Parameters
-    #     ----------
-    #     params : dict parameter file
-    #     input_df : dataframe of tdl measurements to save
-
-    #     Returns
-    #     -------
-    #     outputs : saved output file: filename_out
-    #     '''
-
-    #     output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
-
-    #     if not os.path.exists(output_directory):
-    #         os.makedirs(output_directory, exist_ok=True)
-        # filename_out = f'{output_directory}{params['tt_out_f_name']}_{str(params['diff_phases'][0])}-{str(params['diff_phases'][1])}.out'
-
-    #     input_df.to_csv(filename_out, index=False) 
-
-    #     print(f'Written travel time diffs delay summary file to: {str(filename_out)}')
-    #     return
-
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def write_dataframe(self, output_directory, filename, input_df):
-        '''
+        """
         Writes dataframe to file.
-        
-        Parameters
-        ----------
-        output_directory : str
-        filename : str
-        input_df : dataframe of tdl measurements to save
 
-        Returns
-        -------
-        outputs : saved output file: filename_out
-        '''
+        :param output_directory : location to save dataframe
+        :type output_directory : str
+        :param filename: filename for dataframe
+        :type filename: str
+        :param input_df: dataframe of tdl measurements to save
+        :type input_df: pd.df
+        """
 
         if not os.path.exists(output_directory):
             os.makedirs(output_directory, exist_ok=True)
@@ -698,11 +774,16 @@ class ProcessTdlFiles:
         return
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def read_dataframe(self, file_path):
-        '''
+        """
         Read csv file from filepath into dataframe
-        '''
+
+        :param file_path: full file path of csv file to be read
+        :type file_path: str
+        :return output_df: read csv file as dataframe object
+        :type output_df: pd.df
+        """
         try:
             with open(file_path, 'r') as file:
                 output_df = pd.read_csv(file, delimiter = ',')
@@ -711,9 +792,9 @@ class ProcessTdlFiles:
             output_df = pd.DataFrame()
         return output_df
         
-############################################################################
+######################################################################
 #        main()
-############################################################################
+######################################################################
 
 def main():
     from toolkit import Toolkit

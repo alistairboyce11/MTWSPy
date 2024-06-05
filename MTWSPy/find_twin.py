@@ -14,32 +14,40 @@ matplotlib.rcParams['font.size'] = 8
 from matplotlib.ticker import (MultipleLocator)
 from toolkit import Toolkit
 
-# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 class FindTwin:
+    """
+    Class to handle the search for all possible time windows 
+    in obs and syn data using MTWS algorthim
+    """
     tk = Toolkit()
 
     def __init__(self):
         pass
 
-    def common_function(self):
-        # Common function used by both find_twin_obs.py and find_twin_syn.py
-        pass
-
-
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def get_tt_times(self, input_dict, filename, seis, logfile, outfile, fail):
-        '''
-        Adds all phase traveltimes requested to seis[0].stats.traveltimes dictionary
+        """
+        Adds all phase traveltimes requested to 
+        seis[0].stats.traveltimes dictionary
         
-        Reads & Returns
         ----------
-        input_dict : dict
-        file : file location string
-        seis : obspy stream object read into memory onwhich operations are performed.
-        logfile : open logfile to report progress
-        outfile : open outfile to report results
-        fail : int - fail flag = 1 if function fails, else 0.
-        '''
+        Reads and returns same inputs/outputs
+        ** param == return **
+
+        :param input_dict: event details for processing 
+        :type input_dict: dict
+        :param file: file location string
+        :type file: str
+        :param seis: seismogram in memory onwhich operations are performed
+        :type seis: obspy stream
+        :param logfile: open logfile to report progress
+        :type: logfile: open textfile for writing
+        :param outfile: open outfile to report results
+        :type: outfile: open textfile for writing
+        :param fail: fail flag = 1 if function fails, else 0
+        :type fail: int
+        """
 
         # setup logfile statement using event_id, filename and function name (with inspect)
         log_statement = f'{self.tk.get_log_statement(input_dict['event_id'], filename)}, {str(inspect.stack()[0][3])}'
@@ -89,22 +97,30 @@ class FindTwin:
 
         return input_dict, filename, seis, logfile, outfile, fail
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def primary_qc(self, input_dict, filename, seis, logfile, outfile, fail):
-        '''
+        """
         Primary quality control for seismogram in memory
         based on SNR_amplitude, SNR_power
         Using signal and noise windows
         
-        Reads & Returns
         ----------
-        input_dict : dict
-        file : file location string
-        seis : obspy stream object read into memory onwhich operations are performed.
-        logfile : open logfile to report progress
-        outfile : open outfile to report results
-        fail : int - fail flag = 1 if function fails, else 0.
-        '''
+        Reads and returns same inputs/outputs
+        ** param == return **
+
+        :param input_dict: event details for processing 
+        :type input_dict: dict
+        :param file: file location string
+        :type file: str
+        :param seis: seismogram in memory onwhich operations are performed
+        :type seis: obspy stream
+        :param logfile: open logfile to report progress
+        :type: logfile: open textfile for writing
+        :param outfile: open outfile to report results
+        :type: outfile: open textfile for writing
+        :param fail: fail flag = 1 if function fails, else 0
+        :type fail: int
+        """
             
         # setup logfile statement using event_id, filename and function name (with inspect)
         log_statement = f'{self.tk.get_log_statement(input_dict['event_id'], filename)}, {str(inspect.stack()[0][3])}'
@@ -206,20 +222,28 @@ class FindTwin:
         return input_dict, filename, seis, logfile, outfile, fail
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def filter_seis(self, input_dict, filename, seis, logfile, outfile, fail):
-        '''
+        """
         Simple function to filter synth seis to match obs primary_qc
         
-        Reads & Returns
         ----------
-        input_dict : dict
-        file : file location string
-        seis : obspy stream object read into memory onwhich operations are performed.
-        logfile : open logfile to report progress
-        outfile : open outfile to report results
-        fail : int - fail flag = 1 if function fails, else 0.
-        '''
+        Reads and returns same inputs/outputs
+        ** param == return **
+
+        :param input_dict: event details for processing 
+        :type input_dict: dict
+        :param file: file location string
+        :type file: str
+        :param seis: seismogram in memory onwhich operations are performed
+        :type seis: obspy stream
+        :param logfile: open logfile to report progress
+        :type: logfile: open textfile for writing
+        :param outfile: open outfile to report results
+        :type: outfile: open textfile for writing
+        :param fail: fail flag = 1 if function fails, else 0
+        :type fail: int
+        """
             
         # setup logfile statement using event_id, filename and function name (with inspect)
         log_statement = f'{self.tk.get_log_statement(input_dict['event_id'], filename)}, {str(inspect.stack()[0][3])}'
@@ -248,24 +272,32 @@ class FindTwin:
         return input_dict, filename, seis, logfile, outfile, fail
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def detect_window_peaks(self, input_dict, filename, seis, logfile, outfile, fail):
-        '''
+        """
         Morphological Time Window Selection (MTWS) method of Li et al., (2023)
-        Uses a number of SNR constraints to propose many candidate time windows
-        based on a power envelope around maxima at id_pks and left and right
-        edges at i1 and i2.
+        Uses a number of SNR constraints to propose many candidate time 
+        windows based on a power envelope around maxima at id_pks and 
+        left and right edges at i1 and i2
         Wrties all candidate windows to outfile
         
-        Reads & Returns
         ----------
-        input_dict : dict
-        file : file location string
-        seis : obspy stream object read into memory onwhich operations are performed.
-        logfile : open logfile to report progress
-        outfile : open outfile to report results
-        fail : int - fail flag = 1 if function fails, else 0.
-        '''
+        Reads and returns same inputs/outputs
+        ** param == return **
+
+        :param input_dict: event details for processing 
+        :type input_dict: dict
+        :param file: file location string
+        :type file: str
+        :param seis: seismogram in memory onwhich operations are performed
+        :type seis: obspy stream
+        :param logfile: open logfile to report progress
+        :type: logfile: open textfile for writing
+        :param outfile: open outfile to report results
+        :type: outfile: open textfile for writing
+        :param fail: fail flag = 1 if function fails, else 0
+        :type fail: int
+        """
 
         # setup logfile statement using event_id, filename and function name (with inspect)
         log_statement = f'{self.tk.get_log_statement(input_dict['event_id'], filename)}, {str(inspect.stack()[0][3])}'
@@ -406,23 +438,31 @@ class FindTwin:
         return input_dict, filename, seis, logfile, outfile, fail
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def filter_window_peaks(self, input_dict, filename, seis, logfile, outfile, fail):
-        '''
+        """
         Uses a number of SNR constraints to filter candidate time windows
         based on a XXX around maxima at id_pks and left and right
         edges at i1 and i2.
         Wrties remaining candidate windows to outfile
         
-        Reads & Returns
         ----------
-        input_dict : dict
-        file : file location string
-        seis : obspy stream object read into memory onwhich operations are performed.
-        logfile : open logfile to report progress
-        outfile : open outfile to report results
-        fail : int - fail flag = 1 if function fails, else 0.
-        '''
+        Reads and returns same inputs/outputs
+        ** param == return **
+
+        :param input_dict: event details for processing 
+        :type input_dict: dict
+        :param file: file location string
+        :type file: str
+        :param seis: seismogram in memory onwhich operations are performed
+        :type seis: obspy stream
+        :param logfile: open logfile to report progress
+        :type: logfile: open textfile for writing
+        :param outfile: open outfile to report results
+        :type: outfile: open textfile for writing
+        :param fail: fail flag = 1 if function fails, else 0
+        :type fail: int
+        """
 
         # setup logfile statement using event_id, filename and function name (with inspect)
         log_statement = f'{self.tk.get_log_statement(input_dict['event_id'], filename)}, {str(inspect.stack()[0][3])}'
@@ -551,22 +591,30 @@ class FindTwin:
         return input_dict, filename, seis, logfile, outfile, fail
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def plot_waveform_envelope_peaks_windows(self, input_dict, filename, seis, logfile, outfile, fail):
-        '''
+        """
         Plots trace and envelope (upper subfigure) and power envelope 
-        with time windows and predicted arrival times
+        with time windows (lower subfigure) and predicted arrival times
         Saves or shows plots
         
-        Reads & Returns
         ----------
-        input_dict : dict
-        file : file location string
-        seis : obspy stream object read into memory onwhich operations are performed.
-        logfile : open logfile to report progress
-        outfile : open outfile to report results
-        fail : int - fail flag = 1 if function fails, else 0.
-        '''
+        Reads and returns same inputs/outputs
+        ** param == return **
+
+        :param input_dict: event details for processing 
+        :type input_dict: dict
+        :param file: file location string
+        :type file: str
+        :param seis: seismogram in memory onwhich operations are performed
+        :type seis: obspy stream
+        :param logfile: open logfile to report progress
+        :type: logfile: open textfile for writing
+        :param outfile: open outfile to report results
+        :type: outfile: open textfile for writing
+        :param fail: fail flag = 1 if function fails, else 0
+        :type fail: int
+        """
         
         # setup logfile statement using event_id, filename and function name (with inspect)
         log_statement = f'{self.tk.get_log_statement(input_dict['event_id'], filename)}, {str(inspect.stack()[0][3])}'
@@ -657,8 +705,8 @@ class FindTwin:
 
                 # Add the time windows    
                 for k in range(len(t_pks)):
-                    ax1.axvline(x = t[i1[k]], ymin = 0, ymax = 1.02 - 0.15,color = self.generate_colors(k), lw = 0.5, clip_on = True)
-                    ax1.axvline(x = t[i2[k]], ymin = 0, ymax = 1.02 - 0.15,color = self.generate_colors(k), lw = 0.5, clip_on = True)
+                    ax1.axvline(x = t[i1[k]], ymin = 0, ymax = 1.02 - 0.15, color = self.generate_colors(k), lw = 0.5, clip_on = True)
+                    ax1.axvline(x = t[i2[k]], ymin = 0, ymax = 1.02 - 0.15, color = self.generate_colors(k), lw = 0.5, clip_on = True)
                 
                 # Use a dummy variable for the legend
                 ax1.axvline(x = np.NaN, ymin = np.NaN, ymax = np.NaN, color = 'r', lw = 0.5, label = 'time windows')
@@ -689,41 +737,66 @@ class FindTwin:
         return input_dict, filename, seis, logfile, outfile, fail
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def filter_arrays(self, arr1, arr2, arr3, arr4, condition):
-        '''
-        This function takes four arrays and a condition as input, then returns the filtered arrays based on the provided condition using the ~ (logical NOT) operator.
-        '''
+        """
+        This function takes four arrays and a condition as input, 
+        then returns the filtered arrays based on the provided 
+        condition using the ~ (logical NOT) operator
+
+        :param arr1,arr2,arr3,arr4: input arrays for filtering
+        :type arr1,arr2,arr3,arr4: np.array
+        :param condition: logical operator for filter/splice
+        :type condition: bool array
+
+        :param arr1,arr2,arr3,arr4: output filtered arrays
+        :type arr1,arr2,arr3,arr4: np.array
+        """
         return arr1[~condition], arr2[~condition], arr3[~condition], arr4[~condition]
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def generate_colors(self, input_variable):
-        '''
-        Generate colours for time windowing plotting repeating every 20 windows.
-        '''
+        """
+        Generate a color for time windowing plotting, 
+        repeating every 20 windows
+
+        :param input_variable: index of twin for plotting
+        :param input_variable: int
+        
+        :return colors: color definition for matplotlib
+        :type colors: [r,g,b] list?
+        """
         num_colors = 20
         var = input_variable % num_colors
-        cmap = plt.get_cmap('gnuplot2')  # You can choose a different colormap if desired
+        # Choose a different colormap if desired
+        cmap = plt.get_cmap('gnuplot2')  
         norm = plt.Normalize(0, 20)
         colors = cmap(norm(var))
         return colors
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def tw_det(self, e, t, ipeak, walkaway, balance = False):
         """
-        Determine the left and right locations of windows around peaks.
+        Find the left and right edges of windows around envelope peaks
 
-        Parameters:
-            e: Signal envelope
-            t: Time axis or time interval
-            ipeak: Peak locations [ipk1,...] or {wsz, base, k_med}
-            walkaway: The dip line across [t(ipk), e(ipk)] and [t(ipk)  + /- walkaway, 0]
-            balance: Scale peak to walkaway (default, False)
-
-        Returns:
-            Locations of the left and right edges of windows
+        :param e: Signal envelope
+        :type e: np.array
+        :param t: Time axis or time interval
+        :type t: np.array
+        :param ipeak: Peak locations [ipk1,...] or {wsz, base, k_med}
+        :type ipeak: np.array ints
+        :param walkaway: The dip line across 
+                        [t(ipk), e(ipk)] and [t(ipk)  + /- walkaway, 0]
+        :type walkaway: float
+        :param balance: Scale peak to walkaway (default, False)
+        :type balance: bool
+            
+        :return ileft: index of left edge of window
+        :type ileft: int
+        :return iright:index of right edge of window
+        :type iright: int
         """
 
         if len(e.shape) > 1:
@@ -768,10 +841,10 @@ class FindTwin:
         return ileft.astype(int), iright.astype(int)
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def point_line_distance(self, *args):
         """
-        Calculate distances from points to a line defined by two points.
+        Calculate distances from points to a line defined by two end points
 
         Parameters:
             args: Either (x, y, x1, y1, x2, y2) or ([x, y], [x1, y1], [x2, y2])
@@ -779,9 +852,17 @@ class FindTwin:
         Returns:
             distances: Distances to the line
             projections: Projection points (optional)
+
+        :param x, y: x and y values for function
+        :type x, y: np.array
+        :param  x1, y1, x2, y2: points on function defining line 
+                                from which to calculate distance
+        :type  x1, y1, x2, y2: floats
+        :return distances: array of distances to function from line
+        :type distances: np.array
         """
 
-        if len(args) ==  3:  # (pt = [x, y], pt1 = [x1, y1], pt2 = [x2, y2])
+        if len(args) ==  3: # (pt = [x, y], pt1 = [x1, y1], pt2 = [x2, y2])
             points, pt1, pt2 = args
             x, y = points[0], points[1]
             x1, y1 = pt1[0], pt1[1]
@@ -791,7 +872,7 @@ class FindTwin:
 
         x, y = np.array(x), np.array(y)
 
-        # Switch points on the line to ensure dis > 0 for points below the line
+        # Switch points on line to ensure dis > 0 for points below the line
         if x1 > x2:
             x1, y1, x2, y2 = x2, y2, x1, y1
 
@@ -823,11 +904,23 @@ class FindTwin:
         return distances
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def write_to_dict(self, dict, key_list, vals_list):
-        '''
-        Return the input dict with the key-value parts from the input lists added
-        '''
+        """
+        Return the input dict with the key-value parts from the input 
+        lists added
+
+        :param dict: input dict to save values required by next 
+                    part of code
+        :type dict: dict
+        :param key_list: keys to add to dict
+        :type key_list: list
+        :param vals_list: values to add for keys above
+        :type vals_list: list
+
+        :return dict: updated input dict
+        :type dict: dict
+        """
         if len(key_list) !=  len(vals_list):
             # Problem
             sys.exit('Issue with writing to dict')
@@ -837,39 +930,48 @@ class FindTwin:
         return dict
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def read_from_dict(self, dict, keys_to_extract):
-        '''
+        """
         Return the variables in the list keys_to_extract from the input dict
-        '''
 
-        return [dict.get(key, None) for key in keys_to_extract]
+
+        :param dict: input dict with saved values from prior part of code
+        :type dict: dict
+        :param keys_to_extract: list of keys to extract values from dict
+        :type keys_to_extract: list
+        
+        :return vals: list of values for extracted keys
+        :type vals: dict
+        """
+        vals = [dict.get(key, None) for key in keys_to_extract]
+
+        return vals
         
 
 
-
-
-
-
-
-
-
-
-# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 class FindTwinObs(FindTwin):
+    """
+    Class to handle processing of observed data for time window location
+    based on FindTwin class
+    """
+
     tk = Toolkit()
 
     def __init__(self):
         super().__init__()
 
-    def obs_specific_function(self):
-        # Function specific to find_twin_obs.py
-        pass
-
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def process_one_event(self, input_dict):
-        '''
-        Processes one event (earthquake), reading the file, applying the list functions to them
+        """
+        Processes one event (earthquake), reading the file, 
+        applying the list of functions to them
+
+        :param input_dict: dictionary as below
+        :type  input_dict: dict
+        :return input_dict: dictionary
+        :type  input_dict: dict
 
         Parameters
         ----------
@@ -888,11 +990,7 @@ class FindTwinObs(FindTwin):
                 phases : phases : dict
                 functions : list of functions to execute
                 params_in : input paramters
-
-        Returns : input_dict
-        ----------
-        Nothing: None
-        '''
+        """
         event = input_dict['event']
         event_id = input_dict['event_id']
         functions = input_dict['functions']
@@ -965,11 +1063,18 @@ class FindTwinObs(FindTwin):
         outfile.close()
         return input_dict
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def write_params_logfile(self, input_dict, logfile):
-        '''
-        write key params to logfile. To be changed for each script
-        '''
+        """
+        write key params to logfile
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :param logfile: open logfile to write params
+        :type logfile: open txt file
+        :return logfile: open logfile
+        :type logfile: open txt file
+        """
         justify = 30
 
         params_in = input_dict['params_in']
@@ -1015,11 +1120,18 @@ class FindTwinObs(FindTwin):
 
         return logfile
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def write_params_outfile(self, input_dict, outfile):
-        '''
-        write key params to outfile. To be changed for each script
-        '''
+        """
+        write key params to outfile
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :param outfile: open outfile to write code output
+        :type outfile: open txt file
+        :return outfile: open outfile
+        :type outfile: open txt file
+        """
         justify = 30
         params_in = input_dict['params_in']
 
@@ -1068,11 +1180,17 @@ class FindTwinObs(FindTwin):
 
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def open_log_file(self, input_dict):
-        '''
-        Return an open log file in log_loc/'code_start_time'/'filename'/event_name.log
-        '''
+        """
+        Return an open log file in 
+        log_loc/'code_start_time'/'filename'/event_name.log
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :return logfile: open logfile to write code output
+        :type logfile: open txt file
+        """
         params_in = input_dict['params_in']
 
         lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}_obs'
@@ -1087,11 +1205,17 @@ class FindTwinObs(FindTwin):
         return logfile
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def open_outfile_file(self, input_dict):
-        '''
-        Return an open twin file in twin_loc/filename_out_loc + component/event_name."OS/MX" + component.twin
-        '''
+        """
+        Return an open twin file in 
+        twin_loc/filename_out_loc+component/event_name."OS/MX"+component.twin
+        
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :return outfile: open outfile to write code output
+        :type outfile: open txt file
+        """
         params_in = input_dict['params_in']
 
         of_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['twin_obs_out_loc']}{params_in['component']}'
@@ -1107,26 +1231,28 @@ class FindTwinObs(FindTwin):
 
 
 
-
-
-
-# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 class FindTwinSyn(FindTwin):
+    """
+    Class to handle processing of synthetic data for time window location
+    based on FindTwin class
+    """
+
     tk = Toolkit()
 
     def __init__(self):
         super().__init__()
 
-    def syn_specific_function(self):
-        # Function specific to find_twin_syn.py
-        pass
-
-
-
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def process_one_event(self, input_dict):
-        '''
-        Processes one event (earthquake), reading the file, applying the list functions to them
+        """
+        Processes one event (earthquake), reading the file, 
+        applying the list of functions to them
+
+        :param input_dict: dictionary as below
+        :type  input_dict: dict
+        :return input_dict: dictionary
+        :type  input_dict: dict
 
         Parameters
         ----------
@@ -1145,11 +1271,8 @@ class FindTwinSyn(FindTwin):
                 phases : phases : dict
                 functions : list of functions to execute
                 params_in : input paramters
+        """
 
-        Returns : input_dict
-        ----------
-        Nothing: None
-        '''
         event = input_dict['event']
         event_id = input_dict['event_id']
         functions = input_dict['functions']
@@ -1220,11 +1343,18 @@ class FindTwinSyn(FindTwin):
         return input_dict
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def write_params_logfile(self, input_dict, logfile):
-        '''
-        write key params to logfile. To be changed for each script
-        '''
+        """
+        Write key params to logfile
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :param logfile: open logfile to write params
+        :type logfile: open txt file
+        :return logfile: open logfile
+        :type logfile: open txt file
+        """
         justify = 30
 
         params_in = input_dict['params_in']
@@ -1269,11 +1399,18 @@ class FindTwinSyn(FindTwin):
         return logfile
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def write_params_outfile(self, input_dict, outfile):
-        '''
-        write key params to outfile # To be changed for each script
-        '''
+        """
+        write key params to outfile
+        
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :param outfile: open outfile to write code output
+        :type outfile: open txt file
+        :return outfile: open outfile
+        :type outfile: open txt file
+        """
         justify = 30
         params_in = input_dict['params_in']
 
@@ -1321,11 +1458,17 @@ class FindTwinSyn(FindTwin):
         return outfile
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def open_log_file(self, input_dict):
-        '''
-        Return an open log file in log_loc/'code_start_time'/'filename'/event_name.log
-        '''
+        """
+        Return an open log file in 
+        log_loc/'code_start_time'/'filename'/event_name.log
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :return logfile: open logfile to write code output
+        :type logfile: open txt file
+        """
         params_in = input_dict['params_in']
 
         lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}_syn'
@@ -1339,11 +1482,17 @@ class FindTwinSyn(FindTwin):
         return logfile
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def open_outfile_file(self, input_dict):
-        '''
-        Return an open twin file in twin_loc/filename_out_loc + component/event_name."OS/MX" + component.twin
-        '''
+        """
+        Return an open twin file in 
+        twin_loc/filename_out_loc+component/event_name."OS/MX"+component.twin
+        
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :return outfile: open outfile to write code output
+        :type outfile: open txt file
+        """
         params_in = input_dict['params_in']
 
         of_loc = f'{params_in['home']}/{params_in['twin_loc']}/{params_in['twin_syn_out_loc']}{params_in['component']}'
@@ -1357,10 +1506,7 @@ class FindTwinSyn(FindTwin):
         return outfile
 
 
-
-
-
-# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 def main():
 
     # Create instance of toolkit as tk
@@ -1382,7 +1528,9 @@ def main():
     
     find_twin_obs = FindTwinObs()
 
-    functions = [find_twin_obs.get_tt_times, find_twin_obs.primary_qc, find_twin_obs.detect_window_peaks, find_twin_obs.filter_window_peaks, find_twin_obs.plot_waveform_envelope_peaks_windows]
+    functions = [find_twin_obs.get_tt_times, find_twin_obs.primary_qc, 
+                 find_twin_obs.detect_window_peaks, find_twin_obs.filter_window_peaks, 
+                 find_twin_obs.plot_waveform_envelope_peaks_windows]
 
     main_function = [find_twin_obs.process_one_event]
     
@@ -1396,7 +1544,9 @@ def main():
     # Instantiate the classes and call their methods as needed
     find_twin_syn = FindTwinSyn()
 
-    functions = [find_twin_syn.get_tt_times, find_twin_syn.filter_seis, find_twin_syn.detect_window_peaks, find_twin_syn.filter_window_peaks, find_twin_syn.plot_waveform_envelope_peaks_windows]
+    functions = [find_twin_syn.get_tt_times, find_twin_syn.filter_seis, 
+                 find_twin_syn.detect_window_peaks, find_twin_syn.filter_window_peaks, 
+                 find_twin_syn.plot_waveform_envelope_peaks_windows]
 
     main_function = [find_twin_syn.process_one_event]
     
