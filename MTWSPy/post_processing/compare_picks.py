@@ -13,7 +13,7 @@ from matplotlib.ticker import (MultipleLocator)
 
 
 class CompareTdlFiles(ProcessTdlFiles):
-    '''
+    """
     Class to handle the comparison of time delay (.tdl)
     outputs by the MTWSPy algorithm when using differing parameters
     May operate in parallel using parameters in param_in.yaml file
@@ -24,19 +24,22 @@ class CompareTdlFiles(ProcessTdlFiles):
     time delays against distance 
 
     Also saves output if process_tl_files not run previously.
-    '''
+    """
     
     tk = Toolkit()
 
     def __init__(self):
         super().__init__()
 
-    def specific_function(self):
-        # Function specific to CompareTdlFiles.py
-        pass
-
     def normalize_nslc(self, nslc):
-        # Replace dots with underscores
+        """
+        Replace dots with underscores
+
+        :param nslc: network-station string
+        :type nslc: str
+        :return nslc: modified network-station string
+        :type nslc: str
+        """
         nslc = nslc.replace("_", ".")
         nslc = nslc.replace("..", ".00.")
         nslc = nslc.replace(".10.", ".00.")
@@ -46,9 +49,16 @@ class CompareTdlFiles(ProcessTdlFiles):
 
 
     def find_common_picks(self, df_1, df_2):
-        '''
+        """
         Try to find common arrivals between df_1 and df_2
-        '''
+
+        :param df_1: tdl dataframe from database 1
+        :param df_1: pd.df
+        :param df_2: tdl dataframe from database 1
+        :param df_2: pd.df
+        :return comp_df: tdl dataframe of pick comparison
+        :type comp_df: pd.df
+        """
         
         # Get unique event ids
         unique_evid_1 = list(df_1['evid'].unique())
@@ -61,7 +71,6 @@ class CompareTdlFiles(ProcessTdlFiles):
         n_evid = len(unique_evid)
 
 
-        
         out_df = []
         # Loop through all unique evids
         if n_evid > 0:
@@ -71,7 +80,8 @@ class CompareTdlFiles(ProcessTdlFiles):
             df_2["nslc"] = df_2["nslc"].apply(self.normalize_nslc)
 
             # Perform merge operation on normalized "nslc" column
-            comp_df = pd.merge(df_1, df_2, on=["evid", "phase", "nslc"], suffixes=('_df1', '_df2'))
+            comp_df = pd.merge(df_1, df_2, on=["evid", "phase", "nslc"],
+                               suffixes=('_df1', '_df2'))
 
             # Drop the temporary normalized column
             comp_df.drop(columns=["dist_df2", 
@@ -121,7 +131,6 @@ class CompareTdlFiles(ProcessTdlFiles):
             comp_df.rename(columns={"mid_lon_df1": "mid_lon"}, inplace=True)
             comp_df.rename(columns={"ttaup_df1": "ttaup"}, inplace=True)
 
-
         else:
             print('No unique evid found')
             comp_df = pd.DataFrame()
@@ -130,14 +139,20 @@ class CompareTdlFiles(ProcessTdlFiles):
 
 
     def remove_duplication(self, df):
-        '''
+        """
         The old Matlab code would often duplicate picks
         So lets average and remove them here to stop it influencing
         the comparison
 
         Causes loss of ccmx, tderr (non existent), ttaup
         tp_obs, tp_syn, Ap_obs, Ap_syn
-        '''
+
+        :param df: dataframe containing duplicate picks
+                    (e.g., from two location codes)
+        :type df: pd.df
+        :return df: dataframe with ducplicates removed
+        :type df: pd.df
+        """
 
         group_by_columns = ['evid', 'date_time', 'evt_lat', 'evt_lon', 
                             'evt_dep', 'evt_mag', 'channel', 'nslc', 'stla', 
@@ -146,7 +161,9 @@ class CompareTdlFiles(ProcessTdlFiles):
 
         tdl_df = df.groupby(group_by_columns, as_index=False)['tdelay'].mean()
 
-        mp_df = pd.DataFrame(columns = ['ccmx', 'tderr', 'tp_obs', 'tp_syn', 'Ap_obs','Ap_syn'], index = range(0,len(df)))
+        mp_df = pd.DataFrame(columns = ['ccmx', 'tderr', 'tp_obs', 'tp_syn', 
+                                        'Ap_obs','Ap_syn'], 
+                                        index = range(0,len(df)))
 
         mp_df.loc[:, "ccmx"] = 0
         mp_df.loc[:, "tderr"] = 0
@@ -162,18 +179,28 @@ class CompareTdlFiles(ProcessTdlFiles):
 
 
     def plot_comparison(self, comp_df, output_directory, filename):
-        '''
+        """
         Try to plot the correlation between tdelay_df1 and tdelay_df2
         And a histogram of the differences
         And a travel time against distance plot
-        '''
+
+        :param comp_df: pick comparison dataframe to plot & save
+        :type comp_df: pd.df
+        :param output_directory: directory to save plot
+        :type output_directory: str
+        :param filename: filename string for plot
+        :type filename: str
+        """
 
         # Initialise Figure and add axes with constraints
         fig = plt.figure(figsize  = (14,6))
 
-        ax0 = fig.add_axes([0.05, 0.1, 0.25, 0.8], projection = None, polar = False,facecolor = 'white',frame_on = True)
-        ax1 = fig.add_axes([0.39, 0.1, 0.25, 0.8], projection = None, polar = False,facecolor = 'white',frame_on = True)
-        ax2 = fig.add_axes([0.73, 0.1, 0.25, 0.8], projection = None, polar = False,facecolor = 'white',frame_on = True)
+        ax0 = fig.add_axes([0.05, 0.1, 0.25, 0.8], projection = None, 
+                           polar = False,facecolor = 'white',frame_on = True)
+        ax1 = fig.add_axes([0.39, 0.1, 0.25, 0.8], projection = None, 
+                           polar = False,facecolor = 'white',frame_on = True)
+        ax2 = fig.add_axes([0.73, 0.1, 0.25, 0.8], projection = None, 
+                           polar = False,facecolor = 'white',frame_on = True)
 
         axes_list_all = [ax0, ax1, ax2]
         for j, ax in enumerate(axes_list_all):
@@ -199,12 +226,14 @@ class CompareTdlFiles(ProcessTdlFiles):
         ax0.set_xlabel('tdelay df1 [s]',fontsize = 14)
         ax0.set_ylabel('tdelay df2 [s]',fontsize = 14)
 
-        ax0.scatter(comp_df["tdelay_df1"], comp_df["tdelay_df2"], s = 2, color = 'k') # , label = f'{params['component']} waveform'
+        ax0.scatter(comp_df["tdelay_df1"], comp_df["tdelay_df2"], 
+                    s = 2, color = 'k')
 
         ax0.plot([-60,60], [-60,60], ls = '-', lw = 0.5, color = 'g')
 
         # Histogram of differences 
-        ax1.hist(comp_df["tdelay_diff"], bins=np.arange(-50, 50+1 , 2), color='blue', alpha=0.7)  # Adjust bins and color as needed
+        ax1.hist(comp_df["tdelay_diff"], bins=np.arange(-50, 50+1 , 2), 
+                 color='blue', alpha=0.7)  # Adjust bins and color as needed
 
         # Add labels and title
         ax1.set_xlabel('tdelay Difference',fontsize = 14)
@@ -219,8 +248,12 @@ class CompareTdlFiles(ProcessTdlFiles):
 
         # Dist tdelay plot:
 
-        dist_t_df2 = ax2.scatter(comp_df["dist"], comp_df["ttaup"] + comp_df["tdelay_df2"], s = 2, color = 'b', label = f'df2') # , label = f'{params['component']} waveform'
-        dist_t_df1 = ax2.scatter(comp_df["dist"], comp_df["ttaup"] + comp_df["tdelay_df1"], s = 2, color = 'r', label = f'df1') # 
+        dist_t_df2 = ax2.scatter(comp_df["dist"], 
+                                 comp_df["ttaup"] + comp_df["tdelay_df2"], 
+                                 s = 2, color = 'b', label = f'df2')
+        dist_t_df1 = ax2.scatter(comp_df["dist"], 
+                                 comp_df["ttaup"] + comp_df["tdelay_df1"], 
+                                 s = 2, color = 'r', label = f'df1') # 
 
         # Add labels and title
         ax2.set_xlabel('Epicentral Distance',fontsize = 14)
@@ -235,15 +268,26 @@ class CompareTdlFiles(ProcessTdlFiles):
 
         # ax2.legend(loc = 'upper right', fontsize = 10)
         plt.sca(ax2)
-        plt.legend([dist_t_df1, dist_t_df2], ['df1', 'df2'], loc = 'lower right', fontsize = 10)
+        plt.legend([dist_t_df1, dist_t_df2], ['df1', 'df2'], 
+                   loc = 'lower right', fontsize = 10)
 
-        ax0.annotate('a',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',fontsize = 12,textcoords = 'offset points', color = 'k', backgroundcolor = 'none',ha = 'left', va = 'top', bbox = dict(facecolor = 'white',edgecolor = 'black', pad = 2.0))
-        ax1.annotate('b',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',fontsize = 12,textcoords = 'offset points', color = 'k', backgroundcolor = 'none',ha = 'left', va = 'top', bbox = dict(facecolor = 'white',edgecolor = 'black', pad = 2.0))
-        ax2.annotate('c',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',fontsize = 12,textcoords = 'offset points', color = 'k', backgroundcolor = 'none',ha = 'left', va = 'top', bbox = dict(facecolor = 'white',edgecolor = 'black', pad = 2.0))
-
+        ax0.annotate('a',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
+                     fontsize = 12,textcoords = 'offset points', color = 'k',
+                       backgroundcolor = 'none',ha = 'left', va = 'top', 
+                       bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                       pad = 2.0))
+        ax1.annotate('b',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
+                     fontsize = 12,textcoords = 'offset points', color = 'k', 
+                     backgroundcolor = 'none',ha = 'left', va = 'top', 
+                     bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                     pad = 2.0))
+        ax2.annotate('c',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
+                     fontsize = 12,textcoords = 'offset points', color = 'k', 
+                     backgroundcolor = 'none',ha = 'left', va = 'top', 
+                     bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                     pad = 2.0))
 
         # Save plot:
-
         if not os.path.exists(output_directory):
             os.makedirs(output_directory, exist_ok=True)
 
@@ -253,18 +297,27 @@ class CompareTdlFiles(ProcessTdlFiles):
 
         plt.savefig(filename_out, format = 'png')
 
-        # plt.savefig(f'{pic_loc}/{pic_filename}', format = 'pdf')
-        # plt.savefig(f'compare_codes.pdf', format = 'png')
-
         return
 
 
-     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    def load_dataframe(self, params, filter_functions, output_directory, filename):
-        '''
+     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
+    def load_dataframe(self, params, filter_functions, 
+                       output_directory, filename):
+        """
         Load csv file from filepath if it exists
         Else use apply to make the dataframe:
-        '''
+
+        :param params: loaded parameter file 
+        :type params: dict
+        :param filter_functions: list of functions to filter tdl data
+        :type filter_functions: list
+        :param output_directory: location of already processed tdl data
+        :type output_directory: str
+        :param filename: name of tdl file to find/save
+        :type filename: str
+        :return input_df: loaded dataframe of tdl picks
+        :type input_df: pd.df
+        """
 
         if os.path.isfile(f'{output_directory}{filename}.out'):
             # Read:
@@ -314,34 +367,50 @@ def main():
 
 
     ######################### AL 2008 data - Zaroli #########################
-    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code' # Location where MTWSPy code is installed
+    # Location where MTWSPy code is installed
+    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code'
 
     output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
     filename = f'{params['tt_out_f_name']}'
 
-    al_python_filtered_ZR_df = compare_tdl_files.load_dataframe(params, filter_functions, output_directory, filename)
+    al_python_filtered_ZR_df = compare_tdl_files.load_dataframe(params, 
+                                                                filter_functions, 
+                                                                output_directory, 
+                                                                filename)
     print(al_python_filtered_ZR_df)
 
-    ######################### Lei original results 2008 data - XC matlab#########################
-    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Lei_matlab_Results_OCT21' # Location where MTWSPy code is installed
+    ######################### Lei original results 2008 data - XC matlab #####
+    # Location where MTWSPy code is installed
+    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Lei_matlab_Results_OCT21' 
     output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
 
-    lei_matlab_filtered_df = compare_tdl_files.load_dataframe(params, filter_functions, output_directory, filename)
+    lei_matlab_filtered_df = compare_tdl_files.load_dataframe(params, 
+                                                              filter_functions, 
+                                                              output_directory, 
+                                                              filename)
     print(lei_matlab_filtered_df)
 
-    ######################### Lei original code, al results #########################
-    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Al_matlab_results_DEC23' # Location where MTWSPy code is installed
+    ######################### Lei original code, al results ##################
+    # Location where MTWSPy code is installed
+    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Al_matlab_results_DEC23' 
     output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
 
-    al_matlab_filtered_df = compare_tdl_files.load_dataframe(params, filter_functions, output_directory, filename)
+    al_matlab_filtered_df = compare_tdl_files.load_dataframe(params, 
+                                                             filter_functions, 
+                                                             output_directory, 
+                                                             filename)
     print(al_matlab_filtered_df)
 
     ######################### AL 2008 data - XC #########################
-    params['home'] = '/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy' # Location where MTWSPy code is installed
+    # Location where MTWSPy code is installed
+    params['home'] = '/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy' 
 
     output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
 
-    al_python_filtered_XC_df = compare_tdl_files.load_dataframe(params, filter_functions, output_directory, filename)
+    al_python_filtered_XC_df = compare_tdl_files.load_dataframe(params, 
+                                                                filter_functions, 
+                                                                output_directory, 
+                                                                filename)
     print(al_python_filtered_XC_df)
 
     # Remove duplicates in matlab databases

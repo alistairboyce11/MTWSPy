@@ -2,7 +2,7 @@
 """
 Created on Tue Jan  9 16:10:02 2024
 @author: alistairboyce
-if this fails: >> conda activate env3.12
+if this fails: >> conda activate MTWSPy
 """
 
 import time

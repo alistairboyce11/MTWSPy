@@ -3,28 +3,27 @@ from toolkit import Toolkit
 import numpy as np
 
 class MatchTwinFiles:
+    """
+    Class to handle matching of event IDs for which both
+    obs and syn twins exist after find_twin.py
+    """
+    
     tk = Toolkit()
 
     def __init__(self, params):
         self.params = params
             
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def find_common_events(self, params_in):
-        '''
-        find common twin files for obs and syn
-        - list obs twin files
-        - list syn twin files
-        - find common evid and save to file
-        
-        Inputs:
-        params_in : dict
-            For location of twin files based on paths set in .yaml file.
-
-        Outputs:
+        """
+        find common twin files for obs and syn by listing obs and syn twin
+        files and finding common evids, saving list of common evid to file
         Text file : outfile (e.g., EVID.OST-MXT)
-            List of matching event names from twin files.
 
-        '''
+        :param params_in: For loc of twin files from paths in yaml file
+        :type params_in : dict
+        """
+
         # Initiate logfile
         logfile = self.open_log_file(params_in)
         logfile = self.write_params_logfile(params_in, logfile)
@@ -36,7 +35,6 @@ class MatchTwinFiles:
         num_obj_in    = 0
         num_files_out = 0
         num_obj_out   = 0
-
 
 
         ###
@@ -146,16 +144,23 @@ class MatchTwinFiles:
         ###
 
         io_logfile.close()
-
         logfile.close()
+        
         return
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def open_log_file(self, params_in):
-        '''
-        Return an open log file in log_loc/'code_start_time'/'filename'/match_twin_files.log
-        '''
+        """
+        Return an open log file in 
+        log_loc/'code_start_time'/'filename'/match_twin_files.log
+
+        :param params_in: dictionary of input params
+        :type params_in: dict
+
+        :return logfile: logfile to record match_twin_file process
+        :type logfile: open file with write access
+        """
         # Get location of logfile
         lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
         if not os.path.exists(lf_loc):
@@ -167,12 +172,20 @@ class MatchTwinFiles:
         return logfile
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
 
     def write_params_logfile(self, params_in, logfile):
-        '''
-        write key params to logfile. To be changed for each script
-        '''
+        """
+        Write key params to logfile
+        
+        :param params_in: dictionary of input params
+        :type params_in: dict
+        :param logfile: logfile to record match_twin_file process
+        :type logfile: open file with write access
+
+        :return logfile: logfile to record match_twin_file process
+        :type logfile: open file with write access
+        """
         justify = 30
 
         logfile.write(' ')
@@ -184,7 +197,7 @@ class MatchTwinFiles:
         return logfile
 
 
-# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 
 def main():
 

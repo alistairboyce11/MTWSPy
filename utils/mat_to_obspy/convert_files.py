@@ -15,16 +15,24 @@ from toolkit import Toolkit
 import pprint
 
 class ConvertMatFiles:
-
+    """
+    Class to handle conversion of old Matlab data files to python format
+    for use with this code.
+    """
     def __init__(self):
         pass
 
-    def common_function(self):
-        # Common function used by both find_twin_obs.py and find_twin_syn.py
-        pass
-    
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def extract_values(self, item):
-        """Helper function to extract values from the numpy object array."""
+        """
+        Helper function to extract values from the numpy object array.
+        
+        :param item: some item that has undetermined type
+        :type item: unknown
+
+        :return item: output with determined type
+        :type item: variable
+        """
         if isinstance(item, np.ndarray):
             if item.dtype.names:
                 return {name: self.extract_values(item[name]) for name in item.dtype.names}
@@ -34,9 +42,18 @@ class ConvertMatFiles:
                 else:
                     return item.tolist()  # Return a list
         return item
-        
+
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def datenum_to_datetime(self, datenum):
-        """Convert MATLAB datenum to Python datetime."""
+        """
+        Convert MATLAB datenum to Python datetime
+        
+        :param datenum: Matlab datenum stamp
+        :type datenum: Matlab datenum format string
+
+        :return output: translated time stamp for python
+        :type output: datetime object
+        """
 
         # MATLAB datenum starts from the year 0000-01-01
         # Python's datetime starts from 0001-01-01
@@ -48,6 +65,19 @@ class ConvertMatFiles:
     
 
     def read_mat_file(self, input_dict, seis, data, fail):
+        """
+        Read matlab .mat file using scipy into python dict
+ 
+        Inputs and returns same/updated parameters
+        :param input_dict : details for processing
+        :type input_dict: dict
+        :param seis: seismic data in python format to be populated
+        :type seis: obspy stream
+        :param data: matlab data in scipy dict format to populate obspy stream
+        :type seis: dict
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
 
         if fail != 1:
             file = input_dict['filename']
@@ -63,6 +93,19 @@ class ConvertMatFiles:
     
 
     def load_headers(self, input_dict, seis, data, fail):
+        """
+        Interpret scipy dict object to populate headers in obspy stream
+
+        Inputs and returns same/updated parameters
+        :param input_dict : details for processing
+        :type input_dict: dict
+        :param seis: seismic data in python format to be populated
+        :type seis: obspy stream
+        :param data: matlab data in scipy dict format to populate obspy stream
+        :type seis: dict
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
         if fail != 1:
             file = input_dict['filename']
             try: 
@@ -177,6 +220,20 @@ class ConvertMatFiles:
 
     
     def save_sac(self, input_dict, seis, data, fail):
+        """
+        Save newly populated obspy stream object to python compatible file
+
+        Inputs and returns same/updated parameters
+        :param input_dict : details for processing
+        :type input_dict: dict
+        :param seis: seismic data in python format to be populated
+        :type seis: obspy stream
+        :param data: matlab data in scipy dict format to populate obspy stream
+        :type seis: dict
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
+
         if fail != 1:
             file = input_dict['filename']
             try: 
@@ -189,7 +246,6 @@ class ConvertMatFiles:
                     print(f'Saving {outfile}')
                     tr.write(outfile, format='sac')
 
-
             except:
                 fail = 1
                 print(f'Failed to save sac {file}')
@@ -199,6 +255,12 @@ class ConvertMatFiles:
         return input_dict, seis, data, fail
     
     def process_one_file(self, input_dict):
+        """
+        Processes one matlab file and applying the list functions to them
+
+        :return input_dict: dictionary of info used in processing
+        :type input_dict: dict
+        """
         functions = input_dict['functions']
 
         seis = Stream()
@@ -208,13 +270,28 @@ class ConvertMatFiles:
         
         for function in functions:
             input_dict, seis, data, fail = function(input_dict, seis, data, fail)
-
-
         return
     
     
-    def execute(self, main_function, input_directory, output_directory, functions, do_parallel, jobs):
-        
+    def execute(self, main_function, input_directory, output_directory, 
+                functions, do_parallel, jobs):
+        """
+        Takes main function inputs and passes to serial or parallel 
+        executer, see below.
+
+        :param main_function : list of the 1 main function applied to inputs
+        :type main_function: list
+        :param input_directory: input_directory name where the data is
+        :type input_directory: str
+        :param output_directory: output_directory name where the data is saved
+        :type output_directory: str
+        :param functions : list of functions to apply to inputs
+        :type functions: list
+        :param do_parallel: Execute in parallel or not
+        :type do_parallel : bool
+        :param jobs: number of parallel workers
+        :type jobs: int
+        """
 
         input_dicts = []
 
@@ -266,11 +343,10 @@ class ConvertMatFiles:
         else:
             pass
 
-
         return
     
 
-# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 def main():
 
     start_time = time.time()

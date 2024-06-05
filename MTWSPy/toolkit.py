@@ -6,25 +6,35 @@ from datetime import datetime, timezone
 import numpy as np
 import concurrent.futures
 
-# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-#                                                                                     #
-#                                     toolkit.py                                      #
-#                                                                                     # 
-# ---                                                                             --- # 
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+#                                                                            #
+#                               toolkit.py                                   #
+#                                                                            # 
+# ---                                                                    --- # 
 
-# A bunch of functions utilised throughout the code.
 
 class Toolkit:
+    """
+    Class hosting a bunch of functions utilised throughout the code.
+    """
     def __init__(self):
         pass
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def check_files(self, loc, year, component):
-        '''
+        """
         Check files exist for given obs and synth data location for
-        specified year and component
-        Otherwise quit the code...
-        '''
+        specified year and component. Otherwise quit the code...
+
+        :param loc: base file location 
+        :type loc: str
+        :param year: year of data to be processed
+        :type year: str/int
+        :param component: instrument component to be used Z/R/T
+        :type component: str
+        :return num_file: number of files found at loc
+        :type num_file: int
+        """
         check_name = f'{loc}/{str(year)}*/{str(year)}*{component}'
 
         filelist = glob.glob(check_name)
@@ -43,11 +53,17 @@ class Toolkit:
 
         return numfiles
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def get_params(self, params_filename):
-        '''
-        Get input parameters from yaml file
-        '''
+        """
+        Load input parameters from yaml file
+        Add execution time to dict
+
+        :param params_filename: input file name (.yaml)
+        :type params_filename: str
+        :return params: loaded parameters
+        :type params: dict
+        """
         with open(params_filename) as f:
             params = yaml.load(f, Loader = SafeLoader)
         # add the starttime of the code
@@ -59,52 +75,90 @@ class Toolkit:
 
         return params
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def get_event_id_table(self, params):
-        '''
-        Get event id table as pandas data frame
-        '''
+        """
+        Load event id table as pandas data frame
+
+        :param params: parameter dictionary
+        :type params: dict
+        :return tab: table of matched event ids from CMT catalog
+        :type tab: pandas dataframe
+        """
         cmt_outfile_name = f'{params['cmt_outfile']}_{str( params['year'])}.csv'
 
         tab = pd.read_csv(cmt_outfile_name)
 
         return tab
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def get_log_statement(self, event_id, filename):
-        '''
-        Return statement for logfile 
-        '''
+        """
+        Return statement for logfile
+
+        :param event_id: unique event id
+        :type event_id: str
+        :param filename: current file in processing
+        :type filename: str
+        :return statement: statement for logfile
+        :type statement: str
+        """
         filename_p = filename.split('/')[-1]
         statement = f'{event_id}, {filename_p}'
 
         return statement
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def subvec(self, t, x, interval):
-        '''
-        Return indices and values within a given interval [t1,t2] for timeseries x(t) 
-        '''
+        """
+        Return indices and values within a given interval [t1,t2] 
+        for timeseries x(t)
+
+        :param t: time vector
+        :type t: np.array
+        :param x: vector/timeseries array to splice
+        :type x: np.array
+        :param interval: start end time to cut vector
+        :type interval: list/tuple
+        :return t_new: spliced time array
+        :type t_new: np.array
+        :return x_new: spliced timeseries array
+        :type x_new: np.array
+        """
         t_new = (t >= interval[0]) & (t <= interval[1])
         x_new = x[t_new]
 
         return t_new, x_new
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def flatten_concatenation(self, matrix):
-        '''
-        Return a flattened list
-        '''
+        """
+        Return a flattened list from nested list
+
+        :param matrix: nested list to be flattened
+        :type matrix: list
+        :return flat_list: flat list
+        :type flat_list: list
+        """
         flat_list = []
         for row in matrix:
             flat_list  +=  row
+
         return flat_list
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def print_log(self, params, logfile, statement):
-        '''
-        Print statement to terminal (depending on input params) and open logfile 
-        '''
+        """
+        Print statement to terminal (depending on input params) 
+        and open logfile
+
+        :param params: loaded params dict
+        :type params: dict
+        :param logfile: open logfile
+        :type logfile: open txt file fro writing
+        :param statement: text to print /write to logilfe
+        :type statement: str
+        """
         if params['verbose']:
             print(statement)
         
@@ -117,11 +171,17 @@ class Toolkit:
         return
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def open_io_log_file(self, params_in):
-        '''
-        Return an open input/output log file in log_loc/'code_start_time'/steps_results.log
-        '''
+        """
+        Return an open input/output log file 
+        in log_loc/'code_start_time'/steps_results.log
+
+        :param params_in: loaded parameter dictionary
+        :type params_in: dict
+        :return logfile: io logfile to track file wastage at each QC step
+        :type logfile: open file with write access
+        """
 
         lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}'
         if not os.path.exists(lf_loc):
@@ -141,21 +201,38 @@ class Toolkit:
         return logfile
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
-    def get_io_statement(self, step_name, num_files_in, num_obj_in, num_files_out, num_obj_out):
-        '''
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    def get_io_statement(self, step_name, num_files_in, num_obj_in, 
+                         num_files_out, num_obj_out):
+        """
         Return an statement for the input/output log file
-        '''
+
+        :param step_name: name of step in the code
+        :type step_name: str
+        :param num_files_in: number of files before step
+        :type num_files_in: int
+        :param num_obj_in: number of objects before step
+        :type num_obj_in: int
+        :param num_files_out: number of files after step
+        :type num_files_out: int
+        :param num_obj_out: number of objects after step
+        :type num_obj_out: int
+
+        :return statement: lines of statement tracking input/output files
+        :type statement: str (multi line)
+        """
         
         statement = f'----------////               {step_name}                ////----------\n'
 
         try:
-            statement += f'Files   in/out: {num_files_in} / {num_files_out}, percentage gain/loss (+/-): {-1 * np.round(((num_files_in - num_files_out) / num_files_in) * 100, 2)}%\n'
+            perc_gl = -1 * np.round(((num_files_in - num_files_out) / num_files_in) * 100, 2)
+            statement += f'Files   in/out: {num_files_in} / {num_files_out}, \percentage gain/loss (+/-): {perc_gl}%\n'
         except:
             statement += f'Files   in/out: {num_files_in} / {num_files_out}\n'
 
         try: 
-            statement += f'Objects in/out: {num_obj_in} / {num_obj_out}, percentage gain/loss (+/-): {-1 * np.round(((num_obj_in - num_obj_out) / num_obj_in) * 100, 2)}%\n'
+            perc_gl = -1 * np.round(((num_obj_in - num_obj_out) / num_obj_in) * 100, 2)
+            statement += f'Objects in/out: {num_obj_in} / {num_obj_out}, percentage gain/loss (+/-): {perc_gl}%\n'
         except: 
             statement += f'Objects in/out: {num_obj_in} / {num_obj_out}\n'
         statement += f'\n'
@@ -163,27 +240,26 @@ class Toolkit:
         return statement
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def get_input_dicts(self, input_directory, evt_id_tab, functions, params_in, phases):
-        '''
-        Parallel processing needs a list of inputs for each independent iteration
-        So put all input into a dict and create a list of dicts
+        """
+        Parallel processing needs a list of inputs for each independent 
+        iteration. So put all input into a dict and create a list of dicts
 
-        Parameters
-        ----------
-        input_directory: str
-            input_directory name where all the data is.
-        evt_id_tab: pd dataframe
-            pandas dataframe containing cmt event details
-        functions : list
-            list of functions to apply to inputs
-        params_in : dict
-
-        phases : dict
-            phase dictionary for picks
+        :param input_directory: input_directory name where all the data is.
+        :type input_directory: str
+        :param evt_id_tab: pandas dataframe containing cmt event details 
+        :type evt_id_tab: pd dataframe
+        :param functions: list of functions to apply to inputs
+        :type functions: list
+        :param params_in: dictionary of input control params
+        :type params_in: dict
+        :param phases: phase dictionary for picks
+        :type phases: dict
             
-        Returns
-        ----------
+        :return input_dicts: list (of dictionaries as below)
+        :type  input_dicts: dict
+
         input_dicts : list (of dictionaries as below)
             input_dict : dict : specific to each event
                 input dictionary containing:
@@ -200,7 +276,7 @@ class Toolkit:
                     phases : phases : dict
                     functions : list of functions to execute
                     params_in : input paramters
-        '''
+        """
 
         # Finds files, makes input dictionary of files, functions, inputs
         events = sorted(glob.glob(f'{input_directory}/{str(params_in['year'])}*'))
@@ -271,9 +347,24 @@ class Toolkit:
 
 
     def execute(self, main_function, input_directory, evt_id_tab, functions, params_in, phases):
-        '''
-        Takes main function inputs and passes to serial or parallel executer, see below.
-        '''
+        """
+        Takes main function inputs and passes to serial or parallel 
+        executer, see below.
+
+        :param main_function: main function to apply to data
+        :type main_function: list (len==1) contains func nam
+        :param input_directory: input_directory name where all the data is.
+        :type input_directory: str
+        :param evt_id_tab: pandas dataframe containing cmt event details 
+        :type evt_id_tab: pd dataframe
+        :param functions: list of functions to apply to inputs
+        :type functions: list
+        :param params_in: dictionary of input control params
+        :type params_in: dict
+        :param phases: phase dictionary for picks
+        :type phases: dict
+
+        """
         if params_in['parallel']:
             # Execute in parallel
             self.apply_parallel(main_function, input_directory, evt_id_tab, functions, params_in, phases)
@@ -283,44 +374,45 @@ class Toolkit:
         return
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def apply_serial(self, main_function, input_directory, evt_id_tab, functions, params_in, phases):
-        '''
-        Takes a list of functions, reads all input files, applies each function to all files
+        """
+        Takes a list of functions, reads all input files, applies 
+        each function to all files.
         IN SERIES...
 
-        Parameters
-        ----------
-        main_function : list
-            Length one list containing main function.
-        input_directory: str
-            input_directory name where all the data is.
-        evt_id_tab: pd dataframe
-            pandas dataframe containing cmt event details
-        functions : list
-            list of functions to apply to inputs
-        params_in : dict
-
-        phases : dict
-            phase dictionary for picks
+        :param main_function: main function to apply to data
+        :type main_function: list (len==1) contains func nam
+        :param input_directory: input_directory name where all the data is.
+        :type input_directory: str
+        :param evt_id_tab: pandas dataframe containing cmt event details 
+        :type evt_id_tab: pd dataframe
+        :param functions: list of functions to apply to inputs
+        :type functions: list
+        :param params_in: dictionary of input control params
+        :type params_in: dict
+        :param phases: phase dictionary for picks
+        :type phases: dict
             
-        Returns
-        ----------
-        Nothing : None
-            Functions take care of returns/writing to file  
-            
+        -------
         The functions in the list must take the following inputs: 
 
-        input_dict : dict
-        file : file location string
-        seis : obspy stream object read into memory onwhich operations are performed.
-        logfile : open logfile to report progress
-        outfile : open outfile to report results
-        fail : int - fail flag = 1 if function fails, else 0.
+        :param input_dict: dictionary of input params
+        :type input_dict: dict
+        :param file: file location string
+        :type file: str
+        :param seis: seismogram in memory onwhich operations are performed
+        :type seis: obspy stream
+        :param logfile: open logfile to report progress
+        :type: logfile: open textfile for writing
+        :param outfile: open outfile to report results
+        :type: outfile: open textfile for writing
+        :param fail: fail flag = 1 if function fails, else 0
+        :type fail: int
         
         The functions must return all input variables
         Functions can write to logfile & outfile.
-        '''
+        """
 
         # Counting stats
         num_files_in =  0 # Files
@@ -355,44 +447,45 @@ class Toolkit:
         else:
             pass
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def apply_parallel(self, main_function, input_directory, evt_id_tab, functions, params_in, phases):
-        '''
-        Takes a list of functions, reads all input files, applies each function to all of the files
+        """
+        Takes a list of functions, reads all input files, applies 
+        each function to all files.
         IN PARALLEL...
 
-        Parameters
-        ----------
-        main_function : list
-            Length one list containing main function.
-        input_directory: str
-            input_directory name where all the data is.
-        evt_id_tab: pd dataframe
-            pandas dataframe containing cmt event details
-        functions : list
-            list of functions to apply to inputs
-        params_in : dict
-
-        phases : dict
-            phase dictionary for picks
+        :param main_function: main function to apply to data
+        :type main_function: list (len==1) contains func nam
+        :param input_directory: input_directory name where all the data is.
+        :type input_directory: str
+        :param evt_id_tab: pandas dataframe containing cmt event details 
+        :type evt_id_tab: pd dataframe
+        :param functions: list of functions to apply to inputs
+        :type functions: list
+        :param params_in: dictionary of input control params
+        :type params_in: dict
+        :param phases: phase dictionary for picks
+        :type phases: dict
             
-        Returns
-        ----------
-        Nothing : None
-            Functions take care of returns/writing to file    
-            
+        -------
         The functions in the list must take the following inputs: 
 
-        input_dict : dict
-        file : file location string
-        seis : obspy stream object read into memory onwhich operations are performed.
-        logfile : open logfile to report progress
-        outfile : open outfile to report results
-        fail : int - fail flag = 1 if function fails, else 0.
+        :param input_dict: event details for processing 
+        :type input_dict: dict
+        :param file: file location string
+        :type file: str
+        :param seis: seismogram in memory onwhich operations are performed
+        :type seis: obspy stream
+        :param logfile: open logfile to report progress
+        :type: logfile: open textfile for writing
+        :param outfile: open outfile to report results
+        :type: outfile: open textfile for writing
+        :param fail: fail flag = 1 if function fails, else 0
+        :type fail: int
         
         The functions must return all input variables
         Functions can write to logfile & outfile.
-        '''
+        """
         
         # Counting stats
         num_files_in =  0 # Files
@@ -429,12 +522,18 @@ class Toolkit:
             pass
 
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def read_twin_file(self, file_path):
-        '''
+        """
         Read twin file from file_path into pandas dataframe
         Ignore header lines before column headers
-        '''
+
+        :param file_path: path to twin file
+        :type file_path: str
+        :return df: twin file read into memory as dataframe
+        :type df: pd.df
+        """
+
         with open(file_path, 'r') as file:
             # Skip header lines
             try:
@@ -452,12 +551,18 @@ class Toolkit:
 
         return df
 
-    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def read_tdelay_file(self, file_path):
-        '''
+        """
         Read tdelay file from file_path into pandas dataframe
         Add header lines of Earthquake details
-        '''
+        
+        :param file_path: path to tdelay file
+        :type file_path: str
+        :return df: tdelay file read into memory as dataframe
+        :type df: pd.df
+        """
+
         with open(file_path, 'r') as file:
             # Skip header lines
             try:
@@ -498,7 +603,9 @@ class Toolkit:
                 # Read data into DataFrame
                 s_df = pd.read_csv(file, delimiter = ',', dtype = convert_dict)
 
-                eq_df = pd.DataFrame(columns = ['evid','date_time','evt_lat','evt_lon','evt_dep','evt_mag','channel'], index = range(0,len(s_df)))
+                cols = ['evid','date_time','evt_lat','evt_lon','evt_dep','evt_mag','channel']
+                eq_df = pd.DataFrame(columns = cols, index = range(0,len(s_df)))
+
                 for index, row in eq_df.iterrows():
                     eq_df.loc[index, "evid"] =  str(evid)
                     eq_df.loc[index, "date_time"] =  str(date_time)
@@ -508,8 +615,9 @@ class Toolkit:
                     eq_df.loc[index, "evt_mag"] =  float(evt_mag)
                     eq_df.loc[index, "channel"] =  channel
 
-                # Merge eq_df, s_df and write out where no nans in line. of merged df.
-                merged_df = pd.merge(eq_df, s_df, left_index = True, right_index = True)
+                # Merge eq_df, s_df and write out where no nans in line of merged df
+                merged_df = pd.merge(eq_df, s_df, left_index = True, 
+                                     right_index = True)
                 # Drop Nans non_nan_rows = df.dropna()
                 df = merged_df.dropna()
 

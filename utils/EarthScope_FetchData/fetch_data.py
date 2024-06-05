@@ -21,7 +21,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 class FetchData:
 
-    '''
+    """
     Class to handle serial/parallel download of seimic data and
     to format the data ready for MTWSPy travel time picking
     
@@ -31,26 +31,25 @@ class FetchData:
     Added complexity with rotation of components compared to 
     Synthetics that are already rotated in ZRT.
 
-    '''
+    """
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def get_event_metadata(self, data_loc, year, month):
-        '''
+        """
         Use Iris Event server to find all events for given year using 
         FetchEvent perl script. Try to read this into pandas df
         Add ev_id column -> formatted event name for saving purposes.
 
-        Parameters:
-        -------
-        data_loc : str
-            Location to save data
-        year : int/str
-            Year of data investigated.    
+        :param data_loc: Location to save data
+        :type data_loc: str
+        :param year: year of data to fetch
+        :type year: int/str
+        :param month: Month of data to fetch
+        :type month: int/str
 
-        Returns:
-        -------
-        cmt_table : df : event details in pandas dataframe
-        '''
+        :return cmt_table: event details in pandas dataframe
+        :type cmt_table: pd.df
+        """
 
         # Create output directory
         if not os.path.exists(f'{data_loc}/e{year}'):
@@ -101,18 +100,31 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def get_datacenters(self):
-        '''
+        """
         Produce dataframe of datacenter names and their locations online.
 
-        Returns:
-        -------
-        df : pd dataframe
-        '''
-
+        :returns df: dataframe of datacenters
+        :type df: pd.df
+        """
 
         data = {
-            "datacenter": ["AUSPASS", "GEOFON", "GEONET", "INGV", "IPGP", "IRIS", "KOERI", "LMU", "NIEP", "NOA", "ORFEUS", "RESIF", "UIB-NORSAR", "USP"],
-            "loc": ["http://auspass.edu.au", "http://geofon.gfz-potsdam.de", "http://service.geonet.org.nz", "http://webservices.ingv.it", "http://ws.ipgp.fr", "http://service.iris.edu", "http://eida.koeri.boun.edu.tr", "http://erde.geophysik.uni-muenchen.de", "http://eida-sc3.infp.ro", "http://eida.gein.noa.gr", "http://www.orfeus-eu.org", "http://ws.resif.fr", "http://eida.geo.uib.no", "http://sismo.iag.usp.br"]
+            "datacenter": ["AUSPASS", "GEOFON", "GEONET", "INGV", "IPGP", 
+                           "IRIS", "KOERI", "LMU", "NIEP", "NOA", "ORFEUS", 
+                           "RESIF", "UIB-NORSAR", "USP"],
+            "loc": ["http://auspass.edu.au", 
+                    "http://geofon.gfz-potsdam.de", 
+                    "http://service.geonet.org.nz", 
+                    "http://webservices.ingv.it", 
+                    "http://ws.ipgp.fr", 
+                    "http://service.iris.edu", 
+                    "http://eida.koeri.boun.edu.tr", 
+                    "http://erde.geophysik.uni-muenchen.de", 
+                    "http://eida-sc3.infp.ro", 
+                    "http://eida.gein.noa.gr", 
+                    "http://www.orfeus-eu.org", 
+                    "http://ws.resif.fr", 
+                    "http://eida.geo.uib.no", 
+                    "http://sismo.iag.usp.br"]
         }
 
         df = pd.DataFrame(data)
@@ -121,36 +133,34 @@ class FetchData:
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def get_station_metadata(self, data_loc, year, month, channel, dc_name, dc_loc_string):
-        '''
+    def get_station_metadata(self, data_loc, year, month, channel, dc_name, 
+                             dc_loc_string):
+        """
         Use Given datacenter server to find all available stations for given
          year using FetchMetadata perl script. Try to read this into pandas df
         Keep most suitable channel for request based on heirachy/availability
         This reduces redundnacy of requests
+
         Download station XML file for use in instrument reponse removal
 
-        Parameters:
-        -------
-        data_loc : str
-            Location to save data
-        year : int/str
-            Year of data downloaded    
-        month : int/str
-            Month of data downloaded
-        channel : str
-            Search channel
-        dc_name : str
-            datacenter name
-        dc_loc_string : str
-            web address of datacenter
+        :param data_loc: Location to save data
+        :type data_loc: str
+        :param year: year of data to fetch
+        :type year: int/str
+        :param month: Month of data to fetch
+        :type month: int/str
+        :param channel: Search channel
+        :type channel: str
+        :param dc_name: datacenter name
+        :type dc_name: str
+        :param dc_loc_string :web address of datacenter
+        :type dc_loc_string: str
 
-        Returns:
-        -------
-        out_stat_df : df 
-            station details in pandas dataframe
-        inv_loc : str
-            Location of station XML file for inst. resp.
-        '''
+        :return out_stat_df: station details in pandas dataframe
+        :type out_stat_df: pd.df
+        :return inv_loc: Location of station XML file for inst. resp.
+        :type inv_loc: str            
+        """
 
         # Syntax:
         # FetchMetadata -C HH?,BH?,LH? -s 2011-01-01,00:00:00 -e 2011-01-01,01:00:00 -o IRIS_2011_stations.out
@@ -241,27 +251,22 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def split_dataframe_by_ev_id(self, df, packet_request_size):
-        '''
+        """
         Takes large download request df and splits into chunks
         based on packet size request
 
-        Parameters:
-        -------
-        df : df
-            data frame of all requested files for given data center
-        packet_request_size : int
-            Size of each request sent to datacenter (traces)
+        :param df :data frame of all requested files for given data center
+        :type df: pd.df
+        :param packet_request_size: Size of each request sent to datacenter (traces)
+        :type packet_request_size: int
 
-        Returns:
-        -------
-        chunks : list
-            List of lists with chunks for downloading.
-        ev_ids : list
-            ev_ids used (for directory names etc)
-        ev_id_counts : list
-            numerical count of ev_ids (for labelling of chunks)
-        
-        '''
+        :return chunks: List of lists with chunks for downloading.
+        :type chunks: list
+        :return ev_ids: ev_ids used (for directory names etc)
+        :type ev_ids: list
+        :return ev_id_counts: numerical count of ev_ids (for labelling of chunks)
+        :type ev_id_counts: list
+        """
 
         # Initialize an empty list to store chunks
         chunks = []
@@ -317,24 +322,27 @@ class FetchData:
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def write_chunk_file(self, data_loc, year, month, output_directory, ev_id_count, chunk):
-        '''
+    def write_chunk_file(self, data_loc, year, month, output_directory, 
+                         ev_id_count, chunk):
+        """
         Write out the chunk request file to the correct location
 
-        Parameters:
-        -------
-        data_loc : str : location of download
-        year : int/str : year of download
-        month : int/str : month of download
-        output_directory : str : ev_id formatted name
-        ev_id_count : int : unique number of request for given earthquake
-        chunk : list : request file contents
+        :param data_loc: location of download
+        :type data_loc: str 
+        :param year: year of download 
+        :type year: int/str 
+        :param month: month of download 
+        :type month: int/str
+        :param output_directory: ev_id formatted name
+        :type output_directory: str
+        :param ev_id_count: unique number of request for given earthquake
+        :type ev_id_count: int 
+        :param chunk: request file contents
+        :type chunk: list
 
-        Returns:
-        ------
-        chunk_f_name : str
-        
-        '''
+        :return chunk_f_name: filename of written chunk
+        :type chunk_f_name: str
+        """
 
         # mkdir
         if not os.path.exists(f'{data_loc}/e{year}/py_formatted/{output_directory}'):
@@ -353,7 +361,7 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def process_one_chunk(self, input_dict):
-        '''
+        """
         Attempts processing for one chunk file
         Attempts download of mseed file, and reads into obspy if available
         Processes one file reading the file, applying the list functions
@@ -361,7 +369,9 @@ class FetchData:
         Applies list of functions including instrument response removal
         Moves Mseed and request file to tidy location
 
-
+        :param input_dict: input details for parallel processing 
+        :type input_dict: dict        
+        
         Parameters
         ----------
         input_dicts : list (of dictionaries as below)
@@ -376,11 +386,7 @@ class FetchData:
                     do_parallel : boolean
                     jobs : number of jobs
                     channel : desired output data channel
-
-        Returns
-        ----------
-        Nothing: None
-        '''
+        """
 
         chunk_f_name = input_dict['chunk_f_name']
         dc_loc_string = input_dict['dc_loc_string']
@@ -449,41 +455,36 @@ class FetchData:
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def get_data(self, data_loc, year, month, channel, main_function, function_list, packet_request_size, do_parallel, jobs, processing_channel):
-        '''
+    def get_data(self, data_loc, year, month, channel, main_function, 
+                 function_list, packet_request_size, do_parallel, jobs, 
+                 processing_channel):
+        """
         Main function for data downloadn and post processing.
         Collects, Events, Datacenters, Stations, chunks
         Collates in input_dicts
         Sends to main_function for processing.
 
-        Parameters:
-        -------
-        data_loc : str
-            Location to save data
-        year : int/str
-            Year of  data request    
-        Month : int/str
-            Month of data request    
-        channel : str
-            Search channel
-        main_function : list
-            Name of main function operating on each member on input_dicts
-        function_list : list
-            List of functions to apply to data following download
-        packet_request_size : int
-            Size of each request sent to datacenter (traces)    
-        do_parallel : bool
-            Do parallel processing or not
-        jobs : int
-            Number of parallel workers
-        processing_channel : str
-            Output channel of processing
-
-
-        Returns:
-        -------
-        None
-        '''
+        :params data_loc: Location to save data
+        :type data_loc: str
+        :params year : Year of  data request
+        :type year: int/str
+        :params Month : Month of data request    
+        :type Month: int/str            
+        :params channel : Search channel
+        :type channel: str
+        :params main_function: main function acting on members of input_dicts
+        :type main_function: list
+        :params function_list: postprocessing functions to apply to data
+        :type function_list: list
+        :params packet_request_size: Size of requests sent to datacenter  
+        :type packet_request_size: int
+        :params do_parallel: Do parallel processing or not
+        :type do_parallel: bool
+        :params jobs: Number of parallel workers 
+        :type jobs: int
+        :params processing_channel: Output channel of processing
+        :type processing_channel: str
+        """
 
         # Get events
         cmt_table = self.get_event_metadata(data_loc, year, month)
@@ -589,15 +590,18 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def update_headers_seis(self, input_dict, seis, fail):
-        '''
+        """
         Updates all headers of the seismogram in obspy and sac formats
 
-        Inputs and returns:
-            input_dict : dict
-            file : seismogram file name
-            seis : obspy stream
-            fail : 1/0
-        '''
+        ------
+        Inputs and returns same/updated parameters
+        :param input_dict : details of chunk for processing
+        :type input_dict: dict
+        :param seis: seismic data loaded for processing
+        :type seis: obspy stream
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
 
         if fail:
             ###
@@ -647,17 +651,20 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def rem_inst_resp(self, input_dict, seis, fail):
-        '''
+        """
         Removes instrument response from seismogram
         using appropriate pre-filter and station xml file
         outputs to displacement
 
-        Inputs and returns:
-            input_dict : dict
-            file : seismogram file name
-            seis : obspy stream
-            fail : 1/0
-        '''
+        ------
+        Inputs and returns same/updated parameters
+        :param input_dict : details of chunk for processing
+        :type input_dict: dict
+        :param seis: seismic data loaded for processing
+        :type seis: obspy stream
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
 
         if fail:
             ###
@@ -692,15 +699,18 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def remove_trend_taper(self, input_dict, seis, fail):
-        '''
+        """
         Removes trend and tapers seismogram
 
-        Inputs and returns:
-            input_dict : dict
-            file : seismogram file name
-            seis : obspy stream
-            fail : 1/0
-        '''
+        ------
+        Inputs and returns same/updated parameters
+        :param input_dict : details of chunk for processing
+        :type input_dict: dict
+        :param seis: seismic data loaded for processing
+        :type seis: obspy stream
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
 
         if fail:
             ###
@@ -720,15 +730,18 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def filter_seis(self, input_dict, seis, fail):
-        '''
+        """
         Filter seismogram
 
-        Inputs and returns:
-            input_dict : dict
-            file : seismogram file name
-            seis : obspy stream
-            fail : 1/0
-        '''
+        ------
+        Inputs and returns same/updated parameters
+        :param input_dict : details of chunk for processing
+        :type input_dict: dict
+        :param seis: seismic data loaded for processing
+        :type seis: obspy stream
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
 
         if fail:
             ###
@@ -752,15 +765,18 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def interpolate_seis(self, input_dict, seis, fail):
-        '''
+        """
         Interpolate seismogram
 
-        Inputs and returns:
-            input_dict : dict
-            file : seismogram file name
-            seis : obspy stream
-            fail : 1/0
-        '''
+        ------
+        Inputs and returns same/updated parameters
+        :param input_dict : details of chunk for processing
+        :type input_dict: dict
+        :param seis: seismic data loaded for processing
+        :type seis: obspy stream
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
 
         if fail:
             ###
@@ -781,15 +797,18 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def save_seis(self, input_dict, seis, fail):
-        '''
+        """
         Saves processed sac file
 
-        Inputs and returns:
-            input_dict : dict
-            file : seismogram file name
-            seis : obspy stream
-            fail : 1/0
-        '''
+        ------
+        Inputs and returns same/updated parameters
+        :param input_dict : details of chunk for processing
+        :type input_dict: dict
+        :param seis: seismic data loaded for processing
+        :type seis: obspy stream
+        :param fail: flag for whether processing step failed
+        :type fail: 1/0 or bool
+        """
         if fail:
             ###
             # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
@@ -846,25 +865,33 @@ class FetchData:
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def get_input_dicts_rotate(self, year, month, channel, data_loc, function_list, do_parallel, jobs, processing_channel):
-        '''
+    def get_input_dicts_rotate(self, year, month, channel, data_loc, 
+                               function_list, do_parallel, jobs, 
+                               processing_channel):
+        """
         Parallel processing needs a list of inputs for each iteration
         So put all input into a dict and create a list of dicts
 
-        Parameters
-        ----------
-        input_directory: str
-            input_directory name where all the data is.
-        functions : list
-            list of functions to apply to inputs
-        do_parallel : bool
-        jobs :  int
-            number of paralle workers
-        channel : str
-            required output channel of seismograms
-            
-        Returns
-        ----------
+        :param year: year of data to fetch
+        :type year: int/str
+        :param month: Month of data to fetch
+        :type month: int/str
+        :param channel: Search channel
+        :type channel: str
+        :param data_loc: data_loc name where all the data is
+        :type data_loc: str
+        :param function_list : list of functions to apply to inputs
+        :type function_list: list
+        :param do_parallel: Execute in parallel or not
+        :type do_parallel : bool
+        :param jobs: number of parallel workers
+        :type jobs: int
+        :param processing_channel: required output channel of seismograms
+        :type processing_channel: str
+        
+        :return input_dicts: list of dictionaries of info used in processing
+        :type input_dicts: list
+
         input_dicts : list (of dictionaries as below)
             input_dict : dict : specific to each file
                 input dictionary containing:
@@ -875,7 +902,7 @@ class FetchData:
                     do_parallel : boolean
                     jobs : number of jobs
                     channel : desired output data channel
-        '''
+        """
 
         ev_list = glob.glob(f'{data_loc}/e{year}/py_formatted/{year}{month:02d}????????')
         input_dicts = []
@@ -921,36 +948,40 @@ class FetchData:
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def apply_serial(self, data_loc, year, month, channel, main_function, function_list, do_parallel, jobs, processing_channel):
-        '''
+    def apply_serial(self, data_loc, year, month, channel, main_function, 
+                     function_list, do_parallel, jobs, processing_channel):
+        """
         Takes a list of functions, reads all input files, applies each 
         function to all files.
         IN SERIES...
 
-        Parameters
-        ----------
-        main_function : list
-            Length one list containing main function.
-        input_directory: str
-            input_directory name where all the data is.
-        functions : list
-            list of functions to apply to inputs
-        do_parallel : bool
-        jobs :  int
-            number of paralle workers
-        channel : str
-            required output channel of seismograms
-
-        Returns
-        ----------
-        Nothing : None
-            Functions take care of returns/writing to file  
+        :param data_loc: data_loc name where all the data is
+        :type data_loc: str
+        :param year: year of data to fetch
+        :type year: int/str
+        :param month: Month of data to fetch
+        :type month: int/str
+        :param channel: Search channel
+        :type channel: str
+        :param main_function : list of the 1 main function applied to inputs
+        :type main_function: list
+        :param function_list : list of functions to apply to inputs
+        :type function_list: list
+        :param do_parallel: Execute in parallel or not
+        :type do_parallel : bool
+        :param jobs: number of parallel workers
+        :type jobs: int
+        :param processing_channel: required output channel of seismograms
+        :type processing_channel: str
             
         The functions must return all input variables
         Functions can write to logfile & outfile.
-        '''
+        """
 
-        input_dicts = self.get_input_dicts_rotate(year, month, channel, data_loc, function_list, do_parallel, jobs, processing_channel)
+        input_dicts = self.get_input_dicts_rotate(year, month, channel, 
+                                                  data_loc, function_list, 
+                                                  do_parallel, jobs, 
+                                                  processing_channel)
 
         if input_dicts:
 
@@ -966,35 +997,39 @@ class FetchData:
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def apply_parallel(self, data_loc, year, month, channel, main_function, function_list, do_parallel, jobs, processing_channel):
-        '''
+    def apply_parallel(self, data_loc, year, month, channel, main_function, 
+                       function_list, do_parallel, jobs, processing_channel):
+        """
         Takes a list of functions, reads all input files, applies 
         each function to all of the files.
         IN PARALLEL...
 
-        Parameters
-        ----------
-        main_function : list
-            Length one list containing main function.
-        input_directory: str
-            input_directory name where all the data is.
-        functions : list
-            list of functions to apply to inputs
-        do_parallel : bool
-        jobs :  int
-            number of paralle workers
-        channel : str
-            required output channel of seismograms
-
-        Returns
-        ----------
-        Nothing : None
-            Functions take care of returns/writing to file  
+        :param data_loc: data_loc name where all the data is
+        :type data_loc: str
+        :param year: year of data to fetch
+        :type year: int/str
+        :param month: Month of data to fetch
+        :type month: int/str
+        :param channel: Search channel
+        :type channel: str
+        :param main_function : list of the 1 main function applied to inputs
+        :type main_function: list
+        :param function_list : list of functions to apply to inputs
+        :type function_list: list
+        :param do_parallel: Execute in parallel or not
+        :type do_parallel : bool
+        :param jobs: number of parallel workers
+        :type jobs: int
+        :param processing_channel: required output channel of seismograms
+        :type processing_channel: str
         
         The functions must return all input variables
         Functions can write to logfile & outfile.
-        '''
-        input_dicts = self.get_input_dicts_rotate(year, month, channel, data_loc, function_list, do_parallel, jobs, processing_channel)
+        """
+        input_dicts = self.get_input_dicts_rotate(year, month, channel, 
+                                                  data_loc, function_list, 
+                                                  do_parallel, jobs, 
+                                                  processing_channel)
 
         if input_dicts:
             # Parallel processing
@@ -1008,38 +1043,62 @@ class FetchData:
             pass
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def execute(self, data_loc, year, month, channel, main_function, function_list, do_parallel, jobs, processing_channel):
-        '''
+    def execute(self, data_loc, year, month, channel, main_function, 
+                function_list, do_parallel, jobs, processing_channel):
+        """
         Takes main function inputs and passes to serial or parallel 
         executer, see below.
-        '''
+
+        :param data_loc: data_loc name where all the data is
+        :type data_loc: str
+        :param year: year of data to fetch
+        :type year: int/str
+        :param month: Month of data to fetch
+        :type month: int/str
+        :param channel: Search channel
+        :type channel: str
+        :param main_function : list of the 1 main function applied to inputs
+        :type main_function: list
+        :param function_list : list of functions to apply to inputs
+        :type function_list: list
+        :param do_parallel: Execute in parallel or not
+        :type do_parallel : bool
+        :param jobs: number of parallel workers
+        :type jobs: int
+        :param processing_channel: required output channel of seismograms
+        :type processing_channel: str
+        """
         if do_parallel:
             # Execute in parallel
-            self.apply_parallel(data_loc, year, month, channel, main_function, function_list, do_parallel, jobs, processing_channel)
+            self.apply_parallel(data_loc, year, month, channel, main_function, 
+                                function_list, do_parallel, jobs, processing_channel)
         else:
             # Execute in series
-            self.apply_serial(data_loc, year, month, channel, main_function, function_list, do_parallel, jobs, processing_channel)
+            self.apply_serial(data_loc, year, month, channel, main_function, 
+                              function_list, do_parallel, jobs, processing_channel)
         return
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def process_one_station(self, input_dict):
-        '''
+        """
         Processes one station reading the verticals and horizontals and 
         applying the list functions to them
 
+        :return input_dict: dictionary of info used in processing
+        :type input_dict: dict
+
         Parameters
         ----------
-        input_dicts : list (of dictionaries as below)
-            input_dict : dict : specific to each file
-                input dictionary containing:
-                    file_v : file name of vertical component to process.
-                    horizontals : list of horizontal file names to process
-                    output_directory : formatted output dir
-                    functions : list of functions to execute on sacfile
-                    do_parallel : boolean
-                    jobs : number of jobs
-                    channel : desired output data channel
+        input_dict : dict : specific to each file
+            input dictionary containing:
+                file_v : file name of vertical component to process.
+                horizontals : list of horizontal file names to process
+                output_directory : formatted output dir
+                functions : list of functions to execute on sacfile
+                do_parallel : boolean
+                jobs : number of jobs
+                channel : desired output data channel
 
         The functions in the list must take the following inputs: 
 
@@ -1052,7 +1111,7 @@ class FetchData:
         Returns
         ----------
         Nothing: None
-        '''
+        """
 
         file_vertical = input_dict['file_v']
         functions = input_dict['functions']
@@ -1092,24 +1151,41 @@ class FetchData:
             else:
                 # apply functions, only executed when fail = 0
                 for function in functions:
-                    input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail = function(input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail)
+                    input_dict, file_vertical, file_east, file_north, 
+                    vert_component, east_component, north_component, 
+                    fail = function(input_dict, file_vertical, file_east, 
+                                    file_north, vert_component, east_component,
+                                    north_component, fail)
 
         return
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def check_length(self, input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail):
-        '''
+    def check_length(self, input_dict, file_vertical, file_east, file_north, 
+                     vert_component, east_component, north_component, fail):
+        """
         Check trace length
         Often traces are one sample longer than the others
         Test this trimming.
 
-        Inputs and returns:
-            input_dict : dict
-            file_vertical, file_east, file_north : seismogram file names
-            vert_component, east_component, north_component : obspy streams
-            fail : 1/0
-        '''
+        Inputs and returns same/updated parameters
+        :param input_dict: processing details dictionary
+        :type input_dict: dict
+        :param file_vertical: seismogram file name vertical
+        :type file_vertical: str
+        :param file_east: seismogram file name east 
+        :type file_east: str
+        :param file_north: seismogram file name north
+        :type file_north: str
+        :param vert_component: loaded seismogram vert comp
+        :type vert_component: obspy stream
+        :param east_component: loaded seismogram east comp 
+        :type east_component: obspy stream 
+        :param north_component: loaded seismogram north comp
+        :type north_component: obspy stream
+        :param fail: flag to track success/failure of steps
+        :type fail: 1/0
+        """
         if fail:
             ###
             # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
@@ -1136,15 +1212,27 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def check_sample_rate(self, input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail):
-        '''
+        """
         Check sample rate - required for component rotation
 
-        Inputs and returns:
-            input_dict : dict
-            file_vertical, file_east, file_north : seismogram file names
-            vert_component, east_component, north_component : obspy streams
-            fail : 1/0
-        '''
+        Inputs and returns same/updated parameters
+        :param input_dict: processing details dictionary
+        :type input_dict: dict
+        :param file_vertical: seismogram file name vertical
+        :type file_vertical: str
+        :param file_east: seismogram file name east 
+        :type file_east: str
+        :param file_north: seismogram file name north
+        :type file_north: str
+        :param vert_component: loaded seismogram vert comp
+        :type vert_component: obspy stream
+        :param east_component: loaded seismogram east comp 
+        :type east_component: obspy stream 
+        :param north_component: loaded seismogram north comp
+        :type north_component: obspy stream
+        :param fail: flag to track success/failure of steps
+        :type fail: 1/0
+        """
         if fail:
             ###
             # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
@@ -1183,15 +1271,27 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def trim_components(self, input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail):
-        '''
+        """
         Check Component length prior to rotation - need same length
 
-        Inputs and returns:
-            input_dict : dict
-            file_vertical, file_east, file_north : seismogram file names
-            vert_component, east_component, north_component : obspy streams
-            fail : 1/0
-        '''
+        Inputs and returns same/updated parameters
+        :param input_dict: processing details dictionary
+        :type input_dict: dict
+        :param file_vertical: seismogram file name vertical
+        :type file_vertical: str
+        :param file_east: seismogram file name east 
+        :type file_east: str
+        :param file_north: seismogram file name north
+        :type file_north: str
+        :param vert_component: loaded seismogram vert comp
+        :type vert_component: obspy stream
+        :param east_component: loaded seismogram east comp 
+        :type east_component: obspy stream 
+        :param north_component: loaded seismogram north comp
+        :type north_component: obspy stream
+        :param fail: flag to track success/failure of steps
+        :type fail: 1/0
+        """
         if fail:
             ###
             # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
@@ -1199,8 +1299,6 @@ class FetchData:
             fail = 1
         else:
             # Trim files:
-
-
 
             # find streams with min/max start/end times
             start_cut = UTCDateTime(vert_component[0].stats.starttime)
@@ -1244,15 +1342,27 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def rotate_components(self, input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail):
-        '''
-    Rotate components to ZRT & save
+        """
+        Rotate components to ZRT & save
 
-        Inputs and returns:
-            input_dict : dict
-            file_vertical, file_east, file_north : seismogram file names
-            vert_component, east_component, north_component : obspy streams
-            fail : 1/0
-        '''
+        Inputs and returns same/updated parameters
+        :param input_dict: processing details dictionary
+        :type input_dict: dict
+        :param file_vertical: seismogram file name vertical
+        :type file_vertical: str
+        :param file_east: seismogram file name east 
+        :type file_east: str
+        :param file_north: seismogram file name north
+        :type file_north: str
+        :param vert_component: loaded seismogram vert comp
+        :type vert_component: obspy stream
+        :param east_component: loaded seismogram east comp 
+        :type east_component: obspy stream 
+        :param north_component: loaded seismogram north comp
+        :type north_component: obspy stream
+        :param fail: flag to track success/failure of steps
+        :type fail: 1/0
+        """
         if fail:
             ###
             # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
@@ -1438,15 +1548,27 @@ class FetchData:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def cleanup_files(self, input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail):
-        '''
+        """
         Clean up unused files
 
-        Inputs and returns:
-            input_dict : dict
-            file_vertical, file_east, file_north : seismogram file names
-            vert_component, east_component, north_component : obspy streams
-            fail : 1/0
-        '''
+        Inputs and returns same/updated parameters
+        :param input_dict: processing details dictionary
+        :type input_dict: dict
+        :param file_vertical: seismogram file name vertical
+        :type file_vertical: str
+        :param file_east: seismogram file name east 
+        :type file_east: str
+        :param file_north: seismogram file name north
+        :type file_north: str
+        :param vert_component: loaded seismogram vert comp
+        :type vert_component: obspy stream
+        :param east_component: loaded seismogram east comp 
+        :type east_component: obspy stream 
+        :param north_component: loaded seismogram north comp
+        :type north_component: obspy stream
+        :param fail: flag to track success/failure of steps
+        :type fail: 1/0
+        """
 
         # Remove all that are unnecessary - so ignore the fail flag
         try:

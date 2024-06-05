@@ -18,6 +18,11 @@ from matplotlib.ticker import (MultipleLocator)
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 class CorrelateTwin:
+    """
+    Class to handle calculation of travel time delays either by
+    cross correlation or Zaroli et al., (2010) method - which is much slower
+    and perhaps not much more accurate
+    """
     tk = Toolkit()
 
     def __init__(self):
@@ -25,8 +30,14 @@ class CorrelateTwin:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def process_one_event(self, input_dict):
-        '''
-        Processes one event (earthquake), reading the file, applying the list functions to them
+        """
+        Processes one event (earthquake), reading the file, 
+        applying the list of functions to them
+
+        :param input_dict: dictionary as below
+        :type  input_dict: dict
+        :return input_dict: dictionary
+        :type  input_dict: dict
 
         Parameters
         ----------
@@ -45,11 +56,7 @@ class CorrelateTwin:
                 phases : phases : dict
                 functions : list of functions to execute
                 params_in : input paramters
-
-        Returns : input_dict
-        ----------
-        Nothing: None
-        '''
+        """
         # event = input_dict['event']
         # event_id = input_dict['event_id']
         id_ctm = input_dict['id_ctm']
@@ -150,9 +157,16 @@ class CorrelateTwin:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def write_params_logfile(self, input_dict, logfile):
-        '''
-        write key params to logfile. To be changed for each script
-        '''
+        """
+        write key params to logfile
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :param logfile: open logfile to write params
+        :type logfile: open txt file
+        :return logfile: open logfile
+        :type logfile: open txt file
+        """
         justify = 30
 
         params_in = input_dict['params_in']
@@ -214,9 +228,16 @@ class CorrelateTwin:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def write_params_outfile(self, input_dict, outfile):
-        '''
-        write key params to outfile. To be changed for each script
-        '''
+        """
+        write key params to outfile
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :param outfile: open outfile to write code output
+        :type outfile: open txt file
+        :return outfile: open outfile
+        :type outfile: open txt file  
+        """
         justify = 30
         params_in = input_dict['params_in']
         phases = input_dict['phases']
@@ -255,24 +276,35 @@ class CorrelateTwin:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def correlate_windows(self, input_dict, twin_in_obs, twin_df_obs, twin_in_syn, twin_df_syn, corr_df, logfile, outfile, fail):
-        '''
+        """
         Correlate time windows for arrival time residual determination
         Based on Cross correlation (XC) or Zaroli et al (2010) GJI (F3)
 
         Approximate arrival time errors using Chevrot (2002)
         
-        Reads & Returns
         ----------
-        input_dict : dict
-        twin_in_obs : obs twin file location string
-        twin_df_obs : obs twin dataframe object
-        twin_in_syn : syn twin file location string
-        twin_df_syn : syn twin dataframe object
-        corr_df : correlated twin dataframe object
-        logfile : open logfile to report progress
-        outfile : open outfile to report results
-        fail : int - fail flag = 1 if function fails, else 0.
-        '''
+        Reads and returns same inputs/outputs
+        ** param == return **
+
+        :param input_dict: event details for processing 
+        :type input_dict: dict
+        :param twin_in_obs: obs twin file location string
+        :type twin_in_obs: str
+        :param twin_df_obs: obs twin dataframe object
+        :type twin_df_obs: pd.df
+        :param twin_in_syn: syn twin file location string
+        :type twin_in_syn: str
+        :param twin_df_syn: syn twin dataframe object
+        :type twin_df_syn: pd.df
+        :param corr_df: correlated twin dataframe object
+        :type corr_df: pd.df
+        :param logfile: open logfile to report progress
+        :type: logfile: open textfile for writing
+        :param outfile: open outfile to report results
+        :type: outfile: open textfile for writing
+        :param fail: fail flag = 1 if function fails, else 0
+        :type fail: int
+        """
         params_in = input_dict['params_in']
         np.seterr(divide = 'ignore', invalid = 'ignore')
 
@@ -724,18 +756,88 @@ class CorrelateTwin:
                 ax_time, ax_time_F3, start_ind_shift, norm_xc, lags, i_ccmx_norm,
                 F3_output, F3_peaks_ind, F3_peak_dicts, F3_sort_args, F3_peak_ind,
                 tdl_err):
-        '''
+        """
         Produce 5 panel figure of correlated time windows
         (a) Raw obs & syn time windows
         (b) Aligned time windows
         (c) Frequency spectrum comparison
         (d) Normalised XC Function and Zaroli et al (2010) F3
         (e) Autocorrelation derived error (Chevrot, 2002)
-        
-        ---    
-        Inputs: Numerous...
-        Outputs: Show or Save plot as PDF
-        '''
+        (f) displays of saves plot as PDF
+
+        :param input_dict: event details for processing 
+        :type input_dict: dict
+        :param params_in: loaded parameters from yaml file
+        :type params_in: dict
+        :param logfile: logfile for writing
+        :type logfile: open txt file
+        :param log_statement: text string to write to logfile
+        :type log_statement: str
+        :param nslc: station name
+        :type nslc: str
+        :param row_obs: row from obs data twin dataframe
+        :type row_obs: pd.df
+        :param t_obs: time axis for obs twin
+        :type t_obs: np.array
+        :param x_obs: variable axis for obs twin
+        :type x_obs: np.array
+        :param i_obs: indicies of obs twin
+        :type i_obs: np.array
+        :param freqs_obs: obs twin spectrum x variable
+        :type freqs_obs: np.array
+        :param mags_obs: obs twin spectrum y variable
+        :type mags_obs: np.array
+        :param max_mags_obs: obs twin maximum frequency 
+        :type max_mags_obs: float
+        :param row_syn: row from syn data twin dataframe
+        :type row_syn: pd.df
+        :param t_syn: time axis for syn twin
+        :type t_syn: np.array
+        :param x_syn: variable axis for syn twin
+        :type x_syn: np.array
+        :param i_syn: indicies of syn twin
+        :type i_syn: np.array
+        :param freqs_syn: syn twin spectrum x variable
+        :type freqs_syn: np.array
+        :param mags_syn: syn twin spectrum y variable
+        :type mags_syn: np.array
+        :param max_mags_syn: syn twin maximum frequency
+        :type max_mags_syn: float
+        :param auto_syn: syn twin auto correlation function
+        :type auto_syn: np.array
+        :param lags_auto_syn: syn twin correlation lags
+        :type lags_auto_syn: np.array
+        :param correlation: obs-syn correlation function
+        :type correlation: np.array
+        :param XC_tdl: time delay from cross correlation
+        :type XC_tdl: float
+        :param Z_tdl: time delay from Zaroli et al., (2010) method
+        :type Z_tdl: float
+        :param ax_time: time axis for twin plotting
+        :type ax_time: np.array
+        :param ax_time_F3: time axis for calculation of Zaroli et al (2010) F3
+        :type ax_time_F3: np.array
+        :param start_ind_shift: initial trace time shift for cross correlation
+        :type start_ind_shift: int
+        :param norm_xc: normalized obs-syn cross correlation function
+        :type norm_xc: np.array
+        :param lags: correlation lags array
+        :type lags: np.array
+        :param i_ccmx_norm: Index of max XC coefficient
+        :type i_ccmx_norm: int
+        :param F3_output: Zaroli et al., (2010) F3 for obs-syn twins
+        :type F3_output: np.array
+        :param F3_peaks_ind: indicies fo peaks in F3
+        :type F3_peaks_ind: np.array
+        :param F3_peak_dicts: dict of peak properties in F3
+        :type F3_peak_dicts: dict
+        :param F3_sort_args: sorted peaks by magntiude
+        :type F3_sort_args: np.array
+        :param F3_peak_ind: index of peak in F3
+        :type F3_peak_ind: int
+        :param tdl_err: travel time delay error
+        :type tdl_err: float
+        """
 
         # Set up the plot
         fig, (ax_tw, ax_tw_aligned, ax_freq, ax_XC_Zr, ax_auto) = plt.subplots(5, 1, figsize = (8, 12))
@@ -883,21 +985,32 @@ class CorrelateTwin:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def select_windows(self, input_dict, twin_in_obs, twin_df_obs, twin_in_syn, twin_df_syn, corr_df, logfile, outfile, fail):
-        '''
+        """
         Select time windows in corr_df based on some set criteria: max_tdelay, min_xcc
         
-        Reads & Returns
         ----------
-        input_dict : dict
-        twin_in_obs : obs twin file location string
-        twin_df_obs : obs twin dataframe object
-        twin_in_syn : syn twin file location string
-        twin_df_syn : syn twin dataframe object
-        corr_df : correlated twin dataframe object
-        logfile : open logfile to report progress
-        outfile : open outfile to report results
-        fail : int - fail flag = 1 if function fails, else 0.
-        '''
+        Reads and returns same inputs/outputs
+        ** param == return **
+
+        :param input_dict: event details for processing 
+        :type input_dict: dict
+        :param twin_in_obs: obs twin file location string
+        :type twin_in_obs: str
+        :param twin_df_obs: obs twin dataframe object
+        :type twin_df_obs: pd.df
+        :param twin_in_syn: syn twin file location string
+        :type twin_in_syn: str
+        :param twin_df_syn: syn twin dataframe object
+        :type twin_df_syn: pd.df
+        :param corr_df: correlated twin dataframe object
+        :type corr_df: pd.df
+        :param logfile: open logfile to report progress
+        :type: logfile: open textfile for writing
+        :param outfile: open outfile to report results
+        :type: outfile: open textfile for writing
+        :param fail: fail flag = 1 if function fails, else 0
+        :type fail: int
+        """
         params_in = input_dict['params_in']
 
         # setup logfile statement using event_id, filename and function name (with inspect)
@@ -952,21 +1065,32 @@ class CorrelateTwin:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def save_tdelay_files(self, input_dict, twin_in_obs, twin_df_obs, twin_in_syn, twin_df_syn, corr_df, logfile, outfile, fail):
-        '''
+        """
         Use this to save tdelay files whether with or without the sort for high cross correlation co-efficients.
         
-        Reads & Returns
         ----------
-        input_dict : dict
-        twin_in_obs : obs twin file location string
-        twin_df_obs : obs twin dataframe object
-        twin_in_syn : syn twin file location string
-        twin_df_syn : syn twin dataframe object
-        corr_df : correlated twin dataframe object
-        logfile : open logfile to report progress
-        outfile : open outfile to report results
-        fail : int - fail flag = 1 if function fails, else 0.
-        '''
+        Reads and returns same inputs/outputs
+        ** param == return **
+
+        :param input_dict: event details for processing 
+        :type input_dict: dict
+        :param twin_in_obs: obs twin file location string
+        :type twin_in_obs: str
+        :param twin_df_obs: obs twin dataframe object
+        :type twin_df_obs: pd.df
+        :param twin_in_syn: syn twin file location string
+        :type twin_in_syn: str
+        :param twin_df_syn: syn twin dataframe object
+        :type twin_df_syn: pd.df
+        :param corr_df: correlated twin dataframe object
+        :type corr_df: pd.df
+        :param logfile: open logfile to report progress
+        :type: logfile: open textfile for writing
+        :param outfile: open outfile to report results
+        :type: outfile: open textfile for writing
+        :param fail: fail flag = 1 if function fails, else 0
+        :type fail: int
+        """
         params_in = input_dict['params_in']
 
         # setup logfile statement using event_id, filename and function name (with inspect)
@@ -999,9 +1123,15 @@ class CorrelateTwin:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def open_log_file(self, input_dict):
-        '''
-        Return an open log file in log_loc/'code_start_time'/'filename'/event_name.log
-        '''
+        """
+        Return an open log file in 
+        log_loc/'code_start_time'/'filename'/event_name.log
+
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :return logfile: open logfile to write code output
+        :type logfile: open txt file
+        """
         params_in = input_dict['params_in']
 
         lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}/{os.path.basename(__file__).split('.')[0]}'
@@ -1017,9 +1147,15 @@ class CorrelateTwin:
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
     def open_outfile_file(self, input_dict):
-        '''
-        Return an open twin file in tdelay_loc/OS + component - MX + component/event_name.T.tdl
-        '''
+        """
+        Return an open twin file in 
+        twin_loc/filename_out_loc+component/event_name."OS/MX"+component.twin
+        
+        :param input_dict: loaded input parameters
+        :type input_dict: dict
+        :return outfile: open outfile to write code output
+        :type outfile: open txt file
+        """
         params_in = input_dict['params_in']
 
         of_loc = f'{params_in['home']}/{params_in['tdelay_loc']}/{params_in['phase_a_obs_out_loc'][-2:]}{params_in['component']}-{params_in['phase_a_syn_out_loc'][-2:]}{params_in['component']}'
@@ -1035,11 +1171,18 @@ class CorrelateTwin:
 
     ##############################################################################
     def A1(self, obs, syn):
-        '''
+        """
         A1(tau) EQ 7 Zaroli et al 2010 GJI
         Input: observed, synth windows
         Returns A1 output timeseries (length of correlation)
-        '''
+
+        :param obs: obs twin dependent variable
+        :type obs: np.array
+        :param syn: syn twin dependent variable
+        :type syn: np.array
+        :return output: function output of A1
+        :type output: np.array
+        """
         auto_syn = signal.correlate(syn, syn, mode = "full", method = "fft")
 
         result = signal.correlate(obs, syn, mode = "full", method = "fft")
@@ -1049,11 +1192,18 @@ class CorrelateTwin:
 
     ##############################################################################
     def A2(self, obs, syn): 
-        '''
+        """
         A2(tau) EQ 7 Zaroli et al 2010 GJI
         Input: observed, synth windows
         Returns A2 output timeseries (length of correlation)
-        '''
+
+        :param obs: obs twin dependent variable
+        :type obs: np.array
+        :param syn: syn twin dependent variable
+        :type syn: np.array
+        :return output: function output of A2
+        :type output: np.array
+        """
         np.seterr(divide = 'ignore', invalid = 'ignore')
 
         auto_obs = signal.correlate(obs, obs, mode = "full", method = "fft")
@@ -1066,11 +1216,18 @@ class CorrelateTwin:
 
     ##############################################################################
     def Func_2(self, obs, syn):
-        '''
+        """
         F2(tau) EQ 5 Zaroli et al 2010 GJI
         Input: observed, synth windows
         Returns F2 output timeseries (length of correlation)
-        '''
+
+        :param obs: obs twin dependent variable
+        :type obs: np.array
+        :param syn: syn twin dependent variable
+        :type syn: np.array
+        :return output: function output of F2
+        :type output: np.array
+        """
         np.seterr(divide = 'ignore', invalid = 'ignore')
 
         R1 = self.A1(obs, syn)
@@ -1087,11 +1244,30 @@ class CorrelateTwin:
 
     ##############################################################################
     def Func_3(self, obs, syn, t_obs, t_syn, ax_time, ax_time_F3, delta):
-        '''
+        """
         F3(tau) EQ 8 Zaroli et al 2010 GJI
-        Input: observed, synth windows, obs and syn time axes, output time axes and delta
+        Input: observed, synth windows, obs and syn time axes, 
+        output time axes and delta
         Returns F3 output timeseries (length of ax_time)
-        '''
+
+        :param obs: obs twin dependent variable
+        :type obs: np.array
+        :param syn: syn twin dependent variable
+        :type syn: np.array
+        :param t_obs: obs twin independent variable (time axis)
+        :type t_obs: np.array
+        :param t_syn: syn twin independent variable (time axis)
+        :type t_syn: np.array
+        :param ax_time: time axis for twin plotting
+        :type ax_time: np.array
+        :param ax_time_F3: time axis for calculation of Zaroli et al (2010) F3
+        :type ax_time_F3: np.array
+        :param delta: 1/sample rate - time between points
+        :type delta: float
+        :return output: function output of F3
+        :type output: np.array
+
+        """
         y_syn_pad = np.interp(ax_time, t_syn, syn, left = 0, right = 0)
         y_obs_pad = np.interp(ax_time, t_obs, obs, left = 0, right = 0)
         
@@ -1114,13 +1290,19 @@ class CorrelateTwin:
         Shift the input time series by a specified number of indices
         and truncate the output to the range between -7 and 7 seconds.
 
-        Parameters:
-        - time_series: Input time series
-        - shift_indices: Number of indices to shift (positive or negative)
-        - sample_rate: Sampling rate of the time series in samples per second
+        :param time_series: Input time series to shift and truncate
+        :type time_series: np.array
+        :param orig_time: Input time series independent variable vector (time)
+        :type orig_time: np.array
+        :param shift_indices: number of indicies to shift time series
+        :type shift_indices: int
+        :param interp_time: time array onto which to interpolate data
+        :type interp_time: np.array
+        :params sample_rate: time series sampling rate, samples per sec
+        :type params: float
 
-        Returns:
-        - shifted_time_series: Shifted and truncated time series
+        :return shifted_time_series: Shifted and truncated time series
+        :type shifted_time_series: np.array
         """
         # Calculate the time shift in seconds
         time_shift = shift_indices / sample_rate
@@ -1136,12 +1318,22 @@ class CorrelateTwin:
 
     # ##############################################################################
     def res_trap_d(self, obs, syn, delta):
-        '''
+        """
         Trapezoidal integration for numerator of F1(tau)
         EQ 4 Zaroli et al 2010 GJI
         Inputs: obs and shifted synth time window
         Output: result of integral
-        '''
+
+        :param obs: obs twin dependent variable
+        :type obs: np.array
+        :param syn: syn twin dependent variable
+        :type syn: np.array
+        :param delta: 1/sample rate - time between points
+        :type delta: float
+
+        :return res_trap_d: function output of integral
+        :type res_trap_d: np.array
+        """
         squared_diff = (obs[:-1] - syn[:-1])**2 + (obs[1:] - syn[1:])**2
         res_trap_d = np.sum(squared_diff) * delta / 2
         return res_trap_d
@@ -1149,23 +1341,44 @@ class CorrelateTwin:
 
     # ##############################################################################
     def res_trap(self, obs, delta):
-        '''
+        """
         Trapezoidal integration for denominator of F1(tau)
         EQ 4 Zaroli et al 2010 GJI
         Inputs: obs time window
         Output: result of integral
-        '''
+
+        :param obs: obs twin dependent variable
+        :type obs: np.array
+        :param delta: 1/sample rate - time between points
+        :type delta: float
+
+        :return res_trap: function output of integral
+        :type res_trap: np.array
+        """
         res_trap = np.sum(delta * (obs[:-1]**2 + obs[1:]**2) / 2)
         return res_trap
 
 
     # ##############################################################################
     def Func_1(self, obs, syn, ax_time, ax_time_F3, delta):
-        '''
+        """
         F1(tau) EQ 4 Zaroli et al 2010 GJI
         Input: observed, synth windows, output time axes and delta
         Returns F1 output timeseries (length of ax_time)
-        '''
+
+        :param obs: obs twin dependent variable
+        :type obs: np.array
+        :param syn: syn twin dependent variable
+        :type syn: np.array
+        :param ax_time: time axis for twin plotting
+        :type ax_time: np.array
+        :param ax_time_F3: time axis for calculation of Zaroli et al (2010) F3
+        :type ax_time_F3: np.array
+        :param delta: 1/sample rate - time between points
+        :type delta: float
+        :return F1: function output of F1
+        :type F1: np.array
+        """
 
         F1_n = []
         for i in range(len(ax_time_F3)):
@@ -1180,7 +1393,6 @@ class CorrelateTwin:
         F1[F1 > 1] = 0
 
         return F1
-
 
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 

@@ -1,11 +1,16 @@
 class Phases:
+    """
+    Class to handle phases of interest for time delay picking
+    
+    """
     def __init__(self):
         pass
 
     def get_phase_dictionary(self):
-        # Common variables
-        # Phasenames
-        # For CV_PHASES(.Z|R|T) struct
+        """
+        :return output_dict: phases for each component to pick
+        :type output_dict: dict
+        """
 
         # Master phases
         CV_PHS_T = 's,S,SS,SSS,ScS,Sdiff,ScSScS,ScSScSScS,sS,sSS,sSSS,sScS,sSdiff,sScSScS,sScSScSScS'.split(',')
