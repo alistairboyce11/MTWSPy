@@ -190,6 +190,7 @@ class MatchTwinFiles:
 
         logfile.write(' ')
         logfile.write('----------////               INPUT PARAMETERS                ////----------\n')
+        logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('code start',' : ',str(params_in['code_start_time']), x = justify) )
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('matched twin prefix',' : ',str(params_in['mtf_prefix']), x = justify) )
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('matched twin outfile',' : ',str(params_in['mtf_outfilename']), x = justify) )
         logfile.write('----------////               INPUT PARAMETERS                ////----------\n')
