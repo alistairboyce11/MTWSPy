@@ -1,8 +1,11 @@
-import os
+import os, glob
 import pandas as pd
 import numpy as np
 from toolkit import Toolkit
 from post_processing.process_tdl_files import ProcessTdlFiles
+from obspy import UTCDateTime
+from geographiclib.geodesic import Geodesic
+import obspy.geodetics
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import matplotlib
@@ -12,6 +15,7 @@ matplotlib.rcParams['font.size'] = 8
 from matplotlib.ticker import (MultipleLocator)
 
 
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
 class CompareTdlFiles(ProcessTdlFiles):
     """
     Class to handle the comparison of time delay (.tdl)
@@ -31,6 +35,7 @@ class CompareTdlFiles(ProcessTdlFiles):
     def __init__(self):
         super().__init__()
 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def normalize_nslc(self, nslc):
         """
         Replace dots with underscores
@@ -48,6 +53,7 @@ class CompareTdlFiles(ProcessTdlFiles):
         return nslc
 
 
+     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def find_common_picks(self, df_1, df_2):
         """
         Try to find common arrivals between df_1 and df_2
@@ -83,34 +89,39 @@ class CompareTdlFiles(ProcessTdlFiles):
             comp_df = pd.merge(df_1, df_2, on=["evid", "phase", "nslc"],
                                suffixes=('_df1', '_df2'))
 
-            # Drop the temporary normalized column
-            comp_df.drop(columns=["dist_df2", 
-                                "az_df2", 
-                                "baz_df2", 
-                                "mid_lat_df2", 
-                                "mid_lon_df2",
-                                "date_time_df2", 
-                                "evt_lat_df2", 
-                                "evt_lon_df2",
-                                "evt_dep_df2",
-                                "evt_mag_df2",
-                                "channel_df2", 
-                                "stla_df2", 
-                                "stlo_df2",
-                                "stel_df2",
-                                "ccmx_df1",
-                                "ccmx_df2",
-                                "tderr_df1",
-                                "tderr_df2",
-                                "ttaup_df2",
-                                "tp_obs_df1",
-                                "tp_obs_df2",
-                                "tp_syn_df1",
-                                "tp_syn_df2",
-                                "Ap_obs_df1",
-                                "Ap_syn_df1",
-                                "Ap_obs_df2",
-                                "Ap_syn_df2"], inplace=True)
+            # Drop the temporary normalized columns
+            columns=["dist_df2", 
+                        "az_df2", 
+                        "baz_df2", 
+                        "mid_lat_df2", 
+                        "mid_lon_df2",
+                        "date_time_df2", 
+                        "evt_lat_df2", 
+                        "evt_lon_df2",
+                        "evt_dep_df2",
+                        "evt_mag_df2",
+                        "channel_df2", 
+                        "stla_df2", 
+                        "stlo_df2",
+                        "stel_df2",
+                        "ccmx_df1",
+                        "ccmx_df2",
+                        "tderr_df1",
+                        "tderr_df2",
+                        "ttaup_df2",
+                        "tp_obs_df1",
+                        "tp_obs_df2",
+                        "tp_syn_df1",
+                        "tp_syn_df2",
+                        "Ap_obs_df1",
+                        "Ap_syn_df1",
+                        "Ap_obs_df2",
+                        "Ap_syn_df2"]
+            for column in columns:
+                try: 
+                    comp_df.drop(columns = column, inplace=True)
+                except Exception as e:
+                    print(f"Failed to drop column {column}: {e}")
 
             # Calculate differences between tdelay_df1 and tdelay_df2
             comp_df["tdelay_diff"] = comp_df["tdelay_df1"] - comp_df["tdelay_df2"]
@@ -138,6 +149,7 @@ class CompareTdlFiles(ProcessTdlFiles):
         return comp_df
 
 
+     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def remove_duplication(self, df):
         """
         The old Matlab code would often duplicate picks
@@ -178,6 +190,7 @@ class CompareTdlFiles(ProcessTdlFiles):
         return df
 
 
+     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def plot_comparison(self, comp_df, output_directory, filename):
         """
         Try to plot the correlation between tdelay_df1 and tdelay_df2
@@ -300,7 +313,7 @@ class CompareTdlFiles(ProcessTdlFiles):
         return
 
 
-     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def load_dataframe(self, params, filter_functions, 
                        output_directory, filename):
         """
@@ -329,6 +342,170 @@ class CompareTdlFiles(ProcessTdlFiles):
         return input_df
 
 
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
+    def load_Zaroli_dataframe(self, output_directory, filename):
+        """
+        Load text file of Zaroli results into dataframe
+
+        :param output_directory: location of already processed tdl data
+        :type output_directory: str
+        :param filename: name of tdl file to find/save
+        :type filename: str
+        :return output_df: loaded dataframe of tdl picks
+        :type output_df: pd.df
+        """
+        
+        path = f'{output_directory}{filename}'
+        file_paths = sorted(glob.glob(path))
+        output_df = pd.DataFrame()
+
+        cols = ['year', 'day', 'hour', 'minute', 'second', 'evt_lat', 
+                'evt_lon', 'evt_dep', 'stla', 'stlo', 'kntwrk', 
+                'kstnm', 'phase', 'period', 'tdelay', 'tderr']
+
+        for file_path in file_paths:
+            print(file_path)
+            try:
+                # Read the file into a DataFrame, skipping lines starting with '#'
+                temp = pd.read_csv(file_path, header=None, delim_whitespace=True, comment='#', names=cols)
+                res = temp.dropna()
+
+                cols_eq = ['evid', 'date_time', 'nslc', 'dist', 'az', 
+                           'baz', 'mid_lat', 'mid_lon', 'evt_mag', 
+                           'channel', 'ccmx']
+                eq_df = pd.DataFrame(columns=cols_eq, index=range(len(res)))
+
+                for index, row in res.iterrows():
+                    try:
+                        year = int(row["year"])
+                        julday = int(row["day"])
+                        hour = int(row["hour"])
+                        minute = int(row["minute"])
+                        sec = float(row["second"])
+                        second = int(np.floor(sec))
+                        microsecond = int((sec - second) * 1e6)
+
+                        date_time = UTCDateTime(year=year, 
+                                                julday=julday, 
+                                                hour=hour, 
+                                                minute=minute, 
+                                                second=second, 
+                                                microsecond=microsecond)
+                        
+                        evid = f'C{date_time.year:04d}{date_time.month:02d}{date_time.day:02d}{date_time.hour:02d}{date_time.minute:02d}A'
+                        eq_df.loc[index, "evid"] = evid
+                        eq_df.loc[index, "date_time"] = date_time
+
+                    except Exception as e:
+                        print(f"Error processing row {index}: {e}")
+                        eq_df.loc[index, ["evid", "date_time"]] = np.nan
+
+                    eq_df.loc[index, "evt_mag"] = 6.5
+                    eq_df.loc[index, "ccmx"] = 0.99
+                    eq_df.loc[index, "channel"] = "T"
+                    eq_df.loc[index, "nslc"] = f'{row["kntwrk"]}.{row["kstnm"]}.00.LHT'
+
+                    distm, az, baz = obspy.geodetics.base.gps2dist_azimuth(float(row['evt_lat']), 
+                                                                           float(row['evt_lon']), 
+                                                                           float(row['stla']), 
+                                                                           float(row['stlo']))
+                    distdg = distm / (6371.e3 * np.pi / 180.)
+
+                    l = Geodesic.WGS84.InverseLine(float(row['evt_lat']), 
+                                                   float(row['evt_lon']), 
+                                                   float(row['stla']), 
+                                                   float(row['stlo']))
+                    m = l.Position(0.5 * l.s13)
+
+                    eq_df.loc[index, "dist"] = np.round(distdg, 3)
+                    eq_df.loc[index, "az"] = np.round(az, 3)
+                    eq_df.loc[index, "baz"] = np.round(baz, 3)
+                    eq_df.loc[index, "mid_lat"] = np.round(m['lat2'], 3)
+                    eq_df.loc[index, "mid_lon"] = np.round(m['lon2'], 3)
+
+                merged_df = pd.merge(eq_df, res, left_index=True, 
+                                     right_index=True)
+                df = merged_df.dropna()
+                df.drop(columns=["year", "day", "hour", "minute", "second", 
+                                 "period", "kntwrk", "kstnm"], inplace=True)
+
+                if not df.empty:
+                    output_df = pd.concat([output_df, df], ignore_index=True)
+
+                # Reindex the DataFrame to rearrange columns
+                new_column_order = ['evid','date_time','evt_lat','evt_lon',
+                                    'evt_dep','evt_mag','channel','nslc',
+                                    'stla','stlo','phase','tdelay',
+                                    'tderr','ccmx','dist','az','baz',
+                                    'mid_lat','mid_lon']
+                output_df = output_df[new_column_order]
+
+            except Exception as e:
+                print(f"Failed to process file {file_path}: {e}")
+        
+        return output_df
+
+
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
+    def filter_dataframe(self, params, filter_functions, output_df):
+        """
+        Apply filter function to match other databases
+
+        :param params: loaded parameter file 
+        :type params: dict
+        :param filter_functions: list of functions to filter tdl data
+        :type filter_functions: list
+        :param output_df: loaded dataframe of tdl picks
+        :type output_df: pd.df       
+        :return output_df: filtered dataframe of tdl picks
+        :type output_df: pd.df       
+        """
+        # print(output_df)
+        # apply functions
+        for k, function in enumerate(filter_functions):
+            tdl_df = function(params, output_df)
+            output_df = tdl_df
+        
+        return output_df
+
+
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
+    def get_Zaroli_dataframe(self, params, filter_functions, 
+                              output_directory, filename, file_outname):
+        """
+        Get csv file from filepath if it exists
+        Else load & save the dataframe:
+        Filter the dataframe according to params
+
+        :param params: loaded parameter file 
+        :type params: dict
+        :param filter_functions: list of functions to filter tdl data
+        :type filter_functions: list
+        :param output_directory: location of already processed tdl data
+        :type output_directory: str
+        :param filename: name of orig tdl file to find/save
+        :type filename: str
+        :param file_outname: name of saved proc tdl file to load
+        :type file_outname: str
+        :return input_df: loaded dataframe of tdl picks
+        :type input_df: pd.df
+        """
+
+        if os.path.isfile(f'{output_directory}{file_outname}.out'):
+            # Read:
+            input_df = self.read_dataframe(f'{output_directory}{file_outname}.out')
+        else:
+            input_df = self.load_Zaroli_dataframe(output_directory, 
+                                                        filename)
+            self.write_dataframe(output_directory, file_outname, input_df)
+
+        print(input_df)
+        input_filtered_df = self.filter_dataframe(params, filter_functions, input_df)
+
+        return input_filtered_df
+
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
 def main():
     # matlab_code/tdelay/OST-MXT/
     # Lei_Results/tdelay/OST-MXT/
@@ -341,7 +518,11 @@ def main():
     # Instantiate the classes and call their methods as needed
     compare_tdl_files = CompareTdlFiles()
 
-
+    # filter_functions = [compare_tdl_files.filt_date_time_max,
+    #                     compare_tdl_files.filt_date_time_min,
+    #                     compare_tdl_files.filt_networks,
+    #                     compare_tdl_files.filt_components]  
+    
     filter_functions = [compare_tdl_files.filt_date_time_max,
                         compare_tdl_files.filt_date_time_min,
                         compare_tdl_files.filt_networks,
@@ -367,8 +548,9 @@ def main():
 
 
     ######################### AL 2008 data - Zaroli #########################
+    # Likely has the filtering error from before.
     # Location where MTWSPy code is installed
-    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code'
+    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code/poss_filter_error'
 
     output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
     filename = f'{params['tt_out_f_name']}'
@@ -402,6 +584,7 @@ def main():
     print(al_matlab_filtered_df)
 
     ######################### AL 2008 data - XC #########################
+    # Updated with filtering fix
     # Location where MTWSPy code is installed
     params['home'] = '/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy' 
 
@@ -419,6 +602,35 @@ def main():
     al_matlab_filtered_df = compare_tdl_files.remove_duplication(al_matlab_filtered_df)
     lei_matlab_filtered_df = compare_tdl_files.remove_duplication(lei_matlab_filtered_df)
 
+
+    ######################### Zaroli et al (2010) #########################
+    # Filter for 2008 data.
+    #
+    # First read into compatible df.
+    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Zaroli_Results' 
+
+    output_directory = f'{params['home']}/'
+    filename = 'NEW2021__with_earthquake_origin_time__ZaroliBodyWaveDataSEISGLOB__Part?.txt'
+    
+    file_outname = 'Zaroli_2010_database'
+
+    Zaroli_filtered_df = compare_tdl_files.get_Zaroli_dataframe(params, 
+                                                                filter_functions, 
+                                                                output_directory, 
+                                                                filename, 
+                                                                file_outname)
+
+    print(Zaroli_filtered_df)
+
+
+    comp_al_py_XC_zaroli_XC_df_all = compare_tdl_files.find_common_picks(al_python_filtered_XC_df, Zaroli_filtered_df)
+    comp_lei_mat_XC_zaroli_XC_df_all = compare_tdl_files.find_common_picks(lei_matlab_filtered_df, Zaroli_filtered_df)
+    comp_al_mat_XC_zaroli_XC_df_all = compare_tdl_files.find_common_picks(al_matlab_filtered_df, Zaroli_filtered_df)
+    comp_al_py_ZR_zaroli_XC_df_all = compare_tdl_files.find_common_picks(al_python_filtered_ZR_df, Zaroli_filtered_df)
+
+    print(comp_al_py_XC_zaroli_XC_df_all)
+
+
     comp_al_py_XC_lei_mat_XC_df_all = compare_tdl_files.find_common_picks(al_python_filtered_XC_df, lei_matlab_filtered_df)
     comp_al_mat_XC_lei_mat_XC_df_all = compare_tdl_files.find_common_picks(al_matlab_filtered_df, lei_matlab_filtered_df)
     comp_al_py_ZR_lei_mat_XC_df_all = compare_tdl_files.find_common_picks(al_python_filtered_ZR_df, lei_matlab_filtered_df)
@@ -427,12 +639,23 @@ def main():
     comp_al_mat_XC_al_py_XC_df_all = compare_tdl_files.find_common_picks(al_matlab_filtered_df, al_python_filtered_XC_df)
 
     out_dir = '/Users/alistair/Google_Drive/Lyon_Pdoc/MTWS_code_comps/no_duplicates/'
+    compare_tdl_files.plot_comparison(comp_al_py_XC_zaroli_XC_df_all, out_dir, 'comp_al_py_XC_zaroli_XC_df_all')
+    compare_tdl_files.plot_comparison(comp_lei_mat_XC_zaroli_XC_df_all, out_dir, 'comp_lei_mat_XC_zaroli_XC_df_all')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_zaroli_XC_df_all, out_dir, 'comp_al_mat_XC_zaroli_XC_df_all')
+    compare_tdl_files.plot_comparison(comp_al_py_ZR_zaroli_XC_df_all, out_dir, 'comp_al_py_ZR_zaroli_XC_df_all')
+
+
+
+
     compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_all, out_dir, 'comp_al_py_XC_lei_mat_XC_df_all')
     compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_all, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_all')
     compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_all, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_all')
     compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_all, out_dir, 'comp_al_py_XC_al_py_ZR_df_all')
     compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_all, out_dir, 'comp_al_mat_XC_al_py_ZR_df_all')
     compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_all, out_dir, 'comp_al_mat_XC_al_py_XC_df_all')
+
+
+
 
 
     comp_al_py_XC_lei_mat_XC_df_S = comp_al_py_XC_lei_mat_XC_df_all.query("phase == 'S'")
@@ -466,21 +689,30 @@ def main():
 
 
 
-    # comp_al_py_XC_lei_mat_XC_df_ScSScS = comp_al_py_XC_lei_mat_XC_df_all.query("phase == 'ScSScS'")
-    # comp_al_mat_XC_lei_mat_XC_df_ScSScS = comp_al_mat_XC_lei_mat_XC_df_all.query("phase == 'ScSScS'")
-    # comp_al_py_ZR_lei_mat_XC_df_ScSScS = comp_al_py_ZR_lei_mat_XC_df_all.query("phase == 'ScSScS'")
-    # comp_al_py_XC_al_py_ZR_df_ScSScS  = comp_al_py_XC_al_py_ZR_df_all.query("phase == 'ScSScS'")
-    # comp_al_mat_XC_al_py_ZR_df_ScSScS = comp_al_mat_XC_al_py_ZR_df_all.query("phase == 'ScSScS'")
-    # comp_al_mat_XC_al_py_XC_df_ScSScS = comp_al_mat_XC_al_py_XC_df_all.query("phase == 'ScSScS'")
 
 
 
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_py_XC_lei_mat_XC_df_ScSScS')
-    # compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_ScSScS')
-    # compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_ScSScS')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_ScSScS, out_dir, 'comp_al_py_XC_al_py_ZR_df_ScSScS')
-    # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_ScSScS, out_dir, 'comp_al_mat_XC_al_py_ZR_df_ScSScS')
-    # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_ScSScS, out_dir, 'comp_al_mat_XC_al_py_XC_df_ScSScS')
+
+
+
+
+
+
+    comp_al_py_XC_lei_mat_XC_df_ScSScS = comp_al_py_XC_lei_mat_XC_df_all.query("phase == 'ScSScS'")
+    comp_al_mat_XC_lei_mat_XC_df_ScSScS = comp_al_mat_XC_lei_mat_XC_df_all.query("phase == 'ScSScS'")
+    comp_al_py_ZR_lei_mat_XC_df_ScSScS = comp_al_py_ZR_lei_mat_XC_df_all.query("phase == 'ScSScS'")
+    comp_al_py_XC_al_py_ZR_df_ScSScS  = comp_al_py_XC_al_py_ZR_df_all.query("phase == 'ScSScS'")
+    comp_al_mat_XC_al_py_ZR_df_ScSScS = comp_al_mat_XC_al_py_ZR_df_all.query("phase == 'ScSScS'")
+    comp_al_mat_XC_al_py_XC_df_ScSScS = comp_al_mat_XC_al_py_XC_df_all.query("phase == 'ScSScS'")
+
+
+
+    compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_py_XC_lei_mat_XC_df_ScSScS')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_ScSScS')
+    compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_ScSScS')
+    compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_ScSScS, out_dir, 'comp_al_py_XC_al_py_ZR_df_ScSScS')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_ScSScS, out_dir, 'comp_al_mat_XC_al_py_ZR_df_ScSScS')
+    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_ScSScS, out_dir, 'comp_al_mat_XC_al_py_XC_df_ScSScS')
 
 
 

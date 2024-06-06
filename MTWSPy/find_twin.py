@@ -179,7 +179,7 @@ class FindTwin:
             seis.detrend()
             seis.taper(max_percentage = 0.05, type = 'cosine')
             # seis.filter('bandpass',freqmin = 1/params_in['T2']*2*dt,freqmax = 1/params_in['T1']*2*dt,corners = 4,zerophase = True)
-            seis.filter('bandpass',freqmin = 1/params_in['T2']*2,freqmax = 1/params_in['T1']*2,corners = 4,zerophase = True)
+            seis.filter('bandpass',freqmin = 1/params_in['T2'],freqmax = 1/params_in['T1'],corners = 4,zerophase = True)
 
 
             if len(id_sig) ==  0 or len(id_noise) ==  0:
@@ -263,7 +263,7 @@ class FindTwin:
             seis.detrend()
             seis.taper(max_percentage = 0.05, type = 'cosine')
             # seis.filter('bandpass',freqmin = 1/params_in['T2']*2*dt,freqmax = 1/params_in['T1']*2*dt,corners = 4,zerophase = True)
-            seis.filter('bandpass',freqmin = 1/params_in['T2']*2,freqmax = 1/params_in['T1']*2,corners = 4,zerophase = True)
+            seis.filter('bandpass',freqmin = 1/params_in['T2'],freqmax = 1/params_in['T1'],corners = 4,zerophase = True)
 
             ###
             self.tk.print_log(params_in, logfile, f'{log_statement:s}  ,  Filtered synthetic to match observed')
@@ -1082,6 +1082,7 @@ class FindTwinObs(FindTwin):
 
         logfile.write(' ')
         logfile.write('----------////               INPUT PARAMETERS                ////----------\n')
+        logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('code start',' : ',str(params_in['code_start_time']), x = justify) )
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('id_fmt_ctm',' : ',str(input_dict['id_fmt_ctm']), x = justify) )
 
         params_list = ['obs_loc','component', 'twin_plot_pic', 'twin_save_pic', 'T1', 'Tc', 'T2','sig_win_ext', 'sig_win_type', 'min_snr_P', 'min_snr_A', 'npow']
@@ -1145,6 +1146,7 @@ class FindTwinObs(FindTwin):
         outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Mw',' : ',str(input_dict['mag']), x = justify) )
         outfile.write('----------////               EVENT PARAMETERS                ////----------\n')
         outfile.write('----------\n')
+        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('code start',' : ',str(params_in['code_start_time']), x = justify) )
         if params_in['filttwin']:
             if 'syn' in input_dict['event']:
                 min_amp = float(params_in['min_amp_syn'])
@@ -1362,6 +1364,7 @@ class FindTwinSyn(FindTwin):
 
         logfile.write(' ')
         logfile.write('----------////               INPUT PARAMETERS                ////----------\n')
+        logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('code start',' : ',str(params_in['code_start_time']), x = justify) )
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('id_fmt_ctm',' : ',str(input_dict['id_fmt_ctm']), x = justify) )
 
         params_list = ['syn_loc','component', 'twin_plot_pic', 'twin_save_pic', 'T1', 'Tc', 'T2','sig_win_ext', 'sig_win_type', 'k_em', 'npow']
@@ -1424,6 +1427,8 @@ class FindTwinSyn(FindTwin):
         outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Mw',' : ',str(input_dict['mag']), x = justify) )
         outfile.write('----------////               EVENT PARAMETERS                ////----------\n')
         outfile.write('----------\n')
+        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('code start',' : ',str(params_in['code_start_time']), x = justify) )
+
         if params_in['filttwin']:
             if 'syn' in input_dict['event']:
                 min_amp = float(params_in['min_amp_syn'])

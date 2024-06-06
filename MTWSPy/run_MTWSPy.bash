@@ -34,6 +34,7 @@ HOME=`echo ~`
 CODE_HOME=`pwd`
 source ${HOME}/.bash_profile
 conda activate MTWSPy
+export PYTHONPATH=./MTWSPy:$PYTHONPATH
 export XDG_CACHE_HOME=${HOME}/tmp
 today=`date +%Y-%m-%d`
 

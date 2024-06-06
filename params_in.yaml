@@ -26,8 +26,8 @@ fmt_data_loc: '/py_formatted' # file path suffix after obs_loc or syn_loc
 
 year: 2008 # year of data to process
 parallel: True # Run parallel processing
-cores: 4 # Number of cores to execute parallel
-verbose: True # Print progress to terminal, otherwise just to logfile.
+cores: 96 # Number of cores to execute parallel
+verbose: False # Print progress to terminal, otherwise just to logfile.
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 #                                                                                     #
@@ -63,7 +63,7 @@ twin_save_pic: False # Force to save pictures to file, otherwise just show.
 phases_key: 'Master' # dict key in v01_phasenames
 taup_model_name: 'iasp91' # taup_model to use in arrival time calcs.
 
-T1: 20.0 #  min period
+T1: 17.0 #  min period
 Tc: 26.7 #  central period
 T2: 40.0 #  max period
 sig_win_ext: 45 # seconds to extend signal window (ref. max_tshift)
@@ -82,9 +82,9 @@ min_nois_win_f: 2 #  min noiswin length factor, where min_nois_win = min_nois_wi
 filttwin: 1 # 1: filter time windows, else 0 : skip
 min_amp_obs: 8e-9 #  min A_peak (ref. NLNM): min peak amp
 # min_snr: 4; % min A_peak/A_noise
-wsz_lim_obs: [40,220] # [lo,hi] of time window size in sec : window size limits [s]
+wsz_lim_obs: [51,220] # [lo,hi] of time window size in sec : window size limits [s]
 bnd2pk_t_obs: [12, 200] # [min,max] of peak-to-edge tshift:  edge to peak tshift limits [s]
-bnd2pk_A_obs: [0.5,1.0] # max [A_left|A_right,A_left+A_right]/A_peak: edge to peak Aratio limits [l|r/pk,(l+r)/pk]
+bnd2pk_A_obs: [0.5,0.8] # max [A_left|A_right,A_left+A_right]/A_peak: edge to peak Aratio limits [l|r/pk,(l+r)/pk]
 
 # Plotting:
 cm: 0.3937007874 # = 1/2.54
@@ -110,12 +110,12 @@ twin_syn_pic_loc: 'pic/syn/MX' # synth twin image out location
 twin_syn_outcols: ['nslc','latitude','longitude','elevation','t_left','t_peak','t_right','A_left','A_peak','A_right','A_median']
 # sig_win_ext: Tc # CHANGED TO Tc in main script... manually
 # sig_win_type: 0 # CHANGED TO 0 in main script... manually
-k_em: 0 # k_em*median(env(sigwin)) as hard threshold
+k_em: 1 # k_em*median(env(sigwin)) as hard threshold # Changed from zero
 
 min_amp_syn: 1e-9 # min A_peak (ref. NLNM)
-min_snr_syn: 0 # min A_peak/A_median
-wsz_lim_syn: [40,200] # [lo,hi] of time window size in sec
-bnd2pk_t_syn: [12, 160] # [min,max] of peak-to-edge tshift
+min_snr_syn: 1 # min A_peak/A_median # Used to be zero
+wsz_lim_syn: [51,220] # [lo,hi] of time window size in sec
+bnd2pk_t_syn: [12, 200] # [min,max] of peak-to-edge tshift
 bnd2pk_A_syn: [0.5,0.8] # max [A_left|A_right,A_left+A_right]/A_peak
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
@@ -136,7 +136,7 @@ phase_a_obs_out_loc: 'phs/obs/OS' # phase associated observed twin file out loca
 phase_a_outcols: ['nslc','latitude','longitude','elevation','t_left','t_peak','t_right','A_left','A_peak','A_right','A_noise','phase','n_depth_phase','t_taup']
 phase_a_outfmt: '{0:s},{1:.4f},{2:.4f},{3:.4f},{4:.2f},{5:.2f},{6:.2f},{7:.3e},{8:.3e},{9:.3e},{10:.3e},{11:s},{12:d},{13:.2f}' # '%s,%.4f,%.4f,%.4f,%.2f,%.2f,%.2f,%.2e,%.2e,%.2e,%.2e,%s,%d,%.2f\n'
 
-max_tshift: 45 # Peak of tw is less than this value from the predicted travel time.
+max_tshift: 25 # Peak of tw is less than this value from the predicted travel time.
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 #                                                                                     #
@@ -161,7 +161,7 @@ taper_alpha: 0.1 # Fraction of time window affected by tapering
 max_tpeak_delay: 60  # max delay between two tpeaks in windows for correlation
 max_twin_len_diff: 60 # max difference in time window length
 limit_corr_window: True # Limit length of correlation window and Zaroli F3 based on max_lag
-XC_max_lag: 30 # Maximum lag in cross correlation
+XC_max_lag: 60 # Maximum lag in cross correlation
 
 XC_min_peak_search: 0.05 # Minimum amplitude in peak search of Normed XC, [0-1]
 XC_min_main_peak: 0.50 # Minimum amplitude of Normed XC main peak classified as pick [0-1]
@@ -178,16 +178,21 @@ F3_min_main_peak: 0.25 # Minimum amplitude of F3 main peak classified as pick [0
 F3_max_secondary_peak_percentage: 0.9 # Maximum percentage of F3 main peak amplitude allowed in secondary peak, [0-1]
 F3_min_peak_distance: 10 # min number of samples between selected peaks of Normed XC
 
-corr_plot_pic: False # Plot a pic of correlated window
-corr_save_pic: False # Save a pic of correlated window
+# Ellipticity correction (Russell et al., 2022) "EllipticiPy"
+ellip_corr: False
+# Station elevation correction
+stel_corr: False
 
-max_tdelay: 25 # +/- time delay cut-off for difference in envelope peaks & correlation shift [s]
+corr_plot_pic: True # Plot a pic of correlated window
+corr_save_pic: True # Save a pic of correlated window
+
+max_tdelay: 60 # +/- time delay cut-off for difference in envelope peaks & correlation shift [s]
 max_tderr: 6 # Maximum travel time delay error predicted from Chevrot 2002
 min_xcc: 0.6 # minimum XC or Zaroli F3 coeff (could be lower if using Zaroli)
 
 # tdelay outfile formatting parameters (do not change)
 correlate_outcols: ['nslc','stla','stlo','stel','phase','tdelay','tderr','ccmx','ttaup','tp_obs','tp_syn','Ap_obs','Ap_syn']
-correlate_outfmt: '{0:s},{1:.4f},{2:.4f},{3:.4f},{4:s},{5:.2f},{6:.2f},{7:.2f},{8:.2f},{9:.2f},{10:.2f},{11:.2e},{12:.2e}'   #   '%s,%.4f,%.4f,%.4f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2e,%.2e';
+correlate_outfmt: '{0:s},{1:.4f},{2:.4f},{3:.1f},{4:s},{5:.2f},{6:.2f},{7:.2f},{8:.2f},{9:.2f},{10:.2f},{11:.2e},{12:.2e}'   #   '%s,%.4f,%.4f,%.4f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2e,%.2e';
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 #                                                                                     #

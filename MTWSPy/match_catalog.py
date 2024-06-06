@@ -42,6 +42,8 @@ class MatchCatalog:
         justify = 30
         self.logfile.write(" ")
         self.logfile.write("----------////               INPUT PARAMETERS                ////----------\n")
+        self.logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('code start',' : ',str(self.params['code_start_time']), x = justify) )
+
         params_list = ['cmt_infile', 'cmt_outfile', 'year', 'match_error_time', 'match_error_lat', 'match_error_lon', 'match_error_dep', 'match_error_mag']
         for k, param in enumerate(params_list):
             self.logfile.write("{0:>{x}s} {1:s} {2:s}\n".format(param, " : ", str(self.params[param]), x=justify))

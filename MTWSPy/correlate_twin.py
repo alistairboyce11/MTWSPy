@@ -16,6 +16,10 @@ matplotlib.rcParams['font.sans-serif'] = ['Arial']
 matplotlib.rcParams['font.size'] = 10
 from matplotlib.ticker import (MultipleLocator)
 
+from obspy.taup import TauPyModel
+from ellipticipy import ellipticity_correction
+import obspy.geodetics
+
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 class CorrelateTwin:
     """
@@ -174,6 +178,7 @@ class CorrelateTwin:
 
         logfile.write(' ')
         logfile.write('----------////               INPUT PARAMETERS                ////----------\n')
+        logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('code start',' : ',str(params_in['code_start_time']), x = justify) )
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('id_fmt_ctm',' : ',str(input_dict['id_fmt_ctm']), x = justify) )
 
         params_list = ['obs_loc', 'syn_loc', 'component', 'T1', 'Tc', 'T2','sig_win_ext', 'sig_win_type', 'min_snr_P', 'min_snr_A', 'npow']
@@ -214,6 +219,9 @@ class CorrelateTwin:
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('2nd F3 peak max amp.',' : ',str(params_in['F3_max_secondary_peak_percentage']), x = justify) )
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min F3 peak separation',' : ',str(params_in['F3_min_peak_distance']), x = justify) )
 
+        logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Use Ellipticity corr.',' : ',str(params_in['ellip_corr']), x = justify) )
+        logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Use Station elev corr.',' : ',str(params_in['stel_corr']), x = justify) )
+
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('plot correlation pic',' : ',str(params_in['corr_plot_pic']), x = justify) )
         logfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('save correlation pic',' : ',str(params_in['corr_save_pic']), x = justify) )
         
@@ -252,16 +260,18 @@ class CorrelateTwin:
         outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Mw',' : ',str(input_dict['mag']), x = justify) )
         outfile.write('----------////               EVENT PARAMETERS                ////----------\n')
         outfile.write('----------\n')
-
+        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('code start',' : ',str(params_in['code_start_time']), x = justify) )
+        outfile.write('----------\n')
         outfile.write('----------////              CORRELATE TWIN PARAMETERS               ////----------\n')
         outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Channels',' : ', f'{params_in['phase_a_obs_out_loc'][-2:]}{params_in['component']}-{params_in['phase_a_syn_out_loc'][-2:]}{params_in['component']}', x = justify) )
         outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('period band [s]',' : ', f'[{str(params_in['T1'])}, {str(params_in['T2'])}]', x = justify) )
         outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('interpolate delta',' : ',str(params_in['interp_delta']), x = justify) )
         outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Use Zaroli F3',' : ',str(params_in['Zaroli']), x = justify) )
+        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Use Ellipticity corr.',' : ',str(params_in['ellip_corr']), x = justify) )
+        outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('Use Station elev corr.',' : ',str(params_in['stel_corr']), x = justify) )
         outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('max time delay [s]',' : ',str(params_in['max_tdelay']), x = justify) )
         outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('max time delay error [s]',' : ',str(params_in['max_tderr']), x = justify) )
         outfile.write('{0:>{x}s} {1:s} {2:s}\n'.format('min Cross Correl. Coeff',' : ',str(params_in['min_xcc']), x = justify) )
-
         outfile.write('----------\n')
 
         outfile.write('{0:<20s} {1:s} {2:s}\n'.format('columns format',' : ',params_in['correlate_outfmt']))
@@ -281,6 +291,7 @@ class CorrelateTwin:
         Based on Cross correlation (XC) or Zaroli et al (2010) GJI (F3)
 
         Approximate arrival time errors using Chevrot (2002)
+        Optional ellipticity correction based on Russell et al., (2022)
         
         ----------
         Reads and returns same inputs/outputs
@@ -384,7 +395,7 @@ class CorrelateTwin:
                     # t_obs = seis_obs[0].times(reftime = UTCDateTime(str(input_dict['evtm'])))
                     dt_obs = seis_obs[0].stats['delta']
                     # seis_obs.filter('bandpass',freqmin = 1/params_in['T2']*2*dt_obs,freqmax = 1/params_in['T1']*2*dt_obs,corners = 4,zerophase = True)
-                    seis_obs.filter('bandpass',freqmin = 1/params_in['T2']*2,freqmax = 1/params_in['T1']*2,corners = 4,zerophase = True)
+                    seis_obs.filter('bandpass',freqmin = 1/params_in['T2'],freqmax = 1/params_in['T1'],corners = 4,zerophase = True)
 
                     seis_obs.detrend()
                     seis_obs.taper(max_percentage = 0.1)
@@ -392,7 +403,7 @@ class CorrelateTwin:
                     # t_syn = seis_syn[0].times(reftime = UTCDateTime(str(input_dict['evtm'])))
                     dt_syn = seis_syn[0].stats['delta']
                     # seis_syn.filter('bandpass',freqmin = 1/params_in['T2']*2*dt_syn,freqmax = 1/params_in['T1']*2*dt_syn,corners = 4,zerophase = True)
-                    seis_syn.filter('bandpass',freqmin = 1/params_in['T2']*2,freqmax = 1/params_in['T1']*2,corners = 4,zerophase = True)
+                    seis_syn.filter('bandpass',freqmin = 1/params_in['T2'],freqmax = 1/params_in['T1'],corners = 4,zerophase = True)
 
                     seis_syn.detrend()
                     seis_syn.taper(max_percentage = 0.1)
@@ -724,6 +735,68 @@ class CorrelateTwin:
                                         except:
                                             tdl_err = -999.0
 
+                                        if params_in['ellip_corr'] or params_in['stel_corr']:
+                                            # compute distances azimuth and backazimuth
+                                            # and arrival information
+                                        
+                                            distm, az, baz = obspy.geodetics.base.gps2dist_azimuth(float(input_dict['evla']), 
+                                                                                                   float(input_dict['evlo']), 
+                                                                                                   float(stla), float(stlo))
+                                            distdg = distm / (6371.e3 * np.pi / 180.)
+                                            model = TauPyModel(model = params_in['taup_model_name'])
+
+                                            arrival = model.get_ray_paths(
+                                                source_depth_in_km=input_dict['evdp'], 
+                                                distance_in_degree=distdg, 
+                                                phase_list=[row_obs['phase']])                   
+
+                                        # Ellipticity correction Russell et al., (2022)
+                                        if params_in['ellip_corr']:
+                                            # Often not required if specfem option turned on.
+                                            correction = ellipticity_correction(arrival, 
+                                                                                az, 
+                                                                                input_dict['evla'])
+                                            corr_tdl = tdl - correction[0]
+
+                                            ###
+                                            self.tk.print_log(params_in, logfile, f'{log_statement:s}  ,  Use ellipticity correction: {corr_tdl:.3f} = {tdl:.3f} - {correction[0]:.3f}')
+                                            ###
+                                            tdl = corr_tdl
+
+                                        # Compute an elevation correction
+                                        if params_in['stel_corr']:
+                                            # Often not required if specfem option turned on.
+                                            # Define the parameters from crust2.0
+                                            r = 6371  # Radius of the Earth in km
+                                            d1 = 1
+                                            d2 = 1
+                                            V1 = 3.5
+                                            V2 = 4.1
+                                            V3 = 6.1
+                                            V4 = 5.8
+
+                                            if stel > 0 and stel <= 1000:
+                                                tt = stel / 1000 / V1
+                                            elif stel > 1000 and stel <= 2000:
+                                                tt = 1 / V1 + (stel - 1000) / 1000 / V2
+                                            elif stel > 2000:
+                                                tt = 1 / V1 + 1 / V2 + (stel - 2000) / 1000 / V3
+                                            elif stel < -10:
+                                                tt = stel / 1000 / V4
+                                            else:
+                                                tt = 0
+                                            
+                                            theta = np.arcsin(arrival[0].ray_param * V1 / r)
+
+                                            correction = tt / np.cos(theta)
+
+                                            corr_tdl = tdl - correction
+
+                                            ###
+                                            self.tk.print_log(params_in, logfile, f'{log_statement:s}  ,  Use station elevation correction at {stel:.3f}m: {corr_tdl:.3f} = {tdl:.3f} - {correction:.3f}')
+                                            ###
+                                            tdl = corr_tdl
+
 
                                         # Execute plotting for correlated twin
                                         if params_in['corr_plot_pic']:
@@ -841,7 +914,8 @@ class CorrelateTwin:
 
         # Set up the plot
         fig, (ax_tw, ax_tw_aligned, ax_freq, ax_XC_Zr, ax_auto) = plt.subplots(5, 1, figsize = (8, 12))
-        fig_title = f'Event {input_dict['id_cmt']}, Station {nslc}\n{row_obs['phase']:s} @ {row_obs['t_taup']:.2f}s\n'
+        fig_title = f'Event {input_dict['id_cmt']}, Station {nslc}\n' \
+                    f'{row_obs['phase']:s} @ {row_obs['t_taup']:.2f}s, tdl: {Z_tdl:.2f}s\n'
         fig.suptitle(fig_title, fontsize = 16)
 
         axes_list_all = [ax_tw, ax_tw_aligned, ax_freq, ax_XC_Zr, ax_auto]

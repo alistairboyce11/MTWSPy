@@ -36,6 +36,7 @@ setup(
         'obspy',
         'PyYAML',
         'pytest',
+        'ellipticipy',
     ],
     entry_points=ENTRY_POINTS,
     classifiers=[
