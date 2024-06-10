@@ -508,13 +508,13 @@ class CorrelateTwin:
                                         correlation = signal.correlate(x_obs, x_syn, mode = "full", method = "fft")
                                         lags = signal.correlation_lags(x_obs.size, x_syn.size, mode = "full") * params_in['interp_delta']
                                         
-                                        if params_in['limit_corr_window']:
+                                        # if params_in['limit_corr_window']:
 
-                                            i_corr_lim, corr_lim = self.tk.subvec(lags, correlation, [-1 * params_in['XC_max_lag'], params_in['XC_max_lag']])
-                                            lags_lim = lags[i_corr_lim]
-                                            correlation = corr_lim
-                                            lags = lags_lim
-                                            # If max of auto correlation is always at zero no need to cut autocorrelation windows
+                                        #     i_corr_lim, corr_lim = self.tk.subvec(lags, correlation, [-1 * params_in['XC_max_lag'], params_in['XC_max_lag']])
+                                        #     lags_lim = lags[i_corr_lim]
+                                        #     correlation = corr_lim
+                                        #     lags = lags_lim
+                                        #     # If max of auto correlation is always at zero no need to cut autocorrelation windows
 
                                         i_ccmx = np.argmax(correlation)
                                         lag = lags[i_ccmx]
