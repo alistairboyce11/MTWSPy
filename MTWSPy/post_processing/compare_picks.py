@@ -156,7 +156,7 @@ class CompareTdlFiles(ProcessTdlFiles):
         So lets average and remove them here to stop it influencing
         the comparison
 
-        Causes loss of ccmx, tderr (non existent), ttaup
+        Causes loss of ccmx, tderr (non existent),
         tp_obs, tp_syn, Ap_obs, Ap_syn
 
         :param df: dataframe containing duplicate picks
@@ -168,7 +168,7 @@ class CompareTdlFiles(ProcessTdlFiles):
 
         group_by_columns = ['evid', 'date_time', 'evt_lat', 'evt_lon', 
                             'evt_dep', 'evt_mag', 'channel', 'nslc', 'stla', 
-                            'stlo', 'stel', 'phase', 'dist', 'baz', 'az', 
+                            'stlo', 'stel', 'phase', 'ttaup', 'dist', 'baz', 'az', 
                             'mid_lat', 'mid_lon']
 
         tdl_df = df.groupby(group_by_columns, as_index=False)['tdelay'].mean()
@@ -179,7 +179,7 @@ class CompareTdlFiles(ProcessTdlFiles):
 
         mp_df.loc[:, "ccmx"] = 0
         mp_df.loc[:, "tderr"] = 0
-        mp_df.loc[:, "ttaup"] = 0
+        # mp_df.loc[:, "ttaup"] = 0
         mp_df.loc[:, "tp_obs"] = 0
         mp_df.loc[:, "tp_syn"] = 0
         mp_df.loc[:, "Ap_obs"] = 0
@@ -294,11 +294,26 @@ class CompareTdlFiles(ProcessTdlFiles):
                      backgroundcolor = 'none',ha = 'left', va = 'top', 
                      bbox = dict(facecolor = 'white',edgecolor = 'black', 
                      pad = 2.0))
+        
+        num_picks = len(comp_df)
+        ax1.annotate(f'Picks: {num_picks}',(1, 1),xytext = (-5,-5),xycoords = 'axes fraction',
+                    fontsize = 12,textcoords = 'offset points', color = 'k', 
+                    backgroundcolor = 'none',ha = 'right', va = 'top', 
+                    bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                    pad = 2.0))
+
         ax2.annotate('c',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
                      fontsize = 12,textcoords = 'offset points', color = 'k', 
                      backgroundcolor = 'none',ha = 'left', va = 'top', 
                      bbox = dict(facecolor = 'white',edgecolor = 'black', 
                      pad = 2.0))
+        
+        phase_name = filename.split('_')[-1]
+        ax2.annotate(f'Phase: {phase_name}',(1, 1),xytext = (-5,-5),xycoords = 'axes fraction',
+                    fontsize = 12,textcoords = 'offset points', color = 'k', 
+                    backgroundcolor = 'none',ha = 'right', va = 'top', 
+                    bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                    pad = 2.0))
 
         # Save plot:
         if not os.path.exists(output_directory):
@@ -309,6 +324,8 @@ class CompareTdlFiles(ProcessTdlFiles):
         print(f'Sending output to: {str(filename_out)}')
 
         plt.savefig(filename_out, format = 'png')
+
+        plt.close()
 
         return
 
@@ -371,7 +388,8 @@ class CompareTdlFiles(ProcessTdlFiles):
                 res = temp.dropna()
 
                 cols_eq = ['evid', 'date_time', 'nslc', 'dist', 'az', 
-                           'baz', 'mid_lat', 'mid_lon', 'evt_mag', 
+                           'baz', 'mid_lat', 'mid_lon', 'evt_mag', 'stel',
+                           'ttaup', 'tp_obs', 'tp_syn', 'Ap_obs', 'Ap_syn',
                            'channel', 'ccmx']
                 eq_df = pd.DataFrame(columns=cols_eq, index=range(len(res)))
 
@@ -405,6 +423,15 @@ class CompareTdlFiles(ProcessTdlFiles):
                     eq_df.loc[index, "channel"] = "T"
                     eq_df.loc[index, "nslc"] = f'{row["kntwrk"]}.{row["kstnm"]}.00.LHT'
 
+                    #,Dummy Columns:
+
+                    eq_df.loc[index, "stel"] = 0
+                    eq_df.loc[index, "ttaup"] = 0
+                    eq_df.loc[index, "tp_obs"] = 0
+                    eq_df.loc[index, "tp_syn"] = 0
+                    eq_df.loc[index, "Ap_obs"] = 0
+                    eq_df.loc[index, "Ap_syn"] = 0
+
                     distm, az, baz = obspy.geodetics.base.gps2dist_azimuth(float(row['evt_lat']), 
                                                                            float(row['evt_lon']), 
                                                                            float(row['stla']), 
@@ -435,8 +462,9 @@ class CompareTdlFiles(ProcessTdlFiles):
                 # Reindex the DataFrame to rearrange columns
                 new_column_order = ['evid','date_time','evt_lat','evt_lon',
                                     'evt_dep','evt_mag','channel','nslc',
-                                    'stla','stlo','phase','tdelay',
-                                    'tderr','ccmx','dist','az','baz',
+                                    'stla','stlo', 'stel', 'phase','tdelay',
+                                    'tderr','ccmx','ttaup','tp_obs','tp_syn',
+                                    'Ap_obs','Ap_syn','dist','az','baz',
                                     'mid_lat','mid_lon']
                 output_df = output_df[new_column_order]
 
@@ -499,6 +527,16 @@ class CompareTdlFiles(ProcessTdlFiles):
                                                         filename)
             self.write_dataframe(output_directory, file_outname, input_df)
 
+                # Get station means per phase:
+
+            stat_means_df = self.get_station_means(params, input_df)
+
+            # process_tdl_files.write_station_means(params, stat_means_df)
+
+            filename = f'{params['tt_out_f_name']}_station_means'
+            self.write_dataframe(output_directory, filename, stat_means_df)
+            
+
         print(input_df)
         input_filtered_df = self.filter_dataframe(params, filter_functions, input_df)
 
@@ -518,11 +556,6 @@ def main():
     # Instantiate the classes and call their methods as needed
     compare_tdl_files = CompareTdlFiles()
 
-    # filter_functions = [compare_tdl_files.filt_date_time_max,
-    #                     compare_tdl_files.filt_date_time_min,
-    #                     compare_tdl_files.filt_networks,
-    #                     compare_tdl_files.filt_components]  
-    
     filter_functions = [compare_tdl_files.filt_date_time_max,
                         compare_tdl_files.filt_date_time_min,
                         compare_tdl_files.filt_networks,
@@ -547,19 +580,7 @@ def main():
                         compare_tdl_files.filt_dist_min]    
 
 
-    ######################### AL 2008 data - Zaroli #########################
-    # Likely has the filtering error from before.
-    # Location where MTWSPy code is installed
-    params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code/poss_filter_error'
-
-    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
     filename = f'{params['tt_out_f_name']}'
-
-    al_python_filtered_ZR_df = compare_tdl_files.load_dataframe(params, 
-                                                                filter_functions, 
-                                                                output_directory, 
-                                                                filename)
-    print(al_python_filtered_ZR_df)
 
     ######################### Lei original results 2008 data - XC matlab #####
     # Location where MTWSPy code is installed
@@ -570,6 +591,9 @@ def main():
                                                               filter_functions, 
                                                               output_directory, 
                                                               filename)
+    # Remove duplicates in matlab databases
+    lei_matlab_filtered_df = compare_tdl_files.remove_duplication(lei_matlab_filtered_df)
+
     print(lei_matlab_filtered_df)
 
     ######################### Lei original code, al results ##################
@@ -581,14 +605,18 @@ def main():
                                                              filter_functions, 
                                                              output_directory, 
                                                              filename)
+    # Remove duplicates in matlab databases
+    al_matlab_filtered_df = compare_tdl_files.remove_duplication(al_matlab_filtered_df)
+
     print(al_matlab_filtered_df)
+
 
     ######################### AL 2008 data - XC #########################
     # Updated with filtering fix
     # Location where MTWSPy code is installed
     params['home'] = '/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy' 
 
-    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
+    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/XC/'
 
     al_python_filtered_XC_df = compare_tdl_files.load_dataframe(params, 
                                                                 filter_functions, 
@@ -596,11 +624,21 @@ def main():
                                                                 filename)
     print(al_python_filtered_XC_df)
 
-    # Remove duplicates in matlab databases
+
+    ######################### AL 2008 data - Zaroli #########################
+    # Location where MTWSPy code is installed
+    # params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code/poss_filter_error'
+
+    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/ZR/'
+    
+    al_python_filtered_ZR_df = compare_tdl_files.load_dataframe(params, 
+                                                                filter_functions, 
+                                                                output_directory, 
+                                                                filename)
+    print(al_python_filtered_ZR_df)
 
 
-    al_matlab_filtered_df = compare_tdl_files.remove_duplication(al_matlab_filtered_df)
-    lei_matlab_filtered_df = compare_tdl_files.remove_duplication(lei_matlab_filtered_df)
+
 
 
     ######################### Zaroli et al (2010) #########################
@@ -609,10 +647,10 @@ def main():
     # First read into compatible df.
     params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Zaroli_Results' 
 
-    output_directory = f'{params['home']}/'
+    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
     filename = 'NEW2021__with_earthquake_origin_time__ZaroliBodyWaveDataSEISGLOB__Part?.txt'
     
-    file_outname = 'Zaroli_2010_database'
+    file_outname = 'Proc_tdl'
 
     Zaroli_filtered_df = compare_tdl_files.get_Zaroli_dataframe(params, 
                                                                 filter_functions, 
@@ -638,21 +676,52 @@ def main():
     comp_al_mat_XC_al_py_ZR_df_all = compare_tdl_files.find_common_picks(al_matlab_filtered_df, al_python_filtered_ZR_df)
     comp_al_mat_XC_al_py_XC_df_all = compare_tdl_files.find_common_picks(al_matlab_filtered_df, al_python_filtered_XC_df)
 
+
     out_dir = '/Users/alistair/Google_Drive/Lyon_Pdoc/MTWS_code_comps/no_duplicates/'
-    compare_tdl_files.plot_comparison(comp_al_py_XC_zaroli_XC_df_all, out_dir, 'comp_al_py_XC_zaroli_XC_df_all')
-    compare_tdl_files.plot_comparison(comp_lei_mat_XC_zaroli_XC_df_all, out_dir, 'comp_lei_mat_XC_zaroli_XC_df_all')
-    compare_tdl_files.plot_comparison(comp_al_mat_XC_zaroli_XC_df_all, out_dir, 'comp_al_mat_XC_zaroli_XC_df_all')
+    # compare_tdl_files.plot_comparison(comp_al_py_XC_zaroli_XC_df_all, out_dir, 'comp_al_py_XC_zaroli_XC_df_all')
+    # compare_tdl_files.plot_comparison(comp_lei_mat_XC_zaroli_XC_df_all, out_dir, 'comp_lei_mat_XC_zaroli_XC_df_all')
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_zaroli_XC_df_all, out_dir, 'comp_al_mat_XC_zaroli_XC_df_all')
     compare_tdl_files.plot_comparison(comp_al_py_ZR_zaroli_XC_df_all, out_dir, 'comp_al_py_ZR_zaroli_XC_df_all')
 
 
 
 
-    compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_all, out_dir, 'comp_al_py_XC_lei_mat_XC_df_all')
-    compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_all, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_all')
+    # compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_all, out_dir, 'comp_al_py_XC_lei_mat_XC_df_all')
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_all, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_all')
     compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_all, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_all')
     compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_all, out_dir, 'comp_al_py_XC_al_py_ZR_df_all')
     compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_all, out_dir, 'comp_al_mat_XC_al_py_ZR_df_all')
-    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_all, out_dir, 'comp_al_mat_XC_al_py_XC_df_all')
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_all, out_dir, 'comp_al_mat_XC_al_py_XC_df_all')
+
+
+    comp_al_py_XC_zaroli_XC_df_S = comp_al_py_XC_zaroli_XC_df_all.query("phase == 'S'")
+    comp_al_py_XC_zaroli_XC_df_SS = comp_al_py_XC_zaroli_XC_df_all.query("phase == 'SS'")
+    # comp_al_py_XC_zaroli_XC_df_ScSScS = comp_al_py_XC_zaroli_XC_df_all.query("phase == 'ScSScS'")
+
+    # compare_tdl_files.plot_comparison(comp_al_py_XC_zaroli_XC_df_S, out_dir, 'comp_al_py_XC_zaroli_XC_df_S')
+    # compare_tdl_files.plot_comparison(comp_al_py_XC_zaroli_XC_df_SS, out_dir, 'comp_al_py_XC_zaroli_XC_df_SS')
+    # compare_tdl_files.plot_comparison(comp_al_py_XC_zaroli_XC_df_ScSScS, out_dir, 'comp_al_py_XC_zaroli_XC_df_ScSScS')
+
+
+    comp_lei_mat_XC_zaroli_XC_df_S = comp_lei_mat_XC_zaroli_XC_df_all.query("phase == 'S'")
+    comp_lei_mat_XC_zaroli_XC_df_SS = comp_lei_mat_XC_zaroli_XC_df_all.query("phase == 'SS'")
+    # comp_lei_mat_XC_zaroli_XC_df_ScSScS = comp_lei_mat_XC_zaroli_XC_df_all.query("phase == 'ScSScS'")
+    
+    # compare_tdl_files.plot_comparison(comp_lei_mat_XC_zaroli_XC_df_S, out_dir, 'comp_lei_mat_XC_zaroli_XC_df_S')
+    # compare_tdl_files.plot_comparison(comp_lei_mat_XC_zaroli_XC_df_SS, out_dir, 'comp_lei_mat_XC_zaroli_XC_df_SS')
+    # compare_tdl_files.plot_comparison(comp_lei_mat_XC_zaroli_XC_df_ScSScS, out_dir, 'comp_lei_mat_XC_zaroli_XC_df_ScSScS')
+
+
+
+    comp_al_mat_XC_zaroli_XC_df_S = comp_al_mat_XC_zaroli_XC_df_all.query("phase == 'S'")
+    comp_al_mat_XC_zaroli_XC_df_SS = comp_al_mat_XC_zaroli_XC_df_all.query("phase == 'SS'")
+    # comp_al_mat_XC_zaroli_XC_df_ScSScS = comp_al_mat_XC_zaroli_XC_df_all.query("phase == 'ScSScS'")
+
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_zaroli_XC_df_S, out_dir, 'comp_al_mat_XC_zaroli_XC_df_S')
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_zaroli_XC_df_SS, out_dir, 'comp_al_mat_XC_zaroli_XC_df_SS')
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_zaroli_XC_df_ScSScS, out_dir, 'comp_al_mat_XC_zaroli_XC_df_ScSScS')
+
+
 
 
 
@@ -672,20 +741,20 @@ def main():
     comp_al_mat_XC_al_py_ZR_df_SS = comp_al_mat_XC_al_py_ZR_df_all.query("phase == 'SS'")
     comp_al_mat_XC_al_py_XC_df_SS = comp_al_mat_XC_al_py_XC_df_all.query("phase == 'SS'")
 
-    compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_S, out_dir, 'comp_al_py_XC_lei_mat_XC_df_S')
-    compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_S, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_S')
+    # compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_S, out_dir, 'comp_al_py_XC_lei_mat_XC_df_S')
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_S, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_S')
     compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_S, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_S')
     compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_S, out_dir, 'comp_al_py_XC_al_py_ZR_df_S')
     compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_S, out_dir, 'comp_al_mat_XC_al_py_ZR_df_S')
-    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_S, out_dir, 'comp_al_mat_XC_al_py_XC_df_S')
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_S, out_dir, 'comp_al_mat_XC_al_py_XC_df_S')
 
 
-    compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_SS, out_dir, 'comp_al_py_XC_lei_mat_XC_df_SS')
-    compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_SS, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_SS')
+    # compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_SS, out_dir, 'comp_al_py_XC_lei_mat_XC_df_SS')
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_SS, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_SS')
     compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_SS, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_SS')
     compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_SS, out_dir, 'comp_al_py_XC_al_py_ZR_df_SS')
     compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_SS, out_dir, 'comp_al_mat_XC_al_py_ZR_df_SS')
-    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_SS, out_dir, 'comp_al_mat_XC_al_py_XC_df_SS')
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_SS, out_dir, 'comp_al_mat_XC_al_py_XC_df_SS')
 
 
 
@@ -698,21 +767,21 @@ def main():
 
 
 
-    comp_al_py_XC_lei_mat_XC_df_ScSScS = comp_al_py_XC_lei_mat_XC_df_all.query("phase == 'ScSScS'")
-    comp_al_mat_XC_lei_mat_XC_df_ScSScS = comp_al_mat_XC_lei_mat_XC_df_all.query("phase == 'ScSScS'")
-    comp_al_py_ZR_lei_mat_XC_df_ScSScS = comp_al_py_ZR_lei_mat_XC_df_all.query("phase == 'ScSScS'")
-    comp_al_py_XC_al_py_ZR_df_ScSScS  = comp_al_py_XC_al_py_ZR_df_all.query("phase == 'ScSScS'")
-    comp_al_mat_XC_al_py_ZR_df_ScSScS = comp_al_mat_XC_al_py_ZR_df_all.query("phase == 'ScSScS'")
-    comp_al_mat_XC_al_py_XC_df_ScSScS = comp_al_mat_XC_al_py_XC_df_all.query("phase == 'ScSScS'")
+    # comp_al_py_XC_lei_mat_XC_df_ScSScS = comp_al_py_XC_lei_mat_XC_df_all.query("phase == 'ScSScS'")
+    # comp_al_mat_XC_lei_mat_XC_df_ScSScS = comp_al_mat_XC_lei_mat_XC_df_all.query("phase == 'ScSScS'")
+    # comp_al_py_ZR_lei_mat_XC_df_ScSScS = comp_al_py_ZR_lei_mat_XC_df_all.query("phase == 'ScSScS'")
+    # comp_al_py_XC_al_py_ZR_df_ScSScS  = comp_al_py_XC_al_py_ZR_df_all.query("phase == 'ScSScS'")
+    # comp_al_mat_XC_al_py_ZR_df_ScSScS = comp_al_mat_XC_al_py_ZR_df_all.query("phase == 'ScSScS'")
+    # comp_al_mat_XC_al_py_XC_df_ScSScS = comp_al_mat_XC_al_py_XC_df_all.query("phase == 'ScSScS'")
 
 
 
-    compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_py_XC_lei_mat_XC_df_ScSScS')
-    compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_ScSScS')
-    compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_ScSScS')
-    compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_ScSScS, out_dir, 'comp_al_py_XC_al_py_ZR_df_ScSScS')
-    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_ScSScS, out_dir, 'comp_al_mat_XC_al_py_ZR_df_ScSScS')
-    compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_ScSScS, out_dir, 'comp_al_mat_XC_al_py_XC_df_ScSScS')
+    # compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_py_XC_lei_mat_XC_df_ScSScS')
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_ScSScS')
+    # compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_ScSScS')
+    # compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_ScSScS, out_dir, 'comp_al_py_XC_al_py_ZR_df_ScSScS')
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_ScSScS, out_dir, 'comp_al_mat_XC_al_py_ZR_df_ScSScS')
+    # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_ScSScS, out_dir, 'comp_al_mat_XC_al_py_XC_df_ScSScS')
 
 
 
