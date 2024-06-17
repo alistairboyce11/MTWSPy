@@ -2,7 +2,7 @@
 """
 Created on Wed Mar 18 13:25:02 2024
 @author: alistairboyce
-if this fails: >> conda activate env3.12
+if this fails: >> conda activate MTWSPy
 """
 
 import time, sys, os, glob, shutil
@@ -73,13 +73,13 @@ class FetchData:
         else:
             num_days = 31
             
-        event_metadata = [f'{service} {event} /home/aboyce/bin/FetchEvent -s {year}-{month:02d}-01,00:00:00.000 -e {year}-{month:02d}-{num_days},23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -o {data_loc}/e{year}/{year}-{month:02d}_events.out']
-
+        outfile_loc = f'{data_loc}/e{year}/{year}-{month:02d}_events.out'
+        event_metadata = [f'{service} {event} /home/aboyce/bin/FetchEvent -s {year}-{month:02d}-01,00:00:00.000 -e {year}-{month:02d}-{num_days},23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -o {outfile_loc}']
         out = subprocess.check_output(event_metadata, shell=True)
 
         try:
             # Read cmt table, sort and re-index.
-            cmt_table = pd.read_csv(f'{data_loc}/e{year}/{year}-{month:02d}_events.out', delimiter="|", header=None, names = ['ev_num','ev_time','lat', 'lon', 'depth', 'cat', 'temp_cat', 'cmt_id', 'mag', 'location'])
+            cmt_table = pd.read_csv(f'{outfile_loc}', delimiter="|", header=None, names = ['ev_num','ev_time','lat', 'lon', 'depth', 'cat', 'temp_cat', 'cmt_id', 'mag', 'location'])
             cmt_table = cmt_table.sort_values(by='ev_time').reset_index(drop=True)
 
             # Add ev_ids
@@ -176,23 +176,34 @@ class FetchData:
         elif channel == 'HH':
             channels = 'HH?'
 
-        # Get months sorted for request
-        if month == 4 or month == 6 or month == 9 or month == 11:
-            num_days = 30
-        elif month == 2:#mois de Février, attention aux années bisextiles.
-            if np.mod(year,4) == 0:
-                num_days = 29
-            else:
-                num_days = 28
-        else:
-            num_days = 31
+        # # Get months sorted for request
+        # if month == 4 or month == 6 or month == 9 or month == 11:
+        #     num_days = 30
+        # elif month == 2:#mois de Février, attention aux années bisextiles.
+        #     if np.mod(year,4) == 0:
+        #         num_days = 29
+        #     else:
+        #         num_days = 28
+        # else:
+        #     num_days = 31
 
-        station_metadata = [f'{service} {meta} /home/aboyce/bin/FetchMetadata -C {channels} -s {year}-{month:02d}-01,00:00:00 -e {year}-{month:02d}-{num_days:02d},23:59:59 -o {data_loc}/e{year}/{dc_name}_{year}-{month:02d}_stations.out -X {data_loc}/e{year}/{dc_name}_{year}-{month:02d}.xml -resp']
-        out = subprocess.check_output(station_metadata, shell=True)
+        # station_metadata = [f'{service} {meta} /home/aboyce/bin/FetchMetadata -C {channels} -s {year}-{month:02d}-01,00:00:00 -e {year}-{month:02d}-{num_days:02d},23:59:59 -o {data_loc}/e{year}/{dc_name}_{year}-{month:02d}_stations.out -X {data_loc}/e{year}/{dc_name}_{year}-{month:02d}.xml -resp']
+        # out = subprocess.check_output(station_metadata, shell=True)
+
+
+
+        outfile_loc = f'{data_loc}/e{year}/{dc_name}_{year}_stations.out'
+        inv_loc = f'{data_loc}/e{year}/{dc_name}_{year}.xml'
+
+        if not os.path.exists(outfile_loc) and not os.path.exists(inv_loc):
+            # Necessary to downloda the metadata
+            station_metadata = [f'{service} {meta} /home/aboyce/bin/FetchMetadata -C {channels} -s {year}-01-01,00:00:00 -e {year}-12-31,23:59:59 -o {outfile_loc} -X {inv_loc} -resp']
+            out = subprocess.check_output(station_metadata, shell=True)
+
 
         try:
             # Read station metadata into df
-            sta_table = pd.read_csv(f'{data_loc}/e{year}/{dc_name}_{year}-{month:02d}_stations.out', delimiter="|", dtype={'loc': 'str'})
+            sta_table = pd.read_csv(f'{outfile_loc}', delimiter="|", dtype={'loc': 'str'})
             sta_table.rename(columns={"#net": "net"}, inplace=True)
 
             # Correct '00' errors
@@ -236,8 +247,8 @@ class FetchData:
             # Remove nan locations and exchange for empty string.
             out_stat_df['loc'] = out_stat_df['loc'].replace(np.nan, '*', regex=True)
 
-            # Read downloaded inventory for inst. resp. removal:
-            inv_loc = f'{data_loc}/e{year}/{dc_name}_{year}-{month:02d}.xml'
+            # # Read downloaded inventory for inst. resp. removal:
+            # inv_loc = f'{data_loc}/e{year}/{dc_name}_{year}-{month:02d}.xml'
         
         except:
             out_stat_df = pd.DataFrame()
@@ -1151,9 +1162,9 @@ class FetchData:
             else:
                 # apply functions, only executed when fail = 0
                 for function in functions:
-                    input_dict, file_vertical, file_east, file_north, 
+                    (input_dict, file_vertical, file_east, file_north, 
                     vert_component, east_component, north_component, 
-                    fail = function(input_dict, file_vertical, file_east, 
+                    fail )= function(input_dict, file_vertical, file_east, 
                                     file_north, vert_component, east_component,
                                     north_component, fail)
 
