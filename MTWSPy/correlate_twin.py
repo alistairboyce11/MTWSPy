@@ -393,7 +393,7 @@ class CorrelateTwin:
                         seis_syn.differentiate()
 
                     # t_obs = seis_obs[0].times(reftime = UTCDateTime(str(input_dict['evtm'])))
-                    dt_obs = seis_obs[0].stats['delta']
+                    # dt_obs = seis_obs[0].stats['delta']
                     # seis_obs.filter('bandpass',freqmin = 1/params_in['T2']*2*dt_obs,freqmax = 1/params_in['T1']*2*dt_obs,corners = 4,zerophase = True)
                     seis_obs.filter('bandpass',freqmin = 1/params_in['T2'],freqmax = 1/params_in['T1'],corners = 4,zerophase = True)
 
@@ -401,7 +401,7 @@ class CorrelateTwin:
                     seis_obs.taper(max_percentage = 0.1)
 
                     # t_syn = seis_syn[0].times(reftime = UTCDateTime(str(input_dict['evtm'])))
-                    dt_syn = seis_syn[0].stats['delta']
+                    # dt_syn = seis_syn[0].stats['delta']
                     # seis_syn.filter('bandpass',freqmin = 1/params_in['T2']*2*dt_syn,freqmax = 1/params_in['T1']*2*dt_syn,corners = 4,zerophase = True)
                     seis_syn.filter('bandpass',freqmin = 1/params_in['T2'],freqmax = 1/params_in['T1'],corners = 4,zerophase = True)
 
@@ -502,7 +502,7 @@ class CorrelateTwin:
                                         # Get autocorrelations
                                         auto_obs = signal.correlate(x_obs, x_obs, mode = "full", method = "fft")
                                         auto_syn = signal.correlate(x_syn, x_syn, mode = "full", method = "fft")
-                                        auto_syn_max_pos = np.argmax(auto_syn)
+                                        # auto_syn_max_pos = np.argmax(auto_syn)
 
                                         # corrdelay estimates
                                         correlation = signal.correlate(x_obs, x_syn, mode = "full", method = "fft")
@@ -552,7 +552,7 @@ class CorrelateTwin:
                                             if XC_peak_dicts['peak_heights'][XC_sort_args[0]] <  params_in['XC_min_main_peak']: 
                                                 # Reject - main peak too weak
                                                 ###
-                                                self.tk.print_log(params_in, logfile, f'{log_statement:s}  ,  Reject - XC Main peak below {params_in['XC_min_main_peak']} threshold {row_obs['phase']} @ {station}')
+                                                self.tk.print_log(params_in, logfile, f'{log_statement:s}  ,  Reject - XC Main peak amplitude {XC_peak_dicts['peak_heights'][XC_sort_args[0]]:.3f} below {params_in['XC_min_main_peak']} threshold {row_obs['phase']} @ {station}')
                                                 ###
                                                 continue
                                             else:
@@ -660,7 +660,7 @@ class CorrelateTwin:
                                                 if F3_peak_dicts['peak_heights'][F3_sort_args[0]] <  params_in['F3_min_main_peak']: 
                                                     # Reject - main peak too weak
                                                     ###
-                                                    self.tk.print_log(params_in, logfile, f'{log_statement:s}  ,  Reject - F3 Main peak below {params_in['F3_min_main_peak']} threshold {row_obs['phase']} @ {station}')
+                                                    self.tk.print_log(params_in, logfile, f'{log_statement:s}  ,  Reject - F3 Main peak amplitude {F3_peak_dicts['peak_heights'][F3_sort_args[0]]:.3f} below {params_in['F3_min_main_peak']} threshold {row_obs['phase']} @ {station}')
                                                     ###
                                                     continue
                                                 else:

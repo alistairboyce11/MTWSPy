@@ -533,7 +533,7 @@ class CompareTdlFiles(ProcessTdlFiles):
 
             # process_tdl_files.write_station_means(params, stat_means_df)
 
-            filename = f'{params['tt_out_f_name']}_station_means'
+            filename = f"{params['tt_out_f_name']}_station_means"
             self.write_dataframe(output_directory, filename, stat_means_df)
             
 
@@ -580,12 +580,12 @@ def main():
                         compare_tdl_files.filt_dist_min]    
 
 
-    filename = f'{params['tt_out_f_name']}'
+    filename = f"{params['tt_out_f_name']}"
 
     ######################### Lei original results 2008 data - XC matlab #####
     # Location where MTWSPy code is installed
     params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Lei_matlab_Results_OCT21' 
-    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
+    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/"
 
     lei_matlab_filtered_df = compare_tdl_files.load_dataframe(params, 
                                                               filter_functions, 
@@ -599,7 +599,7 @@ def main():
     ######################### Lei original code, al results ##################
     # Location where MTWSPy code is installed
     params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Al_matlab_results_DEC23' 
-    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
+    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/"
 
     al_matlab_filtered_df = compare_tdl_files.load_dataframe(params, 
                                                              filter_functions, 
@@ -616,7 +616,7 @@ def main():
     # Location where MTWSPy code is installed
     params['home'] = '/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy' 
 
-    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/XC/'
+    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/XC/"
 
     al_python_filtered_XC_df = compare_tdl_files.load_dataframe(params, 
                                                                 filter_functions, 
@@ -625,11 +625,22 @@ def main():
     print(al_python_filtered_XC_df)
 
 
+    ######################### AL 2008 data - XC #########################
+    # Updated with known filter error
+    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/FE/"
+
+    al_python_filtered_XC_FE_df = compare_tdl_files.load_dataframe(params, 
+                                                                filter_functions, 
+                                                                output_directory, 
+                                                                filename)
+    print(al_python_filtered_XC_FE_df)
+
+
     ######################### AL 2008 data - Zaroli #########################
     # Location where MTWSPy code is installed
     # params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code/poss_filter_error'
 
-    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/ZR/'
+    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/ZR/"
     
     al_python_filtered_ZR_df = compare_tdl_files.load_dataframe(params, 
                                                                 filter_functions, 
@@ -639,15 +650,13 @@ def main():
 
 
 
-
-
     ######################### Zaroli et al (2010) #########################
     # Filter for 2008 data.
     #
     # First read into compatible df.
     params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Zaroli_Results' 
 
-    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
+    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/"
     filename = 'NEW2021__with_earthquake_origin_time__ZaroliBodyWaveDataSEISGLOB__Part?.txt'
     
     file_outname = 'Proc_tdl'

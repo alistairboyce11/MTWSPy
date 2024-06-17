@@ -20,8 +20,8 @@ HOME=`echo ~`
 source ${HOME}/.bash_profile
 DIR=$(pwd)
 SCRATCH_DIR=`echo $DIR | sed 's|home|scratch\/Cascade|g'`
-CMTDIR=`echo $HOME/d_data_and_docs/gcmt`
-STADIR=`echo $HOME/d_data_and_docs/dmt`
+CMTDIR=`echo $HOME/d_data_obs/gcmt`
+STADIR=`echo $HOME/d_data_obs/dmt`
 export XDG_CACHE_HOME=${HOME}/tmp
 
 today=`date +%Y-%m-%d`
@@ -144,7 +144,7 @@ fi
 
 echo >> $LOG_FILE
 # Number of Earthquakes
-n1=201
+n1=1
 n2=$num_CMT_files
 nbs=$(($((${n2}-${n1}))+1))
 #nbs=66
