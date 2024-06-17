@@ -57,7 +57,7 @@ else
     echo "Continue..." 
 fi
 
-# ${HOME}/anaconda3/envs/MTWSPy/bin/python3.12 MTWSPy_main.py
+# ${HOME}/miniconda3/envs/MTWSPy/bin/python3.12 ./MTWSPy/MTWSPy_main.py
 MTWSPy_main
 
 ####################################################################

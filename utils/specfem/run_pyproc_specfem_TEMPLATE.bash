@@ -33,8 +33,8 @@ module load impi/2021.9.0-intel-compilers-2023.1.0
 HOME=`echo ~`
 source ${HOME}/.bash_profile
 DIR=$(pwd)
-conda activate env3.12
-CMTDIR=`echo ${HOME}/d_data_and_docs/gcmt`
+conda activate MTWSPy
+CMTDIR=`echo ${HOME}/d_data_obs/gcmt`
 export XDG_CACHE_HOME=${HOME}/tmp
 
 cd $SLURM_SUBMIT_DIR
@@ -69,7 +69,7 @@ for run_num in $(seq ${nbd} ${nbf}); do
 
         # Do the Specfem postprocessing
         echo -e "starting SpecFEM postprocessing on $SLURM_NTASKS_PER_NODE processors in: "${OUTDIR}/OUTPUT_FILES_3D_seis${nb}_hd0 >> pyproc_sf_${nbd}_${nbf}_${SLURM_JOB_ID}.log
-        ${HOME}/anaconda3/envs/env3.12/bin/python ${HOME}/bin/parallel_proc_specfem_seis.py ${OUTDIR}/OUTPUT_FILES_3D_seis${nb}_hd0 ${SLURM_NTASKS_PER_NODE} ${KCHAN} >> pyproc_sf_${nbd}_${nbf}_${SLURM_JOB_ID}.log
+        ${HOME}/miniconda3/envs/MTWSPy/bin/python ${HOME}/bin/parallel_proc_specfem_seis.py ${OUTDIR}/OUTPUT_FILES_3D_seis${nb}_hd0 ${SLURM_NTASKS_PER_NODE} ${KCHAN} >> pyproc_sf_${nbd}_${nbf}_${SLURM_JOB_ID}.log
         echo -e "Finished SpecFEM postprocessing in: "${OUTDIR}/OUTPUT_FILES_3D_seis${nb}_hd0 >> pyproc_sf_${nbd}_${nbf}_${SLURM_JOB_ID}.log
 
         # Move all results to Results DIR
