@@ -1162,9 +1162,9 @@ class FetchData:
             else:
                 # apply functions, only executed when fail = 0
                 for function in functions:
-                    input_dict, file_vertical, file_east, file_north, 
+                    (input_dict, file_vertical, file_east, file_north, 
                     vert_component, east_component, north_component, 
-                    fail = function(input_dict, file_vertical, file_east, 
+                    fail )= function(input_dict, file_vertical, file_east, 
                                     file_north, vert_component, east_component,
                                     north_component, fail)
 

@@ -38,7 +38,7 @@ export XDG_CACHE_HOME=${HOME}/tmp
 today=`date +%Y-%m-%d`
 
 year=2000
-months="2" # 1
+months="1 3 4 5 6 7 8 9 10 11 12" # 2
 s_chan='LH'
 
 ###################################################################
