@@ -51,7 +51,7 @@ class ProcessTdlFiles:
         :return outputs_all: dataframe output of all the sort functions
         :type outputs_all: pd.df
         """
-        input_directory = f'{params['home']}/{params['tdelay_loc']}/{params['phase_a_obs_out_loc'][-2:]}{params['component']}-{params['phase_a_syn_out_loc'][-2:]}{params['component']}'
+        input_directory = f"{params['home']}/{params['tdelay_loc']}/{params['phase_a_obs_out_loc'][-2:]}{params['component']}-{params['phase_a_syn_out_loc'][-2:]}{params['component']}"
 
         cores = params['cores']
 
@@ -837,9 +837,9 @@ def main():
     # Write outfile
     # process_tdl_files.write_tdl_summary_file(params, filtered_df)
 
-    output_directory = f'{params['home']}/{params['proc_tdl_loc']}/'
+    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/"
 
-    filename = f'{params['tt_out_f_name']}'
+    filename = f"{params['tt_out_f_name']}"
     process_tdl_files.write_dataframe(output_directory, filename, filtered_df)
 
 
@@ -849,7 +849,7 @@ def main():
 
     # process_tdl_files.write_station_means(params, stat_means_df)
 
-    filename = f'{params['tt_out_f_name']}_station_means'
+    filename = f"{params['tt_out_f_name']}_station_means"
     process_tdl_files.write_dataframe(output_directory, filename, stat_means_df)
 
 
@@ -862,7 +862,7 @@ def main():
     # # Write out file...
     # process_tdl_files.write_tt_diff_summary_file(params, tt_diff_output)
 
-    filename = f'{params['tt_out_f_name']}_{str(params['diff_phases'][0])}-{str(params['diff_phases'][1])}'
+    filename = f"{params['tt_out_f_name']}_{str(params['diff_phases'][0])}-{str(params['diff_phases'][1])}"
     process_tdl_files.write_dataframe(output_directory, filename, tt_diff_output)
 
 

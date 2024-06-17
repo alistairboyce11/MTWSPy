@@ -37,8 +37,8 @@ conda activate MTWSPy
 export XDG_CACHE_HOME=${HOME}/tmp
 today=`date +%Y-%m-%d`
 
-year=2007
-month=3
+year=2000
+months="2" # 1
 s_chan='LH'
 
 ###################################################################
@@ -50,7 +50,9 @@ cd $SLURM_SUBMIT_DIR
 
 # Check we have the right number of cores requested in params file.
 
-${HOME}/anaconda3/envs/MTWSPy/bin/python3.12 /home/aboyce/d_data_obs/iris_FetchData/fetch_data.py ${year} ${month} ${s_chan}
+for month in $months; do
+    ${HOME}/miniconda3/envs/MTWSPy/bin/python /home/aboyce/d_data_obs/iris_FetchData/fetch_data.py ${year} ${month} ${s_chan}
+done
 
 ####################################################################
 exit
