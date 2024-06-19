@@ -70,8 +70,9 @@ class Toolkit:
         now = datetime.now(timezone.utc)
         params['code_start_time'] = now.strftime("%Y%m%d%H%M%S")
 
-        cha_obs, cha_syn = f'{params['twin_obs_out_loc'][-2:]}{params['component']}', f'{params['twin_syn_out_loc'][-2:]}{params['component']}'
-        params['mtf_outfilename'] = f'{str(params['mtf_prefix'])}_{str(params['year'])}.{cha_obs}-{cha_syn}'
+        cha_obs = f"{params['twin_obs_out_loc'][-2:]}{params['component']}"
+        cha_syn = f"{params['twin_syn_out_loc'][-2:]}{params['component']}"
+        params['mtf_outfilename'] = f"{str(params['mtf_prefix'])}_{str(params['year'])}.{cha_obs}-{cha_syn}"
 
         return params
 
@@ -85,7 +86,7 @@ class Toolkit:
         :return tab: table of matched event ids from CMT catalog
         :type tab: pandas dataframe
         """
-        cmt_outfile_name = f'{params['cmt_outfile']}_{str( params['year'])}.csv'
+        cmt_outfile_name = f"{params['cmt_outfile']}_{str( params['year'])}.csv"
 
         tab = pd.read_csv(cmt_outfile_name)
 
@@ -183,7 +184,7 @@ class Toolkit:
         :type logfile: open file with write access
         """
 
-        lf_loc = f'{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}'
+        lf_loc = f"{params_in['home']}/{params_in['log_loc']}/{str(params_in['code_start_time'])}"
         if not os.path.exists(lf_loc):
             os.makedirs(lf_loc, exist_ok=True)
 
@@ -279,7 +280,7 @@ class Toolkit:
         """
 
         # Finds files, makes input dictionary of files, functions, inputs
-        events = sorted(glob.glob(f'{input_directory}/{str(params_in['year'])}*'))
+        events = sorted(glob.glob(f"{input_directory}/{str(params_in['year'])}*"))
         input_dicts = []
 
         if len(events) == 0:

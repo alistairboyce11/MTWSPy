@@ -66,6 +66,8 @@ taup_model_name: 'iasp91' # taup_model to use in arrival time calcs.
 T1: 17.0 #  min period
 Tc: 26.7 #  central period
 T2: 40.0 #  max period
+
+# SNR calculations
 sig_win_ext: 45 # seconds to extend signal window (ref. max_tshift)
 sig_win_type: 1 # 0, no limits, use full trace, 1, first to last arrival; 2, first arrival to end
 min_snr_P: 1.5 # min var(sig_win)/var(nois_win)
@@ -152,8 +154,8 @@ phase_a_syn_out_loc: 'phs/syn/MX' # phase associated synth twin file out locatio
 #                                                                                     # 
 # ---                                                                             --- #
 
-interp_delta: 0.05 # interpolate all waveforms to this sample rate.
-use_velocity: True # Differential displacement seismograms to velocity
+interp_delta: 0.05 # interpolate waveforms to this delta t - determines accuracy...
+use_velocity: True # Differentiate displacement seismograms to velocity
 normalise_traces: True # Normalise traces prior to cross correlation
 taper_windows: True # Taper the time windows prior to cross correlation
 taper_alpha: 0.05 # Fraction of time window affected by tapering
@@ -165,7 +167,7 @@ XC_max_lag: 25 # Maximum lag in cross correlation
 
 XC_min_peak_search: 0.05 # Minimum amplitude in peak search of Normed XC, [0-1]
 XC_min_main_peak: 0.50 # Minimum amplitude of Normed XC main peak classified as pick [0-1]
-XC_max_secondary_peak_percentage: 0.99 # Maximum percentage of Normed XC main peak amplitude allowed in secondary peak, [0-1]
+XC_max_secondary_peak_percentage: 0.95 # Maximum percentage of Normed XC main peak amplitude allowed in secondary peak, [0-1]
 XC_min_peak_distance: 10 # min number of samples between selected peaks of Normed XC
 
 tw_max_f_diff: 0.5 # percentage [0-1] difference of max amplitude of freqency spectra between syn and obs
@@ -189,6 +191,7 @@ corr_save_pic: False # Save a pic of correlated window
 max_tdelay: 25 # +/- time delay cut-off for difference in envelope peaks & correlation shift [s]
 max_tderr: 5 # Maximum travel time delay error predicted from Chevrot 2002
 min_xcc: 0.8 # minimum XC or Zaroli F3 coeff (could be lower if using Zaroli)
+
 
 # tdelay outfile formatting parameters (do not change)
 correlate_outcols: ['nslc','stla','stlo','stel','phase','tdelay','tderr','ccmx','ttaup','tp_obs','tp_syn','Ap_obs','Ap_syn']

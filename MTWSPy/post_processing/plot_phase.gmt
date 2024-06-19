@@ -35,13 +35,13 @@ gmt set MAP_TITLE_OFFSET			= 3p
 gmt set MAP_LABEL_OFFSET			= 3p
 
 
-# base_path="/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code"
 # base_path="/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Lei_Results"
 # base_path="/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/matlab_code"
-base_path="/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy"
+# base_path="/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy/proc_tdelay/XC"
+base_path="/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy/proc_tdelay/ZR"
 
-psfile=$base_path"/proc_tdelay/tdl_phase_${phase}.ps"
-pdffile=$base_path"/proc_tdelay/tdl_phase_${phase}.pdf"
+psfile=$base_path"/tdl_phase_${phase}.ps"
+pdffile=$base_path"/tdl_phase_${phase}.pdf"
 
 CPT_1=temp.cpt
 CPT_PAL="-Cpolar"
@@ -70,7 +70,7 @@ gmt psxy $MID_MAP -W0.25,black /Users/alistair/lib/bird_plates.xy >> $psfile
 gmt pscoast $MID_MAP  -Dc -A10000 -W0.75 >> $psfile
 
 # Add earthquake locations.
-proc_tdl_file=$base_path"/proc_tdelay/proc_tdl.out"
+proc_tdl_file=$base_path"/proc_tdl.out"
 if [[ $phase == "all" ]]; then
     awk 'NR>1' ${proc_tdl_file} | awk -F',' '{ print $4, $3}' | sort -u | gmt psxy $MID_MAP -Sc3p -W0.5 -Ggrey >> $psfile
 
@@ -101,7 +101,7 @@ gmt psxy $MID_MAP -W0.25,black /Users/alistair/lib/bird_plates.xy >> $psfile
 gmt pscoast $MID_MAP  -Dc -A10000 -W0.75 >> $psfile
 
 # Add earthquake locations.
-proc_tdl_file_means=$base_path"/proc_tdelay/proc_tdl_station_means.out"
+proc_tdl_file_means=$base_path"/proc_tdl_station_means.out"
 
 if [[ $phase == "all" ]]; then
     awk 'NR>1' ${proc_tdl_file_means} | awk -F',' '{print $3, $2, $7}' | gmt psxy $MID_MAP -Sc3p -W0.5 -C$CPT_1 >> $psfile

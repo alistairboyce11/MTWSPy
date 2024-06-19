@@ -22,8 +22,8 @@ HOME=`echo ~`
 source ${HOME}/.bash_profile
 DIR=$(pwd)
 SCRATCH_DIR=`echo $DIR | sed 's|home|scratch\/Cascade|g'`
-CMTDIR=`echo $HOME/d_data_and_docs/gcmt`
-STADIR=`echo $HOME/d_data_and_docs/dmt`
+CMTDIR=`echo $HOME/d_data_obs/gcmt`
+STADIR=`echo $HOME/d_data_obs/dmt`
 export XDG_CACHE_HOME=${HOME}/tmp
 
 today=`date +%Y-%m-%d`
