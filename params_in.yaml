@@ -58,8 +58,8 @@ twin_obs_outcols: ['nslc','latitude','longitude','elevation','t_left','t_peak','
 twin_outfmt: '{0:s},{1:.4f},{2:.4f},{3:.4f},{4:.2f},{5:.2f},{6:.2f},{7:.3e},{8:.3e},{9:.3e},{10:.3e}' # '%s,%.4f,%.4f,%.4f,%.2f,%.2f,%.2f,%.2e,%.2e,%.2e,%.2e\n'
 
 component: 'T' # Z,R,T instrument component on which to pick phases
-twin_plot_pic: True # Plot pic, otherwise skip plotting.
-twin_save_pic: True # Force to save pictures to file, otherwise just show.
+twin_plot_pic: False # Plot pic, otherwise skip plotting.
+twin_save_pic: False # Force to save pictures to file, otherwise just show.
 phases_key: 'Master' # dict key in v01_phasenames
 taup_model_name: 'iasp91' # taup_model to use in arrival time calcs.
 
