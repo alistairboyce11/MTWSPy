@@ -77,7 +77,7 @@ npow: 1 # 1 for amplitude envelope; 2 for power envelope
 
 mxf_win_f: 0.75   # movmax window factor, where: mxf_win = mxf_win_f*Tc (in sec); 50-100s
 walkaway_f: 5 # the line tilt factor away from the peak, where walkaway = walkaway_f*Tc; in seconds 
-min_win_span_f: [1.5, 30.0] # min time window size factor, where min_win_span = max(min_win_span_f[0]*T1,min_win_span_f[1])
+min_win_span_f: [2, 30.0] # min time window size factor, where min_win_span = max(min_win_span_f[0]*T1,min_win_span_f[1])
 min_sig_win_f: 5 # min whole sigwin length factor, where min_sig_win = min_sig_win_f*T2 (in sec)
 min_nois_win_f: 2 #  min noiswin length factor, where min_nois_win = min_nois_win_f*T2 (in sec)
 
@@ -85,7 +85,7 @@ filttwin: 1 # 1: filter time windows, else 0 : skip
 min_amp_obs: 8e-9 #  min A_peak (ref. NLNM): min peak amp
 # min_snr: 4; % min A_peak/A_noise
 wsz_lim_obs: [51,220] # [lo,hi] of time window size in sec : window size limits [s]
-bnd2pk_t_obs: [12, 200] # [min,max] of peak-to-edge tshift:  edge to peak tshift limits [s]
+bnd2pk_t_obs: [17, 200] # [min,max] of peak-to-edge tshift:  edge to peak tshift limits [s]
 bnd2pk_A_obs: [0.5,0.8] # max [A_left|A_right,A_left+A_right]/A_peak: edge to peak Aratio limits [l|r/pk,(l+r)/pk]
 
 # Plotting:
@@ -117,7 +117,7 @@ k_em: 1 # k_em*median(env(sigwin)) as hard threshold # Changed from zero
 min_amp_syn: 1e-9 # min A_peak (ref. NLNM)
 min_snr_syn: 1 # min A_peak/A_median # Used to be zero
 wsz_lim_syn: [51,220] # [lo,hi] of time window size in sec
-bnd2pk_t_syn: [12, 200] # [min,max] of peak-to-edge tshift
+bnd2pk_t_syn: [17, 200] # [min,max] of peak-to-edge tshift
 bnd2pk_A_syn: [0.5,0.8] # max [A_left|A_right,A_left+A_right]/A_peak
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
@@ -158,12 +158,12 @@ interp_delta: 0.05 # interpolate waveforms to this delta t - determines accuracy
 use_velocity: True # Differentiate displacement seismograms to velocity
 normalise_traces: True # Normalise traces prior to cross correlation
 taper_windows: True # Taper the time windows prior to cross correlation
-taper_alpha: 0.1 # Fraction of time window affected by tapering
+taper_alpha: 0.05 # Fraction of time window affected by tapering
 
-max_tpeak_delay: 60  # max delay between two tpeaks in windows for correlation
+max_tpeak_delay: 25  # max delay between two tpeaks in windows for correlation
 max_twin_len_diff: 60 # max difference in time window length
 limit_corr_window: True # Limit length of correlation window and Zaroli F3 based on max_lag
-XC_max_lag: 60 # Maximum lag in cross correlation
+XC_max_lag: 25 # Maximum lag in cross correlation
 
 XC_min_peak_search: 0.05 # Minimum amplitude in peak search of Normed XC, [0-1]
 XC_min_main_peak: 0.50 # Minimum amplitude of Normed XC main peak classified as pick [0-1]
@@ -189,8 +189,9 @@ corr_plot_pic: False # Plot a pic of correlated window
 corr_save_pic: False # Save a pic of correlated window
 
 max_tdelay: 25 # +/- time delay cut-off for difference in envelope peaks & correlation shift [s]
-max_tderr: 6 # Maximum travel time delay error predicted from Chevrot 2002
-min_xcc: 0.6 # minimum XC or Zaroli F3 coeff (could be lower if using Zaroli)
+max_tderr: 5 # Maximum travel time delay error predicted from Chevrot 2002
+min_xcc: 0.8 # minimum XC or Zaroli F3 coeff (could be lower if using Zaroli)
+
 
 # tdelay outfile formatting parameters (do not change)
 correlate_outcols: ['nslc','stla','stlo','stel','phase','tdelay','tderr','ccmx','ttaup','tp_obs','tp_syn','Ap_obs','Ap_syn']
@@ -214,8 +215,8 @@ sta_lat_min: -90
 sta_lon_max: 180
 sta_lon_min: -180
 phases: ['All'] #  ['ScS', 'S']
-tdl_max: 60 # 25
-ccmx_min: 0.0 # Make this 0.8?
+tdl_max: 25
+ccmx_min: 0.8
 evt_lat_max: 90
 evt_lat_min: -90
 evt_lon_max: 180
