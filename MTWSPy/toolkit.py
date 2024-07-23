@@ -227,7 +227,7 @@ class Toolkit:
 
         try:
             perc_gl = -1 * np.round(((num_files_in - num_files_out) / num_files_in) * 100, 2)
-            statement += f'Files   in/out: {num_files_in} / {num_files_out}, \percentage gain/loss (+/-): {perc_gl}%\n'
+            statement += f'Files   in/out: {num_files_in} / {num_files_out}, percentage gain/loss (+/-): {perc_gl}%\n'
         except:
             statement += f'Files   in/out: {num_files_in} / {num_files_out}\n'
 

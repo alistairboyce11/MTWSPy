@@ -1,64 +1,31 @@
 #!/bin/bash
-#SBATCH --job-name=MTWSPy
-#SBATCH --partition=Cascade-flix
-#SBATCH --time=48:00:00
-###########################################################
-# USER PARAMETERS
-# Cascade # LF
-#SBATCH --nodes=1
-# nombres de  processus MPI par noeuds Cascade
-#SBATCH --ntasks-per-node=96
-
-# nombres de processus MPI par processeurs (max=12) sachant qu'il y a 2 processeurs par noeuds
-###########################################################
-#precise le nombre de coeurs par processus MPI (pour etre sur que 1)
-#SBATCH --cpus-per-task=1
-#
-# precise la memoire par coeur
-#SBATCH --mem-per-cpu=4000mb
-#
-#SBATCH -o output_%j.txt
-#SBATCH -e stderr_%j.txt
-# 
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=alistair.boyce@ens-lyon.fr
-##########################################
-source /usr/share/lmod/lmod/init/bash
-module use /applis/PSMN/debian11/Cascade/modules/all
-# Intel 2021.4.0
-module purge
-module load impi/2021.9.0-intel-compilers-2023.1.0
-#
 
 HOME=`echo ~`
 CODE_HOME=`pwd`
-source ${HOME}/.bash_profile
+# source ${HOME}/.bash_profile
 conda activate MTWSPy
 export PYTHONPATH=./MTWSPy:$PYTHONPATH
-export XDG_CACHE_HOME=${HOME}/tmp
-today=`date +%Y-%m-%d`
 
 ###################################################################
 
-cd $SLURM_SUBMIT_DIR
+# Main code
+python ./MTWSPy/MTWSPy_main.py
 
-# Check we have the right number of cores requested in params file.
+# Post Processing on *.tdl files
+python ./MTWSPy/post_processing/process_tdl_files.py 
 
-p_cores=`grep "cores: " params_in.yaml | awk '{print $2}'`
+# Create inversion ready file on Linux (Case sensitive paths issue on OSX)
+if [ `uname -s` !=  "Darwin" ]; then 
+    python ./MTWSPy/post_processing/create_inv_files.py
+fi 
 
-if [ ${SLURM_NTASKS_PER_NODE} != ${p_cores} ]; then
-    echo "Make sure number of cores is matching" 
-    echo "in params_in.yaml and run_MTWSPy.bash" 
-    echo "Currently: "${SLURM_NTASKS_PER_NODE}" & "${p_cores}
-    exit
-else
-    echo "Number of cores requested are equal" 
-    echo "Batch file: "${SLURM_NTASKS_PER_NODE}" & Params file: "${p_cores}
-    echo "Continue..." 
+# GMT Plotting - installation required:
+gmt_exists=`which gmt | wc -w`
+
+if [[ $gmt_exists -eq 1 ]]; then
+    echo "Plotting results using GMT..."
+    ./MTWSPy/post_processing/plot_phase.gmt S NO
 fi
-
-# ${HOME}/miniconda3/envs/MTWSPy/bin/python3.12 ./MTWSPy/MTWSPy_main.py
-MTWSPy_main
 
 ####################################################################
 exit

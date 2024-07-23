@@ -9,6 +9,8 @@ ENTRY_POINTS={
             'phase_association = MTWSPy.phase_association:main',
             'correlate_twin = MTWSPy.correlate_twin:main',
             'process_tdl_files = MTWSPy.post_processing.process_tdl_files:main',
+            'compare_tdl_files = MTWSPy.post_processing.compare_tdl_files:main',
+            'create_inv_files = MTWSPy.post_processing.create_inv_files:main',
         ]}
 
 setup(

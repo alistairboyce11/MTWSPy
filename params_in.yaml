@@ -26,7 +26,7 @@ fmt_data_loc: '/py_formatted' # file path suffix after obs_loc or syn_loc
 
 year: 2008 # year of data to process
 parallel: True # Run parallel processing
-cores: 4 # Number of cores to execute parallel
+cores: 8 # Number of cores to execute parallel
 verbose: False # Print progress to terminal, otherwise just to logfile.
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
@@ -192,7 +192,6 @@ max_tdelay: 25 # +/- time delay cut-off for difference in envelope peaks & corre
 max_tderr: 5 # Maximum travel time delay error predicted from Chevrot 2002
 min_xcc: 0.8 # minimum XC or Zaroli F3 coeff (could be lower if using Zaroli)
 
-
 # tdelay outfile formatting parameters (do not change)
 correlate_outcols: ['nslc','stla','stlo','stel','phase','tdelay','tderr','ccmx','ttaup','tp_obs','tp_syn','Ap_obs','Ap_syn']
 correlate_outfmt: '{0:s},{1:.4f},{2:.4f},{3:.1f},{4:s},{5:.2f},{6:.2f},{7:.2f},{8:.2f},{9:.2f},{10:.2f},{11:.2e},{12:.2e}'   #   '%s,%.4f,%.4f,%.4f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2e,%.2e';
@@ -203,38 +202,44 @@ correlate_outfmt: '{0:s},{1:.4f},{2:.4f},{3:.1f},{4:s},{5:.2f},{6:.2f},{7:.2f},{
 #                                                                                     # 
 # ---                                                                             --- #
 
-proc_tdl_loc: 'proc_tdelay'
+# Processed dataset parameters
 
-tt_out_f_name: 'Proc_tdl'
-date_time_min: '2008-01-01T00:00:00.000'
-date_time_max: '2008-12-31T23:59:59.999'
-networks: ['All'] # ['II', 'IU']
-components: ['T']
-sta_lat_max: 90
-sta_lat_min: -90
-sta_lon_max: 180
-sta_lon_min: -180
-phases: ['All'] #  ['ScS', 'S']
-tdl_max: 25
-ccmx_min: 0.8
-evt_lat_max: 90
-evt_lat_min: -90
-evt_lon_max: 180
-evt_lon_min: -180
-evt_dep_max: 1000
-evt_dep_min: 0
-evt_mag_max: 10.0
-evt_mag_min: 5.0
-dist_max: 180.0
-dist_min: 0.0
+proc_tdl_loc: 'proc_tdelay'               # Data out location
+tt_out_f_name: 'Proc_tdl'                 # Outfile name
+date_time_min: '2008-01-01T00:00:00.000'  # Start time
+date_time_max: '2008-12-31T23:59:59.999'  # End time
+networks: ['All']                         # Networks
+components: ['T']                         # Component
+sta_lat_max: 90                           # Max latitude of station
+sta_lat_min: -90                          # Min latitude of station
+sta_lon_max: 180                          # Max longitude of station
+sta_lon_min: -180                         # Min longitude of station
+phases: ['All'] # ['S', 'SS', 'ScS']      # Phase names requestd
+diff_phases: ['SS', 'S']                  # Two phase names for differential time
+tdl_max: 25                               # Max time delay
+ccmx_min: 0.8                             # Min cross-correlation coeff.
+evt_lat_max: 90                           # Max earthquake latitude
+evt_lat_min: -90                          # Max earthquake latitude
+evt_lon_max: 180                          # Max earthquake longitude
+evt_lon_min: -180                         # Min earthquake longitude
+evt_dep_max: 1000                         # Max earthquake depth
+evt_dep_min: 0                            # Min earthquake depth
+evt_mag_max: 10.0                         # Max earthquake magnitude
+evt_mag_min: 5.0                          # Min earthquake magnitude
+dist_max: 180.0                           # Max epicentral distance
+dist_min: 0.0                             # Min epicentral distance
 
-###  ----------------------- ####
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+#                                                                                     #
+#                                create_inv_files.py                                  #
+#                                                                                     # 
+# ---                                                                             --- #
 
-diff_phases: ['SS', 'S']
 
-
-
-
+outfile_phase_outfmt: '{0: 25.16f}{1: 25.16f}{2: 25.16f}{3: 25.16f}{4: 25.16f}{5: 25.16f}{6: 25.16f}'
+data_error_outfmt: '{0: 25.16f}{1: 25.16f}'
+path_outfmt: '{0: 12.7f}{1: 13.7f}{2: 13.7f}{3: 12.7f}'
+corr_outfmt: '{0: 12.6f}{1: 12.6f}'
 
 
 ...

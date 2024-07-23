@@ -9,3 +9,14 @@ def test_phases():
     assert 'Master' in phases
 
 
+
+def main():
+    test_phases()
+
+    return
+
+
+if __name__ == '__main__':
+    main()
+
+

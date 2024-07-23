@@ -10,7 +10,7 @@ def test_check_files():
     component = 'T'
     numfiles = tk.check_files(loc, year, component)
 
-    assert numfiles == 29
+    assert numfiles == 2109
 
 
 def test_get_params():
@@ -21,4 +21,16 @@ def test_get_params():
 
     assert 'obs' in params['obs_loc']
     assert 'syn' in params['syn_loc']
+
+
+def main():
+    test_check_files()
+    test_get_params()
+
+    return
+
+
+if __name__ == '__main__':
+    main()
+
 
