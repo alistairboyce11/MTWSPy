@@ -17,8 +17,8 @@ def test_get_tt_times():
     pf = 'params_in.yaml'
     params = tk.get_params(pf)
 
-    lf_name = 'temp_lf.log'
-    of_name = 'temp_of.log'
+    lf_name = 'test_output/temp_lf.log'
+    of_name = 'test_output/temp_of.log'
 
     logfile = open(lf_name,'w')
     outfile = open(of_name,'w')
@@ -27,7 +27,7 @@ def test_get_tt_times():
     input_dict['params_in'] = params
     input_dict['event_id'] = '20080101XXXXXX'
     input_dict['phases'] = Phases().get_phase_dictionary()
-    filename = './MTWSPy/data/obs/e2008/py_formatted/20080101063232/20080101063232_II_AAK.00.LHT'
+    filename = './MTWSPy/data/obs/e2008/py_formatted/20080101063232/20080101063232_IU_AFI.00.LHT'
     seis = read(filename)
 
     fail = 0
@@ -35,9 +35,9 @@ def test_get_tt_times():
     input_dict, filename, seis, logfile, outfile, fail = find_twin_obs.get_tt_times(input_dict, filename, seis, logfile, outfile, fail)
 
     assert 'ttt' in input_dict
-    assert seis[0].stats['station'] == 'AAK'
+    assert seis[0].stats['station'] == 'AFI'
     assert len(seis[0].stats['traveltimes']) == 15
-    assert np.round(seis[0].stats['traveltimes']['S'],1) == 72.4
+    assert np.round(seis[0].stats['traveltimes']['SS'],1) == 2176.7
 
     logfile.close()
     outfile.close()
@@ -45,5 +45,14 @@ def test_get_tt_times():
     os.remove(of_name)
 
 
+
+def main():
+    test_get_tt_times()
+
+    return
+
+
+if __name__ == '__main__':
+    main()
 
 

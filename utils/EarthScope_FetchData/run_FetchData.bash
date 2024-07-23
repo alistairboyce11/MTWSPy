@@ -32,14 +32,14 @@ module load impi/2021.9.0-intel-compilers-2023.1.0
 
 HOME=`echo ~`
 CODE_HOME=`pwd`
-source ${HOME}/.bash_profile
+# source ${HOME}/.bash_profile
 conda activate MTWSPy  
 export XDG_CACHE_HOME=${HOME}/tmp
 today=`date +%Y-%m-%d`
 
-year=2000
-months="2" # 1
-s_chan='LH'
+year="2016"
+months="1" #" 2 3 4 5 6" # "7 8 9 10 11 12" #
+s_chan="LH"
 
 ###################################################################
 # Check path for download: Specified in dl script.
@@ -51,7 +51,7 @@ cd $SLURM_SUBMIT_DIR
 # Check we have the right number of cores requested in params file.
 
 for month in $months; do
-    ${HOME}/miniconda3/envs/MTWSPy/bin/python /home/aboyce/d_data_obs/iris_FetchData/fetch_data.py ${year} ${month} ${s_chan}
+    python ./fetch_data.py ${year} ${month} ${s_chan}
 done
 
 ####################################################################

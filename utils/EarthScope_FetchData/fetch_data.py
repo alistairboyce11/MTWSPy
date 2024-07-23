@@ -8,10 +8,8 @@ if this fails: >> conda activate MTWSPy
 import time, sys, os, glob, shutil
 import numpy as np
 from obspy import UTCDateTime, read, read_inventory, Stream
-import obspy.signal
 import obspy.signal.rotate
 import obspy.geodetics.base
-import obspy.geodetics
 import pandas as pd
 import concurrent.futures
 import subprocess
@@ -19,8 +17,7 @@ import random
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
-class FetchData:
-
+class FetchData():
     """
     Class to handle serial/parallel download of seimic data and
     to format the data ready for MTWSPy travel time picking
@@ -30,7 +27,6 @@ class FetchData:
     the iris-FetchData scripts and save output to a formatted directory.
     Added complexity with rotation of components compared to 
     Synthetics that are already rotated in ZRT.
-
     """
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
@@ -55,31 +51,41 @@ class FetchData:
         if not os.path.exists(f'{data_loc}/e{year}'):
             os.makedirs(f'{data_loc}/e{year}', exist_ok=True)
 
-        # Syntax:
-        # ./FetchEvent -s {year}-01-01,01:01:00.000 -e {year}-12-31,23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -X {data_loc}/e{year}/{year}_events.xml -o {data_loc}/e{year}/{year}_events.out
-
-        # Execute Perl Scipt using subprocess
-        service = f'export SERVICEBASE=http://service.iris.edu;'
-        event = f'export EVENTWS=http://service.iris.edu/fdsnws/event/1;'
-
-        # Get months sorted for request
-        if month == 4 or month == 6 or month == 9 or month == 11:
-            num_days = 30
-        elif month == 2:#mois de Février, attention aux années bisextiles.
-            if np.mod(year,4) == 0:
-                num_days = 29
-            else:
-                num_days = 28
-        else:
-            num_days = 31
-            
         outfile_loc = f'{data_loc}/e{year}/{year}-{month:02d}_events.out'
-        event_metadata = [f'{service} {event} /home/aboyce/bin/FetchEvent -s {year}-{month:02d}-01,00:00:00.000 -e {year}-{month:02d}-{num_days},23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -o {outfile_loc}']
-        out = subprocess.check_output(event_metadata, shell=True)
+
+        if not os.path.exists(f'{outfile_loc}'):
+
+            # Syntax:
+            # ./FetchEvent -s {year}-01-01,01:01:00.000 -e {year}-12-31,23:59:59.999 
+            #       --depth 0:700 --mag 5.5:7.5 --cat GCMT 
+            #       -X {data_loc}/e{year}/{year}_events.xml 
+            #          -o {data_loc}/e{year}/{year}_events.out
+
+            # Execute Perl Scipt using subprocess
+            service = f'export SERVICEBASE=http://service.iris.edu;'
+            event = f'export EVENTWS=http://service.iris.edu/fdsnws/event/1;'
+
+            # Get months sorted for request
+            if month == 4 or month == 6 or month == 9 or month == 11:
+                num_days = 30
+            elif month == 2:#mois de Février, attention aux années bisextiles.
+                if np.mod(year,4) == 0:
+                    num_days = 29
+                else:
+                    num_days = 28
+            else:
+                num_days = 31
+                
+            event_metadata = [f'{service} {event} /home/aboyce/bin/FetchEvent -s {year}-{month:02d}-01,00:00:00.000 -e {year}-{month:02d}-{num_days},23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -o {outfile_loc}']
+            out = subprocess.check_output(event_metadata, shell=True)
 
         try:
             # Read cmt table, sort and re-index.
-            cmt_table = pd.read_csv(f'{outfile_loc}', delimiter="|", header=None, names = ['ev_num','ev_time','lat', 'lon', 'depth', 'cat', 'temp_cat', 'cmt_id', 'mag', 'location'])
+            cmt_table = pd.read_csv(f'{outfile_loc}', delimiter="|", header=None,
+                                         names = ['ev_num','ev_time','lat', 'lon', 
+                                                    'depth', 'cat', 'temp_cat', 
+                                                    'cmt_id', 'mag', 'location'])
+
             cmt_table = cmt_table.sort_values(by='ev_time').reset_index(drop=True)
 
             # Add ev_ids
@@ -97,6 +103,42 @@ class FetchData:
         
         return cmt_table
 
+
+    # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
+    def get_full_event_table(self, data_loc, year):
+        """
+        Concatenate all existing event files into one file for entire year
+
+        :param data_loc: Location to save data
+        :type data_loc: str
+        :param year: year of data to fetch
+        :type year: int/str
+
+        Saves YEAR_events.out
+        """
+
+        file_list = glob.glob(f'{data_loc}/e{year}/{year}-??_events.out')
+
+        names = ['ev_num','ev_time','lat', 'lon', 'depth', 
+                    'cat', 'temp_cat', 'cmt_id', 'mag', 'location']
+
+        cmt_table_full = pd.DataFrame()
+
+        for file in file_list:
+
+            try:
+                cmt_table = pd.read_csv(f'{file}', delimiter="|", header=None, names = names)
+
+                frames = [cmt_table_full, cmt_table]
+                cmt_table_full = pd.concat(frames)
+            except:
+                dummy=1
+
+        file_out = f'{data_loc}/e{year}/{year}_events.out'
+        cmt_table_full = cmt_table_full.sort_values(by='ev_time').reset_index(drop=True)
+        cmt_table_full.to_csv(str(file_out), sep="|", header=False, index = False)
+
+        return
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
     def get_datacenters(self):
@@ -162,41 +204,34 @@ class FetchData:
         :type inv_loc: str            
         """
 
-        # Syntax:
-        # FetchMetadata -C HH?,BH?,LH? -s 2011-01-01,00:00:00 -e 2011-01-01,01:00:00 -o IRIS_2011_stations.out
-        # Export environment variables and Execute perl script:
-
-        service = f'export SERVICEBASE={dc_loc_string};'
-        meta = f'export METADATAWS={dc_loc_string}/fdsnws/station/1;'
-
-        if channel == 'LH':
-            channels = 'HH?,BH?,LH?'
-        elif channel == 'BH':
-            channels = 'HH?,BH?'
-        elif channel == 'HH':
-            channels = 'HH?'
-
-        # # Get months sorted for request
-        # if month == 4 or month == 6 or month == 9 or month == 11:
-        #     num_days = 30
-        # elif month == 2:#mois de Février, attention aux années bisextiles.
-        #     if np.mod(year,4) == 0:
-        #         num_days = 29
-        #     else:
-        #         num_days = 28
-        # else:
-        #     num_days = 31
-
-        # station_metadata = [f'{service} {meta} /home/aboyce/bin/FetchMetadata -C {channels} -s {year}-{month:02d}-01,00:00:00 -e {year}-{month:02d}-{num_days:02d},23:59:59 -o {data_loc}/e{year}/{dc_name}_{year}-{month:02d}_stations.out -X {data_loc}/e{year}/{dc_name}_{year}-{month:02d}.xml -resp']
-        # out = subprocess.check_output(station_metadata, shell=True)
-
-
-
         outfile_loc = f'{data_loc}/e{year}/{dc_name}_{year}_stations.out'
         inv_loc = f'{data_loc}/e{year}/{dc_name}_{year}.xml'
 
-        if not os.path.exists(outfile_loc) and not os.path.exists(inv_loc):
-            # Necessary to downloda the metadata
+        if not os.path.exists(outfile_loc) or not os.path.exists(inv_loc):
+
+            # Syntax:
+            # FetchMetadata -C HH?,BH?,LH? -s 2011-01-01,00:00:00 -e 2011-01-01,01:00:00 -o IRIS_2011_stations.out
+            # Export environment variables and Execute perl script:
+
+            service = f'export SERVICEBASE={dc_loc_string};'
+            meta = f'export METADATAWS={dc_loc_string}/fdsnws/station/1;'
+
+            if channel == 'LH':
+                channels = 'HH?,BH?,LH?'
+            elif channel == 'BH':
+                channels = 'HH?,BH?'
+            elif channel == 'HH':
+                channels = 'HH?'
+
+            # station_metadata = [f'{service} {meta} /home/aboyce/bin/FetchMetadata 
+            #                       -C {channels} -s {year}-{month:02d}-01,00:00:00 
+            #                       -e {year}-{month:02d}-{num_days:02d},23:59:59 
+            #                       -o {data_loc}/e{year}/{dc_name}_{year}-{month:02d}_stations.out 
+            #                       -X {data_loc}/e{year}/{dc_name}_{year}-{month:02d}.xml -resp']
+
+            # out = subprocess.check_output(station_metadata, shell=True)
+
+            # Necessary to download the metadata
             station_metadata = [f'{service} {meta} /home/aboyce/bin/FetchMetadata -C {channels} -s {year}-01-01,00:00:00 -e {year}-12-31,23:59:59 -o {outfile_loc} -X {inv_loc} -resp']
             out = subprocess.check_output(station_metadata, shell=True)
 
@@ -237,7 +272,8 @@ class FetchData:
                     # Can have multiple start times, locs, channels BH1,2,E,N,Z
                     # Sort and keep first three.
                     if len(keep) > 3:
-                        keep = keep.sort_values(['start', 'loc', 'chan'], ascending=[True, True, True])[0:3]
+                        keep = keep.sort_values(['start', 'loc', 'chan'], 
+                                                ascending=[True, True, True])[0:3]
 
                     if len(out_stat_df) == 0:
                         out_stat_df = keep.copy()
@@ -361,11 +397,16 @@ class FetchData:
 
         chunk_f_name = f'{data_loc}/e{year}/py_formatted/{output_directory}/{output_directory}_chunk_request_{ev_id_count:03d}.txt'
 
-        # Write chunk to file
-        outfile = open(chunk_f_name,'w')
-        for j in range(len(chunk)):
-            outfile.write(chunk[j]+'\n')
-        outfile.close()
+        # Check if chunk file is already written 
+        # Can happen in cases of re-running downloads.
+
+        if not os.path.exists(f'{chunk_f_name}'):
+            # Write chunk to file
+            outfile = open(chunk_f_name,'w')
+            for j in range(len(chunk)):
+                outfile.write(chunk[j]+'\n')
+            outfile.close()
+
 
         return chunk_f_name
 
@@ -413,11 +454,14 @@ class FetchData:
         meta = f'export METADATAWS={dc_loc_string}/fdsnws/station/1;'
         time = f'export TIMESERIESWS={dc_loc_string}/fdsnws/dataselect/1;'
 
-        # Syntax:
-        # FetchData -l myselection.txt -o mydata.mseed
-        # Execute perl script using subprocess:
-        station_data = [f'{service} {time} {meta} /home/aboyce/bin/FetchData -l {chunk_f_name} -o {mseed_f_name}']
-        out = subprocess.check_output(station_data, shell=True)
+
+        # FetchData if mseed does not exist.
+        if not os.path.exists(mseed_f_name):
+            # Syntax:
+            # FetchData -l myselection.txt -o mydata.mseed
+            # Execute perl script using subprocess:
+            station_data = [f'{service} {time} {meta} /home/aboyce/bin/FetchData -l {chunk_f_name} -o {mseed_f_name}']
+            out = subprocess.check_output(station_data, shell=True)
 
         # Add inventory to the dict
         input_dict['inventory'] = read_inventory(inv_loc)
@@ -504,6 +548,9 @@ class FetchData:
             print(f'No events found for {year}, {month:02d}... Return')
             return
 
+        # Save a full year event table
+        self.get_full_event_table(data_loc, year)
+
         # Get datacenter details for download
         datacenters = self.get_datacenters()
 
@@ -517,7 +564,12 @@ class FetchData:
             dc_loc_string = dc_row['loc']
 
             # Get station metadata
-            out_stat_df, inv_loc = self.get_station_metadata(data_loc, year, month, channel, dc_name, dc_loc_string)
+            out_stat_df, inv_loc = self.get_station_metadata(data_loc, 
+                                                            year, 
+                                                            month, 
+                                                            channel, 
+                                                            dc_name, 
+                                                            dc_loc_string)
 
             if not out_stat_df.empty:
                 # Loop through CMT_table and then out_stat_df and create a combined request_df.
@@ -532,13 +584,17 @@ class FetchData:
                     end = f'{e_time.year:4d}-{e_time.month:02d}-{e_time.day:02d}T{e_time.hour:02d}:{e_time.minute:02d}:{e_time.second:02d}'
 
                     for k, sta_row in out_stat_df.iterrows():
-                        request_list.append([ev_time, ev_id, sta_row['net'], sta_row['sta'], sta_row['loc'], sta_row['chan'], start, end])
+                        request_list.append([ev_time, ev_id,
+                                             sta_row['net'], sta_row['sta'], 
+                                             sta_row['loc'], sta_row['chan'], 
+                                             start, end])
 
 
                 request_df = pd.DataFrame(request_list, columns = column_headers)
 
                 # Split request_df into chunks 
-                chunks, ev_ids, ev_id_counts = self.split_dataframe_by_ev_id(request_df, packet_request_size)
+                chunks, ev_ids, ev_id_counts = self.split_dataframe_by_ev_id(request_df, 
+                                                                            packet_request_size)
 
                 # Collate chunks and other info into input_dicts
                 if len(chunks) == len(ev_ids) and len(ev_ids) == len(ev_id_counts):
@@ -549,7 +605,12 @@ class FetchData:
                         output_directory = ev_ids[i]
                         ev_id_count = ev_id_counts[i]
 
-                        chunk_f_name = self.write_chunk_file(data_loc, year, month, output_directory, ev_id_count, chunk)
+                        chunk_f_name = self.write_chunk_file(data_loc, 
+                                                            year, 
+                                                            month, 
+                                                            output_directory, 
+                                                            ev_id_count, 
+                                                            chunk)
 
                         input_dict['data_loc'] = data_loc
                         input_dict['year'] = year
@@ -615,9 +676,6 @@ class FetchData:
         """
 
         if fail:
-            ###
-            # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
-            ###
             fail = 1
         else:
             ###
@@ -646,7 +704,7 @@ class FetchData:
             seis.stats['sac']['kcmpnm'] = channel
             seis.stats['sac']['khole'] = location
 
-            st_df = input_dict['out_stat_df'].query("(net == @network) and (sta == @station) and (chan  == @channel)")
+            st_df = input_dict['out_stat_df'].query("(net == @network) and (sta == @station) and (chan == @channel)")
 
             seis.stats['sac']['stla'] = st_df['lat'].values[0]
             seis.stats['sac']['stlo'] = st_df['lon'].values[0]
@@ -678,9 +736,6 @@ class FetchData:
         """
 
         if fail:
-            ###
-            # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
-            ###
             fail = 1
         else:
 
@@ -698,8 +753,13 @@ class FetchData:
 
             #### OUTPUT TO DISPLACEMENT ###
             try:
-                seis.remove_response(inventory=input_dict['inventory'], pre_filt=pre_filt, output="DISP", water_level=None)
+                seis.remove_response(inventory=input_dict['inventory'],     
+                                    pre_filt=pre_filt, 
+                                    output="DISP", 
+                                    water_level=None)
                 # print(f'rem_inst_resp for: {seis}')
+                # Setting idep does not work somehow...
+                # seis.stats['sac']['idep'] = "IDISP"
                 fail = 0
             except:
                 print(f'Failed to remove response for: {seis}')
@@ -724,9 +784,6 @@ class FetchData:
         """
 
         if fail:
-            ###
-            # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
-            ###
             fail = 1
         else:
             ###
@@ -755,9 +812,6 @@ class FetchData:
         """
 
         if fail:
-            ###
-            # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
-            ###
             fail = 1
         else:
             ###
@@ -769,7 +823,9 @@ class FetchData:
             else:
                 fmin = 0.01
                 fmax = 20
-            seis.filter('bandpass',freqmin=fmin,freqmax=fmax,corners=2,zerophase=True)
+            seis.filter('bandpass', freqmin=fmin, freqmax=fmax, 
+                                    corners=2,zerophase=True)
+
             # print(f'filter_seis for: {seis}')
         return input_dict, seis, fail
 
@@ -790,9 +846,6 @@ class FetchData:
         """
 
         if fail:
-            ###
-            # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
-            ###
             fail = 1
         else:
             # print(f'Interpolate seis: {file}')
@@ -821,9 +874,6 @@ class FetchData:
         :type fail: 1/0 or bool
         """
         if fail:
-            ###
-            # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
-            ###
             fail = 1
         else:
 
@@ -1162,9 +1212,9 @@ class FetchData:
             else:
                 # apply functions, only executed when fail = 0
                 for function in functions:
-                    input_dict, file_vertical, file_east, file_north, 
+                    (input_dict, file_vertical, file_east, file_north, 
                     vert_component, east_component, north_component, 
-                    fail = function(input_dict, file_vertical, file_east, 
+                    fail )= function(input_dict, file_vertical, file_east, 
                                     file_north, vert_component, east_component,
                                     north_component, fail)
 
@@ -1198,15 +1248,15 @@ class FetchData:
         :type fail: 1/0
         """
         if fail:
-            ###
-            # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
-            ###
             fail = 1
         else:
             
             # Check trace length and sample rate
             try:
-                if vert_component[0].stats.npts % 10 == 1 & east_component[0].stats.npts % 10 == 1 & north_component[0].stats.npts % 10 == 1:
+                if vert_component[0].stats.npts % 10 == 1 and \
+                    east_component[0].stats.npts % 10 == 1 and \
+                     north_component[0].stats.npts % 10 == 1:
+
                     # print('Caught XXXXX1 sample points')
                     vert_component[0].data=vert_component[0].data[:-1]
                     east_component[0].data=east_component[0].data[:-1]
@@ -1218,11 +1268,13 @@ class FetchData:
                 fail = 1
                 print(f'Failed length QC....')
             
-        return input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail
+        return input_dict, file_vertical, file_east, file_north, \
+                vert_component, east_component, north_component, fail
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def check_sample_rate(self, input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail):
+    def check_sample_rate(self, input_dict, file_vertical, file_east, file_north, 
+                            vert_component, east_component, north_component, fail):
         """
         Check sample rate - required for component rotation
 
@@ -1245,31 +1297,42 @@ class FetchData:
         :type fail: 1/0
         """
         if fail:
-            ###
-            # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
-            ###
             fail = 1
         else:
 
             try:
                 if input_dict['processing_channel'] == 'LH':
-                    if vert_component[0].stats.sampling_rate < 1.0 or east_component[0].stats.sampling_rate < 1.0 or north_component[0].stats.sampling_rate < 1.0:
+                    if vert_component[0].stats.sampling_rate < 1.0 or \
+                        east_component[0].stats.sampling_rate < 1.0 or \
+                        north_component[0].stats.sampling_rate < 1.0:
+
                         vert_component.resample(1)
                         east_component.resample(1)
                         north_component.resample(1)
-                        # print('Some issue with sample rate <1.0 for channel: ', input_dict['processing_channel'])
+                        # print('Some issue with sample rate <1.0 for channel: 
+                        # ', input_dict['processing_channel'])
+
                 if input_dict['processing_channel'] == 'BH':
-                    if vert_component[0].stats.sampling_rate < 0.02 or east_component[0].stats.sampling_rate < 0.02 or north_component[0].stats.sampling_rate < 0.02:
+                    if vert_component[0].stats.sampling_rate < 0.02 or \
+                        east_component[0].stats.sampling_rate < 0.02 or \
+                        north_component[0].stats.sampling_rate < 0.02:
+
                         vert_component.resample(0.02)
                         east_component.resample(0.02)
                         north_component.resample(0.02)
-                        # print('Some issue with sample rate <0.02 for channel: ', input_dict['processing_channel'])
+                        # print('Some issue with sample rate <0.02 for channel: 
+                        # ', input_dict['processing_channel'])
+
                 if input_dict['processing_channel'] == 'HH':
-                    if vert_component[0].stats.sampling_rate < 0.005 or east_component[0].stats.sampling_rate < 0.005 or north_component[0].stats.sampling_rate < 0.005:
+                    if vert_component[0].stats.sampling_rate < 0.005 or \
+                        east_component[0].stats.sampling_rate < 0.005 or \
+                        north_component[0].stats.sampling_rate < 0.005:
+
                         vert_component.resample(0.005)
                         east_component.resample(0.005)
                         north_component.resample(0.005)
-                        # print('Some issue with sample rate <0.005 for channel: ', input_dict['processing_channel'])
+                        # print('Some issue with sample rate <0.005 for channel: 
+                        # ', input_dict['processing_channel'])
                 
                 # print(f'Passed sample rate QC....')
                 fail = 0     
@@ -1277,11 +1340,13 @@ class FetchData:
                 fail = 1
                 print(f'Failed sample rate QC....')
             
-        return input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail
+        return input_dict, file_vertical, file_east, file_north, \
+                vert_component, east_component, north_component, fail
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def trim_components(self, input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail):
+    def trim_components(self, input_dict, file_vertical, file_east, file_north, 
+                                vert_component, east_component, north_component, fail):
         """
         Check Component length prior to rotation - need same length
 
@@ -1304,9 +1369,6 @@ class FetchData:
         :type fail: 1/0
         """
         if fail:
-            ###
-            # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
-            ###
             fail = 1
         else:
             # Trim files:
@@ -1348,11 +1410,13 @@ class FetchData:
                 print(f'Failed Trimming....')
                 fail = 1
 
-        return input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail
+        return input_dict, file_vertical, file_east, file_north, \
+                vert_component, east_component, north_component, fail
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def rotate_components(self, input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail):
+    def rotate_components(self, input_dict, file_vertical, file_east, file_north, 
+                            vert_component, east_component, north_component, fail):
         """
         Rotate components to ZRT & save
 
@@ -1375,9 +1439,6 @@ class FetchData:
         :type fail: 1/0
         """
         if fail:
-            ###
-            # toolkit.print_log(params_in, logfile, f'{log_statement:s}  ,  -SKIPPING-')
-            ###
             fail = 1
         else:
             
@@ -1386,8 +1447,8 @@ class FetchData:
 
             loc_Z=vert_component[0].stats.location
             seisZ = vert_component.select(channel='*HZ',location=loc_Z)
-            seisN_channel  = north_component[0].stats['channel']
-            seisE_channel  = east_component[0].stats['channel']
+            seisN_channel = north_component[0].stats['channel']
+            seisE_channel = east_component[0].stats['channel']
             seisN = north_component.select(channel=seisN_channel,location=loc_Z)
             seisE = east_component.select(channel=seisE_channel,location=loc_Z)
 
@@ -1404,22 +1465,26 @@ class FetchData:
                 print('Trace error in seisN/seisE')
                 print('Failed on N/E component')
                 fail = 1
-                return input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail
+                return input_dict, file_vertical, file_east, file_north, \
+                        vert_component, east_component, north_component, fail
             elif dip_seisE_temp == -90:
                 print('Trace error in seisN/seisE')
                 print('Failed on N/E component')
                 fail = 1
-                return input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail
+                return input_dict, file_vertical, file_east, file_north, \
+                        vert_component, east_component, north_component, fail
             elif dip_seisN_temp == -90:
                 print('Trace error in seisN/seisE')
                 print('Failed on N/E component')
                 fail = 1
-                return input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail
+                return input_dict, file_vertical, file_east, file_north, \
+                        vert_component, east_component, north_component, fail
             elif dip_seisZ_temp != -90.0:
                 print('Trace error in seisZ')
                 print('Failed on Z component')
                 fail = 1
-                return input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail
+                return input_dict, file_vertical, file_east, file_north, \
+                        vert_component, east_component, north_component, fail
 
 
             EVLA = seisZ[0].stats['sac']['evla']
@@ -1442,18 +1507,23 @@ class FetchData:
                     seisN[0].data = seisN[0].data[:-1]
                 if len(seisN[0].data) < len(seisE[0].data):
                     seisE[0].data = seisE[0].data[:-1]
-                if len(seisZ[0].data) > len(seisE[0].data) and len(seisZ[0].data) > len(seisN[0].data):
+                if len(seisZ[0].data) > len(seisE[0].data) and \
+                        len(seisZ[0].data) > len(seisN[0].data):
+
                     seisZ[0].data = seisZ[0].data[:-1]  
 
                 # Final check of length - if not remove.
-                if len(seisZ[0].data) != len(seisE[0].data) or len(seisZ[0].data) != len(seisN[0].data):
+                if len(seisZ[0].data) != len(seisE[0].data) or \
+                            len(seisZ[0].data) != len(seisN[0].data):
+
                     print('Trace length error in seisZ/seisN/seisE')
                     print('Length seisZ[0].data: '+str(len(seisZ[0].data)))
                     print('Length seisN[0].data: '+str(len(seisN[0].data)))
                     print('Length seisE[0].data: '+str(len(seisE[0].data)))
 
                     fail = 1
-                    return input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail
+                    return input_dict, file_vertical, file_east, file_north, \
+                            vert_component, east_component, north_component, fail
 
                 # Make sure North component is North and East component is East
                 if 45 < ori_seisN_temp < 135 or 225 < ori_seisN_temp < 315:
@@ -1498,40 +1568,40 @@ class FetchData:
 
                 # Radial
                 # seisR.stats['channel'] = str(input_dict['processing_channel']) + 'R'
-                seisR.stats['sac']['cmpaz']=AZ
-                seisR.stats['sac']['az']=AZ
-                seisR.stats['sac']['baz']=BAZ
-                seisR.stats['sac']['gcarc']=DISTDG
-                seisR.stats['sac']['kcmpnm']=str(input_dict['processing_channel'])+'R'
+                seisR.stats['sac']['cmpaz'] = AZ
+                seisR.stats['sac']['az'] = AZ
+                seisR.stats['sac']['baz'] = BAZ
+                seisR.stats['sac']['gcarc'] = DISTDG
+                seisR.stats['sac']['kcmpnm'] = str(input_dict['processing_channel']) + 'R'
 
                 # Tangential
                 # seisT.stats['channel'] = str(input_dict['processing_channel']) + 'T'
-                seisT.stats['sac']['cmpaz']=AZ+90.0
-                seisT.stats['sac']['az']=AZ
-                seisT.stats['sac']['baz']=BAZ
-                seisT.stats['sac']['gcarc']=DISTDG
-                seisT.stats['sac']['kcmpnm']=str(input_dict['processing_channel'])+'T'
+                seisT.stats['sac']['cmpaz'] = AZ + 90.0
+                seisT.stats['sac']['az'] = AZ
+                seisT.stats['sac']['baz'] = BAZ
+                seisT.stats['sac']['gcarc'] = DISTDG
+                seisT.stats['sac']['kcmpnm'] = str(input_dict['processing_channel']) + 'T'
 
                 # East
-                # seisE.stats['channel']=str(channel)+'E'
-                seisE.stats['sac']['cmpaz']=90.0
-                seisE.stats['sac']['az']=AZ
-                seisE.stats['sac']['baz']=BAZ
-                seisE.stats['sac']['gcarc']=DISTDG
-                seisE.stats['sac']['kcmpnm']=str(input_dict['processing_channel'])+'E'
+                # seisE.stats['channel'] = str(channel)+'E'
+                seisE.stats['sac']['cmpaz'] = 90.0
+                seisE.stats['sac']['az'] = AZ
+                seisE.stats['sac']['baz'] = BAZ
+                seisE.stats['sac']['gcarc'] = DISTDG
+                seisE.stats['sac']['kcmpnm'] = str(input_dict['processing_channel']) + 'E'
 
                 # North
-                # seisN.stats['channel']=str(channel)+'N'
-                seisN.stats['sac']['cmpaz']=0.0
-                seisN.stats['sac']['az']=AZ
-                seisN.stats['sac']['baz']=BAZ
-                seisN.stats['sac']['gcarc']=DISTDG
-                seisN.stats['sac']['kcmpnm']=str(input_dict['processing_channel'])+'N'
+                # seisN.stats['channel'] = str(channel)+'N'
+                seisN.stats['sac']['cmpaz'] = 0.0
+                seisN.stats['sac']['az'] = AZ
+                seisN.stats['sac']['baz'] = BAZ
+                seisN.stats['sac']['gcarc'] = DISTDG
+                seisN.stats['sac']['kcmpnm'] = str(input_dict['processing_channel']) + 'N'
 
                 # Vertical
-                seisZ[0].stats['sac']['az']=AZ
-                seisZ[0].stats['sac']['baz']=BAZ
-                seisZ[0].stats['sac']['gcarc']=DISTDG
+                seisZ[0].stats['sac']['az'] = AZ
+                seisZ[0].stats['sac']['baz'] = BAZ
+                seisZ[0].stats['sac']['gcarc'] = DISTDG
 
 
                 filename_E = str(file_vertical[:-1]) + 'E'
@@ -1554,11 +1624,13 @@ class FetchData:
             #     print(f'Failed Rotation....')
             #     fail = 1
 
-        return input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail
+        return input_dict, file_vertical, file_east, file_north, \
+                vert_component, east_component, north_component, fail
 
 
     # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
-    def cleanup_files(self, input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail):
+    def cleanup_files(self, input_dict, file_vertical, file_east, file_north, 
+                        vert_component, east_component, north_component, fail):
         """
         Clean up unused files
 
@@ -1615,7 +1687,8 @@ class FetchData:
             print(f'Failed Cleanup of {stat}* ....')
             fail = 1
 
-        return input_dict, file_vertical, file_east, file_north, vert_component, east_component, north_component, fail
+        return input_dict, file_vertical, file_east, file_north, \
+                vert_component, east_component, north_component, fail
 
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
@@ -1640,10 +1713,21 @@ def main():
         channel = str(sys.argv[3])
         print(f"Downloading {year}, {month:02d} for search data channel: {channel}")
 
+    # Save Data to this location
     data_loc = '/home/aboyce/d_data_obs/iris_FetchData'
-    processing_channel = 'LH' # output of processing, channel -> processing_channel: e.g., LH,BH,HH -> LH
-    packet_request_size = 100 # Number of files requested in each packet
-    jobs = 24 # Number of independent/parallel requests executed 
+    
+    # output of processing, channel -> processing_channel 
+    # Take all channels and normalise/filter to processing_channel
+    # e.g., LH,BH,HH -> LH
+    processing_channel = 'LH' 
+
+    # Number of files requested in each packet received from Datacenter
+    packet_request_size = 100 
+
+    # Number of independent/parallel requests executed 
+    # CAREFUL increasing too much - Datacenter can block thursty users
+    # 24 has been tested with broad success.
+    jobs = 24 
     if jobs > 1 and jobs <= 96:
         do_parallel = True
 

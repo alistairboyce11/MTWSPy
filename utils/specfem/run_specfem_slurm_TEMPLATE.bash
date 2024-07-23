@@ -31,7 +31,7 @@ module load impi/2021.9.0-intel-compilers-2023.1.0
 #
 
 HOME=`echo ~`
-source ${HOME}/.bash_profile
+# source ${HOME}/.bash_profile
 CMTDIR=`echo ${HOME}/d_data_obs/gcmt`
 export XDG_CACHE_HOME=${HOME}/tmp
 

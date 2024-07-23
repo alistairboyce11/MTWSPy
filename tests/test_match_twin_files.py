@@ -11,3 +11,17 @@ def test_find_common_events():
 
     from MTWSPy.match_twin_files import MatchTwinFiles
     match_twin_files = MatchTwinFiles(params)
+
+
+
+
+def main():
+    test_find_common_events()
+
+    return
+
+
+if __name__ == '__main__':
+    main()
+
+

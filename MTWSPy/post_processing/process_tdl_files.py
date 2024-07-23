@@ -360,7 +360,7 @@ class ProcessTdlFiles:
 
             for network in params['networks']:
 
-                string = f'network_'
+                string = f'{network}_'
 
                 res = input_df[input_df['nslc'].str.contains(string)]
                 cat_df = pd.concat([output_df, res], ignore_index=True)
@@ -832,36 +832,18 @@ def main():
     filtered_df = process_tdl_files.apply_stuff(params, filter_functions)
     
     print(filtered_df)
-    print('applied sort functions')
-
-    # Write outfile
-    # process_tdl_files.write_tdl_summary_file(params, filtered_df)
-
     output_directory = f"{params['home']}/{params['proc_tdl_loc']}/"
-
     filename = f"{params['tt_out_f_name']}"
     process_tdl_files.write_dataframe(output_directory, filename, filtered_df)
 
-
     # Get station means per phase:
-
     stat_means_df = process_tdl_files.get_station_means(params, filtered_df)
-
-    # process_tdl_files.write_station_means(params, stat_means_df)
-
     filename = f"{params['tt_out_f_name']}_station_means"
     process_tdl_files.write_dataframe(output_directory, filename, stat_means_df)
-
 
     # Find travel time differences
     print('Computing travel time differences for: '+str(params['diff_phases'][0])+' - '+str(params['diff_phases'][1]))
     tt_diff_output = process_tdl_files.compute_tt_diffs(filtered_df, params['diff_phases'])
-
-    print(tt_diff_output)
-
-    # # Write out file...
-    # process_tdl_files.write_tt_diff_summary_file(params, tt_diff_output)
-
     filename = f"{params['tt_out_f_name']}_{str(params['diff_phases'][0])}-{str(params['diff_phases'][1])}"
     process_tdl_files.write_dataframe(output_directory, filename, tt_diff_output)
 

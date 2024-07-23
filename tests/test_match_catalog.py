@@ -9,6 +9,7 @@ def test_get_catalogs():
 
     pf = 'params_in.yaml'
     params = tk.get_params(pf)
+    params['log_loc'] = 'test_output/log' # Log location
 
     mc = MatchCatalog(params)
 
@@ -22,3 +23,13 @@ def test_get_catalogs():
     os.remove('temp.log')
 
     assert len(data_cat) > 0
+
+
+def main():
+    test_get_catalogs()
+
+    return
+
+
+if __name__ == '__main__':
+    main()
