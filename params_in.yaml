@@ -229,7 +229,6 @@ evt_mag_min: 5.0                          # Min earthquake magnitude
 dist_max: 180.0                           # Max epicentral distance
 dist_min: 0.0                             # Min epicentral distance
 
-
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ # 
 #                                                                                     #
 #                                create_inv_files.py                                  #
