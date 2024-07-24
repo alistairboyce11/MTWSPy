@@ -41,7 +41,7 @@ class CreateInvFiles(CompareTdlFiles):
         :type input_df: pd.df
         """
 
-        of_loc = f'{params['home']}/inv_out_files/list/'
+        of_loc = f'{params['home']}/{params['inv_out_loc']}/list/'
         # print(of_loc)
 
         if not os.path.exists(of_loc):
@@ -64,28 +64,29 @@ class CreateInvFiles(CompareTdlFiles):
 
         for phase in phases:
 
-            of_name_phase = f'{of_loc}list{str(phase)}_evt_sta.dat'
-            outfile_phase = open(of_name_phase,'w')
-            outfile_phase_info = ''
-
             phase_df = input_df.query("phase == @phase")
-            
-            for index, row in phase_df.iterrows():
-                # list{phase}_evt_sta.dat: elat(k),elon(k),edep(k),slat(k),slon(k),dt(k),sig(k)
-                # data_error.dat: dt(k),sig(k)
-                outfile_phase_info  +=  params['outfile_phase_outfmt'].format(row['evt_lat'], 
-                                                                              row['evt_lon'], 
-                                                                              row['evt_dep'], 
-                                                                              row['stla'], 
-                                                                              row['stlo'], 
-                                                                              row['tdelay'], 
-                                                                              row['tderr']) + '\n' 
-                
-                outfile_error_info += params['data_error_outfmt'].format(row['tdelay'], 
-                                                                         row['tderr']) + '\n'
 
-            outfile_phase.write(outfile_phase_info)
-            outfile_phase.close()
+            if not phase_df.empty:
+                of_name_phase = f'{of_loc}list{str(phase)}_evt_sta.dat'
+                outfile_phase = open(of_name_phase,'w')
+                outfile_phase_info = ''
+
+                for index, row in phase_df.iterrows():
+                    # list{phase}_evt_sta.dat: elat(k),elon(k),edep(k),slat(k),slon(k),dt(k),sig(k)
+                    # data_error.dat: dt(k),sig(k)
+                    outfile_phase_info  +=  params['outfile_phase_outfmt'].format(row['evt_lat'], 
+                                                                                row['evt_lon'], 
+                                                                                row['evt_dep'], 
+                                                                                row['stla'], 
+                                                                                row['stlo'], 
+                                                                                row['tdelay'], 
+                                                                                row['tderr']) + '\n' 
+                    
+                    outfile_error_info += params['data_error_outfmt'].format(row['tdelay'], 
+                                                                            row['tderr']) + '\n'
+
+                outfile_phase.write(outfile_phase_info)
+                outfile_phase.close()
 
         outfile_error.write(outfile_error_info)
         outfile_error.close()
@@ -106,13 +107,13 @@ class CreateInvFiles(CompareTdlFiles):
         :type input_df: pd.df
         """
 
-        of_loc = f'{params['home']}/inv_out_files/paths/'
+        of_loc = f'{params['home']}/{params['inv_out_loc']}/paths/'
         # print(of_loc)
 
         if not os.path.exists(of_loc):
             os.makedirs(of_loc, exist_ok=True)
 
-        of_loc_corr = f'{params['home']}/inv_out_files/correction/'
+        of_loc_corr = f'{params['home']}/{params['inv_out_loc']}/correction/'
         # print(of_loc_corr)
 
         if not os.path.exists(of_loc_corr):
@@ -133,74 +134,74 @@ class CreateInvFiles(CompareTdlFiles):
         for phase in phases:
             input_dicts = []
 
-            path_name = f'{phase}Path'
-
-            path_loc = f'{of_loc}{path_name}'
-            if not os.path.exists(path_loc):
-                os.makedirs(path_loc, exist_ok=True)
-
-            corr_name = f'{phase}dt_correction.dat'
-
-
             phase_df = input_df.query("phase == @phase")
-
             phase_df = phase_df.reset_index()
 
-            for index, row in phase_df.iterrows():
-                if 1 :
-                    input_dict = {}
-                    input_dict['params'] = params
-                    input_dict['phase'] = phase
-                    input_dict['phase_num'] = "{0:0=8d}".format(index + 1) 
-                    input_dict['path_loc'] = f'{path_loc}'
-                    input_dict['path_file'] = f'{path_name}_{input_dict['phase_num']}'
+            if not phase_df.empty:
 
-                    input_dict['corr_loc'] = f'{of_loc_corr}'
-                    input_dict['corr_file'] = f'{corr_name}'
+                path_name = f'{phase}Path'
 
-                    input_dict['model'] = params['taup_model_name']
-                    input_dict['evt_lat'] = row['evt_lat']
-                    input_dict['evt_lon'] = row['evt_lon']
-                    input_dict['evt_dep'] = row['evt_dep']
-                    input_dict['stla'] = row['stla']
-                    input_dict['stlo'] = row['stlo']
-                    input_dict['stel'] = row['stel']
-                    # print(input_dict)
-                    input_dicts.append(input_dict)
+                path_loc = f'{of_loc}{path_name}'
+                if not os.path.exists(path_loc):
+                    os.makedirs(path_loc, exist_ok=True)
+
+                corr_name = f'{phase}dt_correction.dat'
+
+                for index, row in phase_df.iterrows():
+                    if 1 :
+                        input_dict = {}
+                        input_dict['params'] = params
+                        input_dict['phase'] = phase
+                        input_dict['phase_num'] = "{0:0=8d}".format(index + 1) 
+                        input_dict['path_loc'] = f'{path_loc}'
+                        input_dict['path_file'] = f'{path_name}_{input_dict['phase_num']}'
+
+                        input_dict['corr_loc'] = f'{of_loc_corr}'
+                        input_dict['corr_file'] = f'{corr_name}'
+
+                        input_dict['model'] = params['taup_model_name']
+                        input_dict['evt_lat'] = row['evt_lat']
+                        input_dict['evt_lon'] = row['evt_lon']
+                        input_dict['evt_dep'] = row['evt_dep']
+                        input_dict['stla'] = row['stla']
+                        input_dict['stlo'] = row['stlo']
+                        input_dict['stel'] = row['stel']
+                        # print(input_dict)
+                        input_dicts.append(input_dict)
 
 
-            if input_dicts:
+                if input_dicts:
 
-                if params['parallel'] and params['cores'] > 1:
-                    # Parallel processing
-                    with concurrent.futures.ProcessPoolExecutor(max_workers = params['cores']) as executor:
-                        r1 = executor.map(self.process_one_file_path, input_dicts)
-                        r2 = executor.map(self.process_one_file_corr, input_dicts)
+                    if params['parallel'] and params['cores'] > 1:
+                        # Parallel processing
+                        with concurrent.futures.ProcessPoolExecutor(max_workers = params['cores']) as executor:
+                            r1 = executor.map(self.process_one_file_path, input_dicts)
+                            r2 = executor.map(self.process_one_file_corr, input_dicts)
 
+                            # Write path to file
+                            outfile_path = open(f'{of_loc_corr}{corr_name}','w')
+                            outfile_path_info = ''
+
+                            for res in r2:
+                                # print(phase, params['corr_outfmt'].format(res[0], res[1]))
+                                outfile_path_info  +=  params['corr_outfmt'].format(res[0], res[1]) + '\n' 
+
+                            outfile_path.write(outfile_path_info)
+                            outfile_path.close()
+                    else:
+                        # Serial processing
                         # Write path to file
                         outfile_path = open(f'{of_loc_corr}{corr_name}','w')
                         outfile_path_info = ''
 
-                        for res in r2:
-                            # print(phase, params['corr_outfmt'].format(res[0], res[1]))
-                            outfile_path_info  +=  params['corr_outfmt'].format(res[0], res[1]) + '\n' 
+                        for input_dict in input_dicts:
+                            r1 = self.process_one_file_path(input_dict)
+                            r2 = self.process_one_file_corr(input_dict)
+                            # print(phase, params['corr_outfmt'].format(r2[0], r2[1]))
+                            outfile_path_info  +=  params['corr_outfmt'].format(r2[0], r2[1]) + '\n' 
 
                         outfile_path.write(outfile_path_info)
                         outfile_path.close()
-                else:
-                    # Serial processing
-                    # Write path to file
-                    outfile_path = open(f'{of_loc_corr}{corr_name}','w')
-                    outfile_path_info = ''
-
-                    for input_dict in input_dicts:
-                        r1 = self.process_one_file_path(input_dict)
-                        r2 = self.process_one_file_corr(input_dict)
-                        # print(phase, params['corr_outfmt'].format(r2[0], r2[1]))
-                        outfile_path_info  +=  params['corr_outfmt'].format(r2[0], r2[1]) + '\n' 
-
-                    outfile_path.write(outfile_path_info)
-                    outfile_path.close()
 
         return 
 
@@ -415,26 +416,28 @@ def main():
     filename = f"{params['tt_out_f_name']}"
 
     ######################### AL data - XC - T comp #########################
-    # Location where MTWSPy code is installed
-    # params['home'] = '/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy'
-
-    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/" # /FINAL/"
-
-    python_filtered_XC_df = create_inv_files.load_dataframe(params, 
-                                                            filter_functions, 
-                                                            output_directory, 
-                                                            filename)
-
-    python_filtered_XC_df = create_inv_files.filter_dataframe(params, 
-                                                              filter_functions, 
-                                                              python_filtered_XC_df)
+    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/" 
     
-    print(python_filtered_XC_df)
+    import platform
+    if not "Darwin" in platform.uname():
 
-    create_inv_files.write_dt_files(params, python_filtered_XC_df)
+        python_filtered_XC_df = create_inv_files.load_dataframe(params, 
+                                                                filter_functions, 
+                                                                output_directory, 
+                                                                filename)
 
-    create_inv_files.write_path_corr_files(params, python_filtered_XC_df)
+        python_filtered_XC_df = create_inv_files.filter_dataframe(params, 
+                                                                filter_functions, 
+                                                                python_filtered_XC_df)
+        
+        print(python_filtered_XC_df)
 
+        create_inv_files.write_dt_files(params, python_filtered_XC_df)
+
+        create_inv_files.write_path_corr_files(params, python_filtered_XC_df)
+
+    else:
+        print('Not creating inv_out_files')
 
 
 if __name__ == '__main__':
