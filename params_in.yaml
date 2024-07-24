@@ -35,8 +35,8 @@ verbose: False # Print progress to terminal, otherwise just to logfile.
 #                                                                                     # 
 # ---                                                                             --- # 
 
-cmt_infile: 'MTWSPy/data/gcmt_catalog.csv'
-cmt_outfile: 'cmt-events'
+cmt_infile: 'MTWSPy/data/gcmt_catalog.csv' # Location of gcmt catalog file
+cmt_outfile: 'cmt-events' # Prefix for match_catalog events file
 match_error_time: 5 # seconds
 match_error_lat: 0.5 # degrees
 match_error_lon: 0.5 # degrees
@@ -235,7 +235,7 @@ dist_min: 0.0                             # Min epicentral distance
 #                                                                                     # 
 # ---                                                                             --- #
 
-
+inv_out_loc: 'inv_out_files'               # Inversion ready files location
 outfile_phase_outfmt: '{0: 25.16f}{1: 25.16f}{2: 25.16f}{3: 25.16f}{4: 25.16f}{5: 25.16f}{6: 25.16f}'
 data_error_outfmt: '{0: 25.16f}{1: 25.16f}'
 path_outfmt: '{0: 12.7f}{1: 13.7f}{2: 13.7f}{3: 12.7f}'

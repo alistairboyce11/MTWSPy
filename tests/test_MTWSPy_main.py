@@ -12,7 +12,7 @@ from MTWSPy.correlate_twin import CorrelateTwin
 from MTWSPy.post_processing.process_tdl_files import ProcessTdlFiles
 from MTWSPy.post_processing.create_inv_files import CreateInvFiles
 
-import glob
+import glob, os 
 import numpy as np
 import platform
 
@@ -26,11 +26,14 @@ def test_MTWSPy_main():
 
     # Modify a few paths so that we dont put test data where real data will go
 
+    params_in['cmt_outfile'] = 'test_output/cmt-events' # Prefix for match_catalog events file
+    params_in['mtf_outfilename'] = f'test_output/{params_in['mtf_outfilename']}' # Matched twin files prefix
     params_in['log_loc'] = 'test_output/log' # Log location
     params_in['twin_loc'] = 'test_output/twin' # Time Window (twin) file location
     params_in['tdelay_loc'] = 'test_output/tdelay' # Time delay (tdelay) file location
     params_in['proc_tdl_loc'] = 'test_output/proc_tdelay' # Processed dataset location
-    params_in['verbose'] = True # Hide terminal output during test
+    params_in['inv_out_loc'] = 'test_output/inv_out_files' # Inversion ready files location
+    params_in['verbose'] = False # Hide terminal output during test
 
     # Define observed data input directory
     obs_input_directory = f'{str(params_in['obs_loc'])}/e{str(params_in['year'])}{str(params_in['fmt_data_loc'])}'
@@ -191,14 +194,13 @@ def test_MTWSPy_main():
     filename = f"{params_in['tt_out_f_name']}"
 
     ######################### AL data - XC - T comp #########################
-    # Location where MTWSPy code is installed
-    # params['home'] = '/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy'
-
+    
+    # The create_inv_files only works reliable on Linux as Mac is often not case-sensitive
     if not "Darwin" in platform.uname():
         print('Checking create inv')
 
 
-        output_directory = f"{params_in['home']}/{params_in['proc_tdl_loc']}/" # /FINAL/"
+        output_directory = f"{params_in['home']}/{params_in['proc_tdl_loc']}/"
 
         python_filtered_XC_df = create_inv_files.load_dataframe(params_in, 
                                                                 filter_functions, 
@@ -231,8 +233,6 @@ def test_MTWSPy_main():
     assert len(lines) == 35
 
     # Check we have 35 twin files for obs and syn and 35 tdelay output files.
-
-
     obs_twin_files = glob.glob(f'{params_in["home"]}/{params_in['twin_loc']}/phs/obs/OST/*twin')
     syn_twin_files = glob.glob(f'{params_in["home"]}/{params_in['twin_loc']}/phs/syn/MXT/*twin')
     tdl_files = glob.glob(f'{params_in['home']}/{params_in['tdelay_loc']}/OST-MXT/*tdl')
@@ -241,43 +241,59 @@ def test_MTWSPy_main():
     assert len(syn_twin_files) == 35
     assert len(tdl_files) == 35
 
-    # Now check tdelay file:
+    # Now check proc_tdelay file:
 
     tdl_df_test = create_inv_files.load_dataframe(params_in, 
                                                     filter_functions, 
                                                     f"{params_in['home']}/{params_in['proc_tdl_loc']}/", 
                                                     f"{params_in["tt_out_f_name"]}")
-    # print(tdl_df_test)
-
 
     tdl_df_orig = create_inv_files.load_dataframe(params_in, 
                                                     filter_functions, 
                                                     './MTWSPy/data/output_df/', 
                                                     '200801_IU_T_df')
-    # print(tdl_df_orig)
 
     assert len(tdl_df_test) == len(tdl_df_orig)
 
+    # Compare all values in dataframes
     for index, row in tdl_df_test.iterrows():
         true_vals = np.where((row == tdl_df_orig.iloc[index]) == True)[0]
         assert len(true_vals) == 25
 
 
-
     if not "Darwin" in platform.uname():
         print('Checking create inv')
+
+        # Check data_error.dat
+        data_error_file = glob.glob(f'{params_in["home"]}/{params_in['inv_out_loc']}/list/data_error.dat')
+        assert os.path.isfile(data_error_file[0]) == True
+        with open(data_error_file[0], 'r') as f:
+            lines = f.readlines()
+        assert len(lines) == 496
+
+        # Check listS_evt_sta.dat
+        listS_file = glob.glob(f'{params_in["home"]}/{params_in['inv_out_loc']}/list/listS_evt_sta.dat')
+        assert os.path.isfile(listS_file[0]) == True
+        with open(listS_file[0], 'r') as f:
+            lines = f.readlines()
+        assert len(lines) == 142
+        
+        # Check correction files
+        corr_files = glob.glob(f'{params_in["home"]}/{params_in['inv_out_loc']}/correction/*dat')
+        assert len(corr_files) == 14
+
+        Scorr_files = glob.glob(f'{params_in["home"]}/{params_in['inv_out_loc']}/correction/Sdt_correction.dat')
+        with open(Scorr_files[0], 'r') as f:
+            lines = f.readlines()
+        assert len(lines) == 142
+
+        # Number of path files
+        path_files = glob.glob(f'{params_in["home"]}/{params_in['inv_out_loc']}/paths/*/*dat')
+        assert len(path_files) == 496
     
     else:
         print('Not checking create_inv')
         
-        
-
-    #### DELETE ALL BELOW WHEN ITS FIXED  #############
-
-    ################### NOW MAKE TESTS/ASSERTIONS ##################
-
-    # Check the inv_out dir.
-
 def main():
     test_MTWSPy_main()
 

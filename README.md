@@ -17,6 +17,7 @@ This package includes codes to download and process seismic data, create corresp
 * We use [iris-fetch-scripts](https://github.com/EarthScope/fetch-scripts?tab=readme-ov-file) for download of seismic data.
 * We use [SPECFEM3D_GLOBE](https://specfem.org/) v8.0.0 available [here](https://github.com/SPECFEM/specfem3d_globe/releases/tag/v8.0.0) for calculation of global synthetic seismograms.
 * We use [ObsPy](https://docs.obspy.org/) for observed and synthetic data processing.
+* We use [TauP](https://github.com/crotwell/TauP?tab=readme-ov-file) in the native version from the command line for producing inversion ready outputs (Taup_path optional).
 
 The codes are designed to be run on a year-by-year basis to build up a travel time database progressively, thereby avoiding data storage issues where possible.
 
@@ -39,6 +40,7 @@ Parallelisation is used to speed up post-processing of observed and synthetic da
     * FetchEvent (iris link above)
     * FetchData (iris link above)
     * parallel_proc_specfem_seis.py (MTWSPy/utils/specfem)
+    * taup_path (GitHub TauP link above)
 
 ### MTWSPy
 
@@ -53,6 +55,8 @@ Parallelisation is used to speed up post-processing of observed and synthetic da
 `export PYTHONPATH=./MTWSPy:$PYTHONPATH`
 
 `pytest` (should pass all tests - includes full code run that takes minutes...)
+
+The above will create a test output directory called `test_output`
 
 <!-- ######################################################################## -->
 
@@ -98,6 +102,7 @@ navigate to `home`
 * __MTWSPy/run_MTWSPy.bash__ &rarr; Slurm batch scheduler 
 * __MTWSPy/post_processing/process_tdl_files.py__  &rarr; Time delay processing code
 * __MTWSPy/post_processing/compare_picks.py__  &rarr; Time delay comparison code
+* __MTWSPy/post_processing/create_inv_files.py__  &rarr; Create inversion ready
 * __MTWSPy/post_processing/plot_phase.gmt__  &rarr; Time delay plotting code
 
 
@@ -148,6 +153,8 @@ __MTWSPy/run_MTWSPy.bash__ &rarr; Execute code on cluster using SLURM batch sche
 __MTWSPy/post_processing/process_tdl_files.py__ &rarr; Time delay processing code to write station means or phase difference times from .tdl files produced by main code
 
 __MTWSPy/post_processing/compare_picks.py__ &rarr; Time delay processing code to compare datasets using that from different parameters produced by main code
+
+__MTWSPy/post_processing/create_inv_files.py__ &rarr; Creation of inversion ready files from time delay (.tdl) outputs by the MTWSPy algorithm in SEISGLOB2 formats (Linux only)
 
 __MTWSPy/post_processing/plot_phase.gmt__ &rarr; Time delay plotting code
 

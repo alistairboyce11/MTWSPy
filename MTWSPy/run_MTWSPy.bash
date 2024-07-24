@@ -15,7 +15,11 @@ python ./MTWSPy/MTWSPy_main.py
 python ./MTWSPy/post_processing/process_tdl_files.py 
 
 # Create inversion ready file on Linux (Case sensitive paths issue on OSX)
-if [ `uname -s` !=  "Darwin" ]; then 
+
+# TauP - installation required:
+taup_exists=`which taup_path | wc -w`
+
+if [[ `uname -s` !=  "Darwin" ]] && [[ $taup_exists -eq 1 ]]; then 
     python ./MTWSPy/post_processing/create_inv_files.py
 fi 
 
