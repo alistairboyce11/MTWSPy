@@ -44,6 +44,10 @@ Parallelisation is used to speed up post-processing of observed and synthetic da
 
 ### MTWSPy
 
+`git clone https://github.com/alistairboyce11/MTWSPy.git`
+
+`cd MTWSPy`
+
 `conda env create -f environment.yaml`
 
 `conda activate MTWSPy`
