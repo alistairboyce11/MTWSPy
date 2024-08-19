@@ -4,7 +4,7 @@
 # MTWSPy
 ***
 
-MTWSPy is a Python implementation of the Morphological Time Window Selection (MTWS) method first published in _Geophysical Journal International_ by Lei Li et al., ([2023](https://doi.org/10.1093/gji/ggad338)), including preceeding data processing workflow.
+[MTWSPy](https://github.com/alistairboyce11/MTWSPy) is a Python implementation of the Morphological Time Window Selection (MTWS) method first published in _Geophysical Journal International_ by Lei Li et al., ([2023](https://doi.org/10.1093/gji/ggad338)), including preceeding data processing workflow.
 
 <!-- ######################################################################## -->
 
@@ -18,10 +18,11 @@ This package includes codes to download and process seismic data, create corresp
 * We use [SPECFEM3D_GLOBE](https://specfem.org/) v8.0.0 available [here](https://github.com/SPECFEM/specfem3d_globe/releases/tag/v8.0.0) for calculation of global synthetic seismograms.
 * We use [ObsPy](https://docs.obspy.org/) for observed and synthetic data processing.
 * We use [TauP](https://github.com/crotwell/TauP?tab=readme-ov-file) in the native version from the command line for producing inversion ready outputs (Taup_path optional).
+* We use [Generic-Mapping-Tools](https://www.generic-mapping-tools.org/) for optional plotting of outputs.
 
 The codes are designed to be run on a year-by-year basis to build up a travel time database progressively, thereby avoiding data storage issues where possible.
 
-HPC operations are setup using an example from the PSMN cluster at ENS Lyon, France (96 cores per node) using the SLURM batch scheduler.
+HPC operations are setup using an example from the PSMN cluster at ENS Lyon, France (96 cores per node), using the SLURM batch scheduler.
 
 Parallelisation is used to speed up post-processing of observed and synthetic data and arrival time picking (python concurrent.futures) using the MTWS algorithm.
 
@@ -41,6 +42,7 @@ Parallelisation is used to speed up post-processing of observed and synthetic da
     * FetchData (iris link above)
     * parallel_proc_specfem_seis.py (MTWSPy/utils/specfem)
     * taup_path (GitHub TauP link above)
+    * gmt (Web link above)
 
 ### MTWSPy
 
@@ -72,7 +74,7 @@ The above will create a test output directory called `test_output`
 
 navigate to `utils/EarthScope_FetchData`
 
-* `FetchData.py` &rarr; launches obspy download via batch scheduler for given year (using run_FetchData.bash).
+* `fetch_data.py` &rarr; launches obspy download via batch scheduler for given year (using run_FetchData.bash).
 
 ### Generate Synthetics
 
@@ -103,9 +105,10 @@ navigate to `home`
 * __MTWSPy/phase_association.py__ &rarr; Associate observed & synth twin with a phase
 * __MTWSPy/correlate_twin.py__ &rarr; Correlate observed and synth time windows
 * __MTWSPy/MTWSPy_main.py__ &rarr; Execute main code
-* __MTWSPy/run_MTWSPy.bash__ &rarr; Slurm batch scheduler 
+* __MTWSPy/run_MTWSPy.bash__ &rarr; Bash script to execute code (e.g., interactively)
+* __MTWSPy/run_MTWSPy.batch__ &rarr; Slurm batch scheduler 
 * __MTWSPy/post_processing/process_tdl_files.py__  &rarr; Time delay processing code
-* __MTWSPy/post_processing/compare_picks.py__  &rarr; Time delay comparison code
+* __MTWSPy/post_processing/compare_tdl_files.py__  &rarr; Time delay comparison code
 * __MTWSPy/post_processing/create_inv_files.py__  &rarr; Create inversion ready
 * __MTWSPy/post_processing/plot_phase.gmt__  &rarr; Time delay plotting code
 
@@ -114,7 +117,7 @@ navigate to `home`
 
 The overall philospy of the code is to have a setup where we can just hit `GO` i.e. `MTWSPY_main` anywhere that can see you conda path.
 
-To do this we rely heavily on an input parameter file `params_in.yaml` which must be studied and adapted for purpose before using the code. All parameters are described/commented and are grouped with each relevant part of the code. This file is loaded before the execution of any part of the code.
+To do this we rely heavily on an input parameter file `params_in.yaml` which must be studied and adapted for purpose before using the code. All parameters are described/commented and are grouped with each relevant part of the code. This file is loaded before the execution of any part of the code. Please note the filenaming conventions for the "obs" and "syn" data paths in the parameter file.
 
 -> open params_in.yaml
 -> Check home, data_loc, synth_loc, fmt_data_loc, cmt_infile, year, parallel, cores
@@ -152,15 +155,17 @@ __MTWSPy/correlate_twin.py__ &rarr; Correlate observed and synth time windows us
 
 __MTWSPy/MTWSPy_main.py__ &rarr; Execute main code sequentially using params_in.yaml
 
-__MTWSPy/run_MTWSPy.bash__ &rarr; Execute code on cluster using SLURM batch scheduler
+__MTWSPy/run_MTWSPy.batch__ &rarr; Execute code on cluster using SLURM batch scheduler
+
+__MTWSPy/run_MTWSPy.bash__ &rarr; Execute code from bash directly
 
 __MTWSPy/post_processing/process_tdl_files.py__ &rarr; Time delay processing code to write station means or phase difference times from .tdl files produced by main code
 
-__MTWSPy/post_processing/compare_picks.py__ &rarr; Time delay processing code to compare datasets using that from different parameters produced by main code
+__MTWSPy/post_processing/compare_tdl_files.py__ &rarr; Time delay processing code to compare different datasets produced by main code (e.g., after varying parameters) 
 
 __MTWSPy/post_processing/create_inv_files.py__ &rarr; Creation of inversion ready files from time delay (.tdl) outputs by the MTWSPy algorithm in SEISGLOB2 formats (Linux only)
 
-__MTWSPy/post_processing/plot_phase.gmt__ &rarr; Time delay plotting code
+__MTWSPy/post_processing/plot_phase.gmt__ &rarr; Time delay plotting code (using Generic-Mapping-Tools)
 
 <!-- ######################################################################## -->
 
@@ -169,6 +174,10 @@ __MTWSPy/post_processing/plot_phase.gmt__ &rarr; Time delay plotting code
 ***
 
 The original serial code written in __matlab__ by Lei Li is available on request to stephanie.durand@ens-lyon.fr
+
+For installation and execution instructions please contact fabien.dubuffet@univ-lyon1.fr
+
+For bugs and technical problems please open an issue on Github.
 
 <!-- ######################################################################## -->
 

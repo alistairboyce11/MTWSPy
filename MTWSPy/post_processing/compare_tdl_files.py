@@ -83,7 +83,7 @@ class CompareTdlFiles(ProcessTdlFiles):
         unique_evid_2 = list(df_2['evid'].unique())
         n_evid_2 = len(unique_evid_2)
 
-        unique_evid = list(set(unique_evid_1 + unique_evid_2))
+        unique_evid = list(set(unique_evid_1) & set(unique_evid_2))
         n_evid = len(unique_evid)
 
 
@@ -154,6 +154,8 @@ class CompareTdlFiles(ProcessTdlFiles):
 
         else:
             print('No unique evid found')
+            print('So return empty dataframe...')
+            
             comp_df = pd.DataFrame()
         
         return comp_df
@@ -215,143 +217,148 @@ class CompareTdlFiles(ProcessTdlFiles):
         :type filename: str
         """
 
-        # Initialise Figure and add axes with constraints
-        fig = plt.figure(figsize  = (14,6))
+        if comp_df.empty:
+            # Comparison dataframe is empty so we do nothing...
+            print('Empty dataframe given')
+            print(f'So skipping plotting of {filename}...')
 
-        ax0 = fig.add_axes([0.05, 0.1, 0.25, 0.8], projection = None, 
-                           polar = False,facecolor = 'white',frame_on = True)
-        ax1 = fig.add_axes([0.39, 0.1, 0.25, 0.8], projection = None, 
-                           polar = False,facecolor = 'white',frame_on = True)
-        ax2 = fig.add_axes([0.73, 0.1, 0.25, 0.8], projection = None, 
-                           polar = False,facecolor = 'white',frame_on = True)
+        else:
 
-        axes_list_all = [ax0, ax1, ax2]
-        for j, ax in enumerate(axes_list_all):
-            ax.set_xticks([])
-            ax.set_yticks([])
+            # Initialise Figure and add axes with constraints
+            fig = plt.figure(figsize  = (14,6))
 
-            ax.spines["right"].set_linewidth(1.5)
-            ax.spines["left"].set_linewidth(1.5)
-            ax.spines["top"].set_linewidth(1.5)
-            ax.spines["bottom"].set_linewidth(1.5)
-            ax.tick_params(labelsize = 12)
+            ax0 = fig.add_axes([0.05, 0.1, 0.25, 0.8], projection = None, 
+                            polar = False,facecolor = 'white',frame_on = True)
+            ax1 = fig.add_axes([0.39, 0.1, 0.25, 0.8], projection = None, 
+                            polar = False,facecolor = 'white',frame_on = True)
+            ax2 = fig.add_axes([0.73, 0.1, 0.25, 0.8], projection = None, 
+                            polar = False,facecolor = 'white',frame_on = True)
+
+            axes_list_all = [ax0, ax1, ax2]
+            for j, ax in enumerate(axes_list_all):
+                ax.set_xticks([])
+                ax.set_yticks([])
+
+                ax.spines["right"].set_linewidth(1.5)
+                ax.spines["left"].set_linewidth(1.5)
+                ax.spines["top"].set_linewidth(1.5)
+                ax.spines["bottom"].set_linewidth(1.5)
+                ax.tick_params(labelsize = 12)
 
 
-        # Correlation plot 
-        ax0.set_title(f'tdelay df1 v.s. df2',fontsize = 14)
-        ax0.set_xlim([-1*(60), 60])
-        ax0.set_ylim([-1*(60), 60])
-        ax0.xaxis.set_minor_locator(MultipleLocator(5))
-        ax0.xaxis.set_major_locator(MultipleLocator(25))
-        ax0.yaxis.set_minor_locator(MultipleLocator(5))
-        ax0.yaxis.set_major_locator(MultipleLocator(25))
+            # Correlation plot 
+            ax0.set_title(f'tdelay df1 v.s. df2',fontsize = 14)
+            ax0.set_xlim([-1*(60), 60])
+            ax0.set_ylim([-1*(60), 60])
+            ax0.xaxis.set_minor_locator(MultipleLocator(5))
+            ax0.xaxis.set_major_locator(MultipleLocator(25))
+            ax0.yaxis.set_minor_locator(MultipleLocator(5))
+            ax0.yaxis.set_major_locator(MultipleLocator(25))
 
-        ax0.set_xlabel('tdelay df1 [s]',fontsize = 14)
-        ax0.set_ylabel('tdelay df2 [s]',fontsize = 14)
+            ax0.set_xlabel('tdelay df1 [s]',fontsize = 14)
+            ax0.set_ylabel('tdelay df2 [s]',fontsize = 14)
 
-        ax0.scatter(comp_df["tdelay_df1"], comp_df["tdelay_df2"], 
-                    s = 2, color = 'k')
+            ax0.scatter(comp_df["tdelay_df1"], comp_df["tdelay_df2"], 
+                        s = 2, color = 'k')
 
-        ax0.plot([-60,60], [-60,60], ls = '-', lw = 0.5, color = 'g')
+            ax0.plot([-60,60], [-60,60], ls = '-', lw = 0.5, color = 'g')
 
-        # Histogram of differences 
-        ax1.hist(comp_df["tdelay_diff"], bins=np.arange(-50, 50+1 , 2), 
-                 color='blue', alpha=0.7)  # Adjust bins and color as needed
+            # Histogram of differences 
+            ax1.hist(comp_df["tdelay_diff"], bins=np.arange(-50, 50+1 , 2), 
+                    color='blue', alpha=0.7)  # Adjust bins and color as needed
 
-        # Add labels and title
-        ax1.set_xlabel('tdelay Difference',fontsize = 14)
-        ax1.set_ylabel('Frequency',fontsize = 14)
-        ax1.set_title('Histogram of tdelay Difference',fontsize = 14)
-        ax1.set_xlim([-1*(50), 50])
-        ax1.set_ylim([0, 5000])
-        ax1.xaxis.set_minor_locator(MultipleLocator(5))
-        ax1.xaxis.set_major_locator(MultipleLocator(15))
-        ax1.yaxis.set_minor_locator(MultipleLocator(250))
-        ax1.yaxis.set_major_locator(MultipleLocator(1000))
+            # Add labels and title
+            ax1.set_xlabel('tdelay Difference',fontsize = 14)
+            ax1.set_ylabel('Frequency',fontsize = 14)
+            ax1.set_title('Histogram of tdelay Difference',fontsize = 14)
+            ax1.set_xlim([-1*(50), 50])
+            ax1.set_ylim([0, 5000])
+            ax1.xaxis.set_minor_locator(MultipleLocator(5))
+            ax1.xaxis.set_major_locator(MultipleLocator(15))
+            ax1.yaxis.set_minor_locator(MultipleLocator(250))
+            ax1.yaxis.set_major_locator(MultipleLocator(1000))
 
-        # Dist tdelay plot:
+            # Dist tdelay plot:
 
-        dist_t_df2 = ax2.scatter(comp_df["dist"], 
-                                 comp_df["ttaup"] + comp_df["tdelay_df2"], 
-                                 s = 2, color = 'b', label = f'df2')
-        dist_t_df1 = ax2.scatter(comp_df["dist"], 
-                                 comp_df["ttaup"] + comp_df["tdelay_df1"], 
-                                 s = 2, color = 'r', label = f'df1') # 
+            dist_t_df2 = ax2.scatter(comp_df["dist"], 
+                                    comp_df["ttaup"] + comp_df["tdelay_df2"], 
+                                    s = 2, color = 'b', label = f'df2')
+            dist_t_df1 = ax2.scatter(comp_df["dist"], 
+                                    comp_df["ttaup"] + comp_df["tdelay_df1"], 
+                                    s = 2, color = 'r', label = f'df1') # 
 
-        # Add labels and title
-        ax2.set_xlabel('Epicentral Distance',fontsize = 14)
-        ax2.set_ylabel('tdelay',fontsize = 14)
-        ax2.set_title('tdelay against dist',fontsize = 14)
-        ax2.set_xlim([0, 180])
-        ax2.set_ylim([0, 3600])
-        ax2.xaxis.set_minor_locator(MultipleLocator(15))
-        ax2.xaxis.set_major_locator(MultipleLocator(45))
-        ax2.yaxis.set_minor_locator(MultipleLocator(250))
-        ax2.yaxis.set_major_locator(MultipleLocator(1000))
+            # Add labels and title
+            ax2.set_xlabel('Epicentral Distance',fontsize = 14)
+            ax2.set_ylabel('tdelay',fontsize = 14)
+            ax2.set_title('tdelay against dist',fontsize = 14)
+            ax2.set_xlim([0, 180])
+            ax2.set_ylim([0, 3600])
+            ax2.xaxis.set_minor_locator(MultipleLocator(15))
+            ax2.xaxis.set_major_locator(MultipleLocator(45))
+            ax2.yaxis.set_minor_locator(MultipleLocator(250))
+            ax2.yaxis.set_major_locator(MultipleLocator(1000))
 
-        # ax2.legend(loc = 'upper right', fontsize = 10)
-        plt.sca(ax2)
-        plt.legend([dist_t_df1, dist_t_df2], ['df1', 'df2'], 
-                   loc = 'lower right', fontsize = 10)
+            # ax2.legend(loc = 'upper right', fontsize = 10)
+            plt.sca(ax2)
+            plt.legend([dist_t_df1, dist_t_df2], ['df1', 'df2'], 
+                    loc = 'lower right', fontsize = 10)
 
-        ax0.annotate('a',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
-                     fontsize = 12,textcoords = 'offset points', color = 'k',
-                       backgroundcolor = 'none',ha = 'left', va = 'top', 
-                       bbox = dict(facecolor = 'white',edgecolor = 'black', 
-                       pad = 2.0))
-        num_picks = len(comp_df)
-        ax0.annotate(f'Picks: {num_picks}',(1, 1),xytext = (-5,-5),xycoords = 'axes fraction',
-                    fontsize = 12,textcoords = 'offset points', color = 'k', 
-                    backgroundcolor = 'none',ha = 'right', va = 'top', 
-                    bbox = dict(facecolor = 'white',edgecolor = 'black', 
-                    pad = 2.0))
-        
-        ax1.annotate('b',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
-                     fontsize = 12,textcoords = 'offset points', color = 'k', 
-                     backgroundcolor = 'none',ha = 'left', va = 'top', 
-                     bbox = dict(facecolor = 'white',edgecolor = 'black', 
-                     pad = 2.0))
-        
+            ax0.annotate('a',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
+                        fontsize = 12,textcoords = 'offset points', color = 'k',
+                        backgroundcolor = 'none',ha = 'left', va = 'top', 
+                        bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                        pad = 2.0))
+            num_picks = len(comp_df)
+            ax0.annotate(f'Picks: {num_picks}',(1, 1),xytext = (-5,-5),xycoords = 'axes fraction',
+                        fontsize = 12,textcoords = 'offset points', color = 'k', 
+                        backgroundcolor = 'none',ha = 'right', va = 'top', 
+                        bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                        pad = 2.0))
+            
+            ax1.annotate('b',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
+                        fontsize = 12,textcoords = 'offset points', color = 'k', 
+                        backgroundcolor = 'none',ha = 'left', va = 'top', 
+                        bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                        pad = 2.0))
+            
 
-        mean_tdiff = np.round(np.mean(comp_df["tdelay_diff"]),2)
-        ax1.annotate(f'Mean: {mean_tdiff}',(0.5, 1),xytext = (0,-5),xycoords = 'axes fraction',
-                    fontsize = 12,textcoords = 'offset points', color = 'k', 
-                    backgroundcolor = 'none',ha = 'center', va = 'top', 
-                    bbox = dict(facecolor = 'white',edgecolor = 'black', 
-                    pad = 2.0))            
+            mean_tdiff = np.round(np.mean(comp_df["tdelay_diff"]),2)
+            ax1.annotate(f'Mean: {mean_tdiff}',(0.5, 1),xytext = (0,-5),xycoords = 'axes fraction',
+                        fontsize = 12,textcoords = 'offset points', color = 'k', 
+                        backgroundcolor = 'none',ha = 'center', va = 'top', 
+                        bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                        pad = 2.0))            
 
-        std_tdiff = np.round(np.std(comp_df["tdelay_diff"]),2)
-        ax1.annotate(f'Std: {std_tdiff}',(1, 1),xytext = (-5,-5),xycoords = 'axes fraction',
-                    fontsize = 12,textcoords = 'offset points', color = 'k', 
-                    backgroundcolor = 'none',ha = 'right', va = 'top', 
-                    bbox = dict(facecolor = 'white',edgecolor = 'black', 
-                    pad = 2.0))
-        
+            std_tdiff = np.round(np.std(comp_df["tdelay_diff"]),2)
+            ax1.annotate(f'Std: {std_tdiff}',(1, 1),xytext = (-5,-5),xycoords = 'axes fraction',
+                        fontsize = 12,textcoords = 'offset points', color = 'k', 
+                        backgroundcolor = 'none',ha = 'right', va = 'top', 
+                        bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                        pad = 2.0))
+            
 
-        ax2.annotate('c',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
-                     fontsize = 12,textcoords = 'offset points', color = 'k', 
-                     backgroundcolor = 'none',ha = 'left', va = 'top', 
-                     bbox = dict(facecolor = 'white',edgecolor = 'black', 
-                     pad = 2.0))
-        
-        phase_name = filename.split('_')[-1]
-        ax2.annotate(f'Phase: {phase_name}',(1, 1),xytext = (-5,-5),xycoords = 'axes fraction',
-                    fontsize = 12,textcoords = 'offset points', color = 'k', 
-                    backgroundcolor = 'none',ha = 'right', va = 'top', 
-                    bbox = dict(facecolor = 'white',edgecolor = 'black', 
-                    pad = 2.0))
+            ax2.annotate('c',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
+                        fontsize = 12,textcoords = 'offset points', color = 'k', 
+                        backgroundcolor = 'none',ha = 'left', va = 'top', 
+                        bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                        pad = 2.0))
+            
+            phase_name = filename.split('_')[-1]
+            ax2.annotate(f'Phase: {phase_name}',(1, 1),xytext = (-5,-5),xycoords = 'axes fraction',
+                        fontsize = 12,textcoords = 'offset points', color = 'k', 
+                        backgroundcolor = 'none',ha = 'right', va = 'top', 
+                        bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                        pad = 2.0))
 
-        # Save plot:
-        if not os.path.exists(output_directory):
-            os.makedirs(output_directory, exist_ok=True)
+            # Save plot:
+            if not os.path.exists(output_directory):
+                os.makedirs(output_directory, exist_ok=True)
 
-        filename_out = f'{output_directory}{filename}.png'
+            filename_out = f'{output_directory}{filename}.png'
+            print(f'Sending output to: {str(filename_out)}')
 
-        print(f'Sending output to: {str(filename_out)}')
-
-        plt.savefig(filename_out, format = 'png')
-
-        plt.close()
+            plt.savefig(filename_out, format = 'png')
+            plt.close()
 
         return
 
@@ -571,10 +578,6 @@ class CompareTdlFiles(ProcessTdlFiles):
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
 def main():
-    # matlab_code/tdelay/OST-MXT/
-    # Lei_Results/tdelay/OST-MXT/
-    # python_code/tdelay/OST-MXT/
-
     # Create instance of toolkit as tk
     tk = Toolkit()
     params = tk.get_params('params_in.yaml')
@@ -608,320 +611,54 @@ def main():
 
     filename = f"{params['tt_out_f_name']}"
 
-    # ######################### Lei original results 2008 data - XC matlab #####
-    # # Location where MTWSPy code is installed
-    # params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Lei_matlab_Results_OCT21' 
-    # output_directory = f"{params['home']}/{params['proc_tdl_loc']}/"
+    ######################### AL JAN 2008 data - XC - T comp #########################
 
-    # lei_matlab_filtered_df = compare_tdl_files.load_dataframe(params, 
-    #                                                           filter_functions, 
-    #                                                           output_directory, 
-    #                                                           filename)
-    # # Remove duplicates in matlab databases
-    # lei_matlab_filtered_df = compare_tdl_files.remove_duplication(lei_matlab_filtered_df)
-
-    # print(lei_matlab_filtered_df)
-
-    # ######################### Lei original code, al results ##################
-    # # Location where MTWSPy code is installed
-    # params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Al_matlab_results_DEC23' 
-    # output_directory = f"{params['home']}/{params['proc_tdl_loc']}/"
-
-    # al_matlab_filtered_df = compare_tdl_files.load_dataframe(params, 
-    #                                                          filter_functions, 
-    #                                                          output_directory, 
-    #                                                          filename)
-    # # Remove duplicates in matlab databases
-    # al_matlab_filtered_df = compare_tdl_files.remove_duplication(al_matlab_filtered_df)
-
-    # print(al_matlab_filtered_df)
-
-
-    ######################### AL 2008 data - XC - T comp #########################
-    # Updated with filtering fix
-    # Location where MTWSPy code is installed
-    params['home'] = '/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy' 
-
-    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/FINAL/"
+    output_directory = f"{params['home']}/MTWSPy/data/output_df/"
 
     al_python_filtered_XC_df = compare_tdl_files.load_dataframe(params, 
                                                                 filter_functions, 
                                                                 output_directory, 
-                                                                filename)
+                                                                "Proc_tdl_AB_JAN_2008")
     print(al_python_filtered_XC_df)
 
 
-    ######################### AL 2008 data - XC - Z comp #########################
-    # Location where MTWSPy code is installed
-    params['home'] = '/Users/alistair/Google_Drive/Lyon_Pdoc/P_MTWSPy' 
 
-    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/Z_COMPS/"
+    #########################        USER PICKS             #########################
 
-    al_python_filtered_XC_ZCOMP_df = compare_tdl_files.load_dataframe(params, 
+    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/"
+
+    user_python_filtered_XC_df = compare_tdl_files.load_dataframe(params, 
                                                                 filter_functions, 
                                                                 output_directory, 
                                                                 filename)
-    print(al_python_filtered_XC_ZCOMP_df)
+    print(user_python_filtered_XC_df)
 
 
-    ######################### AL 2008 data - XC - R comp #########################
-    # Location where MTWSPy code is installed
-    params['home'] = '/Users/alistair/Google_Drive/Lyon_Pdoc/P_MTWSPy' 
-
-    output_directory = f"{params['home']}/{params['proc_tdl_loc']}/R_COMPS/"
-
-    al_python_filtered_XC_RCOMP_df = compare_tdl_files.load_dataframe(params, 
-                                                                filter_functions, 
-                                                                output_directory, 
-                                                                filename)
-    print(al_python_filtered_XC_RCOMP_df)
-
-
-
-
-    # ######################### AL 2008 data - XC #########################
-    # # Updated with known filter error
-    # output_directory = f"{params['home']}/{params['proc_tdl_loc']}/FE/"
-
-    # al_python_filtered_XC_FE_df = compare_tdl_files.load_dataframe(params, 
-    #                                                             filter_functions, 
-    #                                                             output_directory, 
-    #                                                             filename)
-    # print(al_python_filtered_XC_FE_df)
-
-
-    # ######################### AL 2008 data - Zaroli #########################
-    # # Location where MTWSPy code is installed
-    # # params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/python_code/poss_filter_error'
-
-    # output_directory = f"{params['home']}/{params['proc_tdl_loc']}/ZR/"
-    
-    # al_python_filtered_ZR_df = compare_tdl_files.load_dataframe(params, 
-    #                                                             filter_functions, 
-    #                                                             output_directory, 
-    #                                                             filename)
-    # print(al_python_filtered_ZR_df)
-
-
-
-    # ######################### Zaroli et al (2010) #########################
-    # # Filter for 2008 data.
-    # #
-    # # First read into compatible df.
-    # params['home'] = '/Users/alistair/Lyon_Pdoc/Lei_Li_codes_data/Zaroli_Results' 
-
-    # output_directory = f"{params['home']}/{params['proc_tdl_loc']}/"
-    # filename = 'NEW2021__with_earthquake_origin_time__ZaroliBodyWaveDataSEISGLOB__Part?.txt'
-    
-    # file_outname = 'Proc_tdl'
-
-    # Zaroli_filtered_df = compare_tdl_files.get_Zaroli_dataframe(params, 
-    #                                                             filter_functions, 
-    #                                                             output_directory, 
-    #                                                             filename, 
-    #                                                             file_outname)
-
-    # print(Zaroli_filtered_df)
+    #########################        PROCESSING            #########################
 
 
     al_python_filtered_XC_df_S = al_python_filtered_XC_df.query("phase == 'S'")
-    al_python_filtered_XC_ZCOMP_df_S = al_python_filtered_XC_ZCOMP_df.query("phase == 'S'")
-    al_python_filtered_XC_RCOMP_df_S = al_python_filtered_XC_RCOMP_df.query("phase == 'S'")
+    user_python_filtered_XC_df_S = user_python_filtered_XC_df.query("phase == 'S'")
 
 
-    print(f'Mean S TCOMP: {np.mean(al_python_filtered_XC_df_S["tdelay"])}')
-    print(f'Mean S ZCOMP: {np.mean(al_python_filtered_XC_ZCOMP_df_S["tdelay"])}')
-    print(f'Mean S RCOMP: {np.mean(al_python_filtered_XC_RCOMP_df_S["tdelay"])}')
+    print(f'Mean S TCOMP AL: {np.mean(al_python_filtered_XC_df_S["tdelay"])}')
+    print(f'Mean S TCOMP USER: {np.mean(user_python_filtered_XC_df_S["tdelay"])}')
 
-    comp_al_py_XC_TCOMP_ZCOMP_df_all = compare_tdl_files.find_common_picks(al_python_filtered_XC_df, al_python_filtered_XC_ZCOMP_df)
-    comp_al_py_XC_TCOMP_RCOMP_df_all = compare_tdl_files.find_common_picks(al_python_filtered_XC_df, al_python_filtered_XC_RCOMP_df)
-    comp_al_py_XC_ZCOMP_RCOMP_df_all = compare_tdl_files.find_common_picks(al_python_filtered_XC_ZCOMP_df, al_python_filtered_XC_RCOMP_df)
+    comp_al_user_py_XC_TCOMP_df_all = compare_tdl_files.find_common_picks(al_python_filtered_XC_df, user_python_filtered_XC_df)
 
-
-    out_dir = '/Users/alistair/Google_Drive/Lyon_Pdoc/MTWS_code_comps/TCOMP_vs_ZCOMP_vs_RCOMP/'
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_TCOMP_ZCOMP_df_all, out_dir, 'comp_al_py_XC_TCOMP_ZCOMP_df_all')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_TCOMP_RCOMP_df_all, out_dir, 'comp_al_py_XC_TCOMP_RCOMP_df_all')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_ZCOMP_RCOMP_df_all, out_dir, 'comp_al_py_XC_ZCOMP_RCOMP_df_all')
-
-
-    comp_al_py_XC_TCOMP_ZCOMP_df_all_S = comp_al_py_XC_TCOMP_ZCOMP_df_all.query("phase == 'S'")
-    comp_al_py_XC_TCOMP_RCOMP_df_all_S = comp_al_py_XC_TCOMP_RCOMP_df_all.query("phase == 'S'")
-    comp_al_py_XC_ZCOMP_RCOMP_df_all_S = comp_al_py_XC_ZCOMP_RCOMP_df_all.query("phase == 'S'")
-
-
-    print(comp_al_py_XC_TCOMP_ZCOMP_df_all_S)
-    print(comp_al_py_XC_TCOMP_RCOMP_df_all_S)
-    print(comp_al_py_XC_ZCOMP_RCOMP_df_all_S)
-
-
-
-    # comp_al_py_XC_TCOMP_ZCOMP_df_all_SS = comp_al_py_XC_TCOMP_ZCOMP_df_all.query("phase == 'SS'")
-    # comp_al_py_XC_TCOMP_ZCOMP_df_all_ScS = comp_al_py_XC_TCOMP_ZCOMP_df_all.query("phase == 'ScS'")
-    # comp_al_py_XC_TCOMP_ZCOMP_df_all_SKS = comp_al_py_XC_TCOMP_ZCOMP_df_all.query("phase == 'SKS'")
-
-
-    # comp_al_py_XC_TCOMP_RCOMP_df_all_SS = comp_al_py_XC_TCOMP_RCOMP_df_all.query("phase == 'SS'")
-    # comp_al_py_XC_TCOMP_RCOMP_df_all_ScS = comp_al_py_XC_TCOMP_RCOMP_df_all.query("phase == 'ScS'")
-    # comp_al_py_XC_TCOMP_RCOMP_df_all_SKS = comp_al_py_XC_TCOMP_RCOMP_df_all.query("phase == 'SKS'")
-
-    # comp_al_py_XC_ZCOMP_RCOMP_df_all_SS = comp_al_py_XC_ZCOMP_RCOMP_df_all.query("phase == 'SS'")
-    # comp_al_py_XC_ZCOMP_RCOMP_df_all_ScS = comp_al_py_XC_ZCOMP_RCOMP_df_all.query("phase == 'ScS'")
-    # comp_al_py_XC_ZCOMP_RCOMP_df_all_SKS = comp_al_py_XC_ZCOMP_RCOMP_df_all.query("phase == 'SKS'")
-
-
-
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_TCOMP_ZCOMP_df_all_S, out_dir, 'comp_al_py_XC_TCOMP_ZCOMP_df_all_S')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_TCOMP_ZCOMP_df_all_SS, out_dir, 'comp_al_py_XC_TCOMP_ZCOMP_df_all_SS')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_TCOMP_ZCOMP_df_all_ScS, out_dir, 'comp_al_py_XC_TCOMP_ZCOMP_df_all_ScS')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_TCOMP_ZCOMP_df_all_SKS, out_dir, 'comp_al_py_XC_TCOMP_ZCOMP_df_all_SKS')
-
-
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_TCOMP_RCOMP_df_all_S, out_dir, 'comp_al_py_XC_TCOMP_RCOMP_df_all_S')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_TCOMP_RCOMP_df_all_SS, out_dir, 'comp_al_py_XC_TCOMP_RCOMP_df_all_SS')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_TCOMP_RCOMP_df_all_ScS, out_dir, 'comp_al_py_XC_TCOMP_RCOMP_df_all_ScS')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_TCOMP_RCOMP_df_all_SKS, out_dir, 'comp_al_py_XC_TCOMP_RCOMP_df_all_SKS')
-
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_ZCOMP_RCOMP_df_all_S, out_dir, 'comp_al_py_XC_ZCOMP_RCOMP_df_all_S')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_ZCOMP_RCOMP_df_all_SS, out_dir, 'comp_al_py_XC_ZCOMP_RCOMP_df_all_SS')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_ZCOMP_RCOMP_df_all_ScS, out_dir, 'comp_al_py_XC_ZCOMP_RCOMP_df_all_ScS')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_ZCOMP_RCOMP_df_all_SKS, out_dir, 'comp_al_py_XC_ZCOMP_RCOMP_df_all_SKS')
-
-
-    comp_al_py_XC_ZCOMP_RCOMP_df_all_P = comp_al_py_XC_ZCOMP_RCOMP_df_all.query("phase == 'P'")
-    compare_tdl_files.plot_comparison(comp_al_py_XC_ZCOMP_RCOMP_df_all_P, out_dir, 'comp_al_py_XC_ZCOMP_RCOMP_df_all_P')
-
-    al_python_filtered_XC_df_P = al_python_filtered_XC_df.query("phase == 'P'")
-    al_python_filtered_XC_ZCOMP_df_P = al_python_filtered_XC_ZCOMP_df.query("phase == 'P'")
-    al_python_filtered_XC_RCOMP_df_P = al_python_filtered_XC_RCOMP_df.query("phase == 'P'")
-
-
-    print(f'Mean P TCOMP: {np.mean(al_python_filtered_XC_df_P["tdelay"])}')
-    print(f'Mean P ZCOMP: {np.mean(al_python_filtered_XC_ZCOMP_df_P["tdelay"])}')
-    print(f'Mean P RCOMP: {np.mean(al_python_filtered_XC_RCOMP_df_P["tdelay"])}')
-
-    # comp_al_py_XC_zaroli_XC_df_all = compare_tdl_files.find_common_picks(al_python_filtered_XC_df, Zaroli_filtered_df)
-    # comp_lei_mat_XC_zaroli_XC_df_all = compare_tdl_files.find_common_picks(lei_matlab_filtered_df, Zaroli_filtered_df)
-    # comp_al_mat_XC_zaroli_XC_df_all = compare_tdl_files.find_common_picks(al_matlab_filtered_df, Zaroli_filtered_df)
-    # comp_al_py_ZR_zaroli_XC_df_all = compare_tdl_files.find_common_picks(al_python_filtered_ZR_df, Zaroli_filtered_df)
-
-    # print(comp_al_py_XC_zaroli_XC_df_all)
-
-
-    # comp_al_py_XC_lei_mat_XC_df_all = compare_tdl_files.find_common_picks(al_python_filtered_XC_df, lei_matlab_filtered_df)
-    # comp_al_mat_XC_lei_mat_XC_df_all = compare_tdl_files.find_common_picks(al_matlab_filtered_df, lei_matlab_filtered_df)
-    # comp_al_py_ZR_lei_mat_XC_df_all = compare_tdl_files.find_common_picks(al_python_filtered_ZR_df, lei_matlab_filtered_df)
-    # comp_al_py_XC_al_py_ZR_df_all  = compare_tdl_files.find_common_picks(al_python_filtered_XC_df, al_python_filtered_ZR_df)
-    # comp_al_mat_XC_al_py_ZR_df_all = compare_tdl_files.find_common_picks(al_matlab_filtered_df, al_python_filtered_ZR_df)
-    # comp_al_mat_XC_al_py_XC_df_all = compare_tdl_files.find_common_picks(al_matlab_filtered_df, al_python_filtered_XC_df)
-
-
-    # out_dir = '/Users/alistair/Google_Drive/Lyon_Pdoc/MTWS_code_comps/no_duplicates/'
-    # # compare_tdl_files.plot_comparison(comp_al_py_XC_zaroli_XC_df_all, out_dir, 'comp_al_py_XC_zaroli_XC_df_all')
-    # # compare_tdl_files.plot_comparison(comp_lei_mat_XC_zaroli_XC_df_all, out_dir, 'comp_lei_mat_XC_zaroli_XC_df_all')
-    # # compare_tdl_files.plot_comparison(comp_al_mat_XC_zaroli_XC_df_all, out_dir, 'comp_al_mat_XC_zaroli_XC_df_all')
-    # compare_tdl_files.plot_comparison(comp_al_py_ZR_zaroli_XC_df_all, out_dir, 'comp_al_py_ZR_zaroli_XC_df_all')
-
-
-    # # compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_all, out_dir, 'comp_al_py_XC_lei_mat_XC_df_all')
-    # # compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_all, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_all')
-    # compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_all, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_all')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_all, out_dir, 'comp_al_py_XC_al_py_ZR_df_all')
-    # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_all, out_dir, 'comp_al_mat_XC_al_py_ZR_df_all')
-    # # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_all, out_dir, 'comp_al_mat_XC_al_py_XC_df_all')
-
-
-    # comp_al_py_XC_zaroli_XC_df_S = comp_al_py_XC_zaroli_XC_df_all.query("phase == 'S'")
-    # comp_al_py_XC_zaroli_XC_df_SS = comp_al_py_XC_zaroli_XC_df_all.query("phase == 'SS'")
-    # # comp_al_py_XC_zaroli_XC_df_ScSScS = comp_al_py_XC_zaroli_XC_df_all.query("phase == 'ScSScS'")
-
-    # # compare_tdl_files.plot_comparison(comp_al_py_XC_zaroli_XC_df_S, out_dir, 'comp_al_py_XC_zaroli_XC_df_S')
-    # # compare_tdl_files.plot_comparison(comp_al_py_XC_zaroli_XC_df_SS, out_dir, 'comp_al_py_XC_zaroli_XC_df_SS')
-    # # compare_tdl_files.plot_comparison(comp_al_py_XC_zaroli_XC_df_ScSScS, out_dir, 'comp_al_py_XC_zaroli_XC_df_ScSScS')
-
-
-    # comp_lei_mat_XC_zaroli_XC_df_S = comp_lei_mat_XC_zaroli_XC_df_all.query("phase == 'S'")
-    # comp_lei_mat_XC_zaroli_XC_df_SS = comp_lei_mat_XC_zaroli_XC_df_all.query("phase == 'SS'")
-    # # comp_lei_mat_XC_zaroli_XC_df_ScSScS = comp_lei_mat_XC_zaroli_XC_df_all.query("phase == 'ScSScS'")
+    compare_tdl_files.plot_comparison(comp_al_user_py_XC_TCOMP_df_all, output_directory, 'comp_al_user_py_XC_TCOMP_df_all')
     
-    # # compare_tdl_files.plot_comparison(comp_lei_mat_XC_zaroli_XC_df_S, out_dir, 'comp_lei_mat_XC_zaroli_XC_df_S')
-    # # compare_tdl_files.plot_comparison(comp_lei_mat_XC_zaroli_XC_df_SS, out_dir, 'comp_lei_mat_XC_zaroli_XC_df_SS')
-    # # compare_tdl_files.plot_comparison(comp_lei_mat_XC_zaroli_XC_df_ScSScS, out_dir, 'comp_lei_mat_XC_zaroli_XC_df_ScSScS')
+    comp_al_user_py_XC_TCOMP_df_all_S = comp_al_user_py_XC_TCOMP_df_all.query("phase == 'S'")
+    comp_al_user_py_XC_TCOMP_df_all_SS = comp_al_user_py_XC_TCOMP_df_all.query("phase == 'SS'")
+    comp_al_user_py_XC_TCOMP_df_all_ScS = comp_al_user_py_XC_TCOMP_df_all.query("phase == 'ScS'")
+    comp_al_user_py_XC_TCOMP_df_all_SKS = comp_al_user_py_XC_TCOMP_df_all.query("phase == 'SKS'")
 
+    print(comp_al_user_py_XC_TCOMP_df_all_S)
 
-
-    # comp_al_mat_XC_zaroli_XC_df_S = comp_al_mat_XC_zaroli_XC_df_all.query("phase == 'S'")
-    # comp_al_mat_XC_zaroli_XC_df_SS = comp_al_mat_XC_zaroli_XC_df_all.query("phase == 'SS'")
-    # # comp_al_mat_XC_zaroli_XC_df_ScSScS = comp_al_mat_XC_zaroli_XC_df_all.query("phase == 'ScSScS'")
-
-    # # compare_tdl_files.plot_comparison(comp_al_mat_XC_zaroli_XC_df_S, out_dir, 'comp_al_mat_XC_zaroli_XC_df_S')
-    # # compare_tdl_files.plot_comparison(comp_al_mat_XC_zaroli_XC_df_SS, out_dir, 'comp_al_mat_XC_zaroli_XC_df_SS')
-    # # compare_tdl_files.plot_comparison(comp_al_mat_XC_zaroli_XC_df_ScSScS, out_dir, 'comp_al_mat_XC_zaroli_XC_df_ScSScS')
-
-
-
-
-
-
-
-    # comp_al_py_XC_lei_mat_XC_df_S = comp_al_py_XC_lei_mat_XC_df_all.query("phase == 'S'")
-    # comp_al_mat_XC_lei_mat_XC_df_S = comp_al_mat_XC_lei_mat_XC_df_all.query("phase == 'S'")
-    # comp_al_py_ZR_lei_mat_XC_df_S = comp_al_py_ZR_lei_mat_XC_df_all.query("phase == 'S'")
-    # comp_al_py_XC_al_py_ZR_df_S  = comp_al_py_XC_al_py_ZR_df_all.query("phase == 'S'")
-    # comp_al_mat_XC_al_py_ZR_df_S = comp_al_mat_XC_al_py_ZR_df_all.query("phase == 'S'")
-    # comp_al_mat_XC_al_py_XC_df_S = comp_al_mat_XC_al_py_XC_df_all.query("phase == 'S'")
-
-    # comp_al_py_XC_lei_mat_XC_df_SS = comp_al_py_XC_lei_mat_XC_df_all.query("phase == 'SS'")
-    # comp_al_mat_XC_lei_mat_XC_df_SS = comp_al_mat_XC_lei_mat_XC_df_all.query("phase == 'SS'")
-    # comp_al_py_ZR_lei_mat_XC_df_SS = comp_al_py_ZR_lei_mat_XC_df_all.query("phase == 'SS'")
-    # comp_al_py_XC_al_py_ZR_df_SS  = comp_al_py_XC_al_py_ZR_df_all.query("phase == 'SS'")
-    # comp_al_mat_XC_al_py_ZR_df_SS = comp_al_mat_XC_al_py_ZR_df_all.query("phase == 'SS'")
-    # comp_al_mat_XC_al_py_XC_df_SS = comp_al_mat_XC_al_py_XC_df_all.query("phase == 'SS'")
-
-    # # compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_S, out_dir, 'comp_al_py_XC_lei_mat_XC_df_S')
-    # # compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_S, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_S')
-    # compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_S, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_S')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_S, out_dir, 'comp_al_py_XC_al_py_ZR_df_S')
-    # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_S, out_dir, 'comp_al_mat_XC_al_py_ZR_df_S')
-    # # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_S, out_dir, 'comp_al_mat_XC_al_py_XC_df_S')
-
-
-    # # compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_SS, out_dir, 'comp_al_py_XC_lei_mat_XC_df_SS')
-    # # compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_SS, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_SS')
-    # compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_SS, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_SS')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_SS, out_dir, 'comp_al_py_XC_al_py_ZR_df_SS')
-    # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_SS, out_dir, 'comp_al_mat_XC_al_py_ZR_df_SS')
-    # # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_SS, out_dir, 'comp_al_mat_XC_al_py_XC_df_SS')
-
-
-
-
-
-
-
-
-
-
-
-
-    # comp_al_py_XC_lei_mat_XC_df_ScSScS = comp_al_py_XC_lei_mat_XC_df_all.query("phase == 'ScSScS'")
-    # comp_al_mat_XC_lei_mat_XC_df_ScSScS = comp_al_mat_XC_lei_mat_XC_df_all.query("phase == 'ScSScS'")
-    # comp_al_py_ZR_lei_mat_XC_df_ScSScS = comp_al_py_ZR_lei_mat_XC_df_all.query("phase == 'ScSScS'")
-    # comp_al_py_XC_al_py_ZR_df_ScSScS  = comp_al_py_XC_al_py_ZR_df_all.query("phase == 'ScSScS'")
-    # comp_al_mat_XC_al_py_ZR_df_ScSScS = comp_al_mat_XC_al_py_ZR_df_all.query("phase == 'ScSScS'")
-    # comp_al_mat_XC_al_py_XC_df_ScSScS = comp_al_mat_XC_al_py_XC_df_all.query("phase == 'ScSScS'")
-
-
-
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_py_XC_lei_mat_XC_df_ScSScS')
-    # compare_tdl_files.plot_comparison(comp_al_mat_XC_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_mat_XC_lei_mat_XC_df_ScSScS')
-    # compare_tdl_files.plot_comparison(comp_al_py_ZR_lei_mat_XC_df_ScSScS, out_dir, 'comp_al_py_ZR_lei_mat_XC_df_ScSScS')
-    # compare_tdl_files.plot_comparison(comp_al_py_XC_al_py_ZR_df_ScSScS, out_dir, 'comp_al_py_XC_al_py_ZR_df_ScSScS')
-    # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_ZR_df_ScSScS, out_dir, 'comp_al_mat_XC_al_py_ZR_df_ScSScS')
-    # compare_tdl_files.plot_comparison(comp_al_mat_XC_al_py_XC_df_ScSScS, out_dir, 'comp_al_mat_XC_al_py_XC_df_ScSScS')
-
-
-
-
+    compare_tdl_files.plot_comparison(comp_al_user_py_XC_TCOMP_df_all_S, output_directory, 'comp_al_user_py_XC_TCOMP_df_all_S')
+    compare_tdl_files.plot_comparison(comp_al_user_py_XC_TCOMP_df_all_SS, output_directory, 'comp_al_user_py_XC_TCOMP_df_all_SS')
+    compare_tdl_files.plot_comparison(comp_al_user_py_XC_TCOMP_df_all_ScS, output_directory, 'comp_al_user_py_XC_TCOMP_df_all_ScS')
+    compare_tdl_files.plot_comparison(comp_al_user_py_XC_TCOMP_df_all_SKS, output_directory, 'comp_al_user_py_XC_TCOMP_df_all_SKS')
 
 
 
