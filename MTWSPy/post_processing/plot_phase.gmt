@@ -82,8 +82,8 @@ END_MAP="$MAP_RANGE $MAP_PROJ -O"
 
 gmt psbasemap $BGN_MAP -Bpx$PL -Bpy$PL -Bswne+t"Stations and Earthquakes for phase: "$phase"" -Xf1c -Yf9c  > $psfile
 
-gmt psxy $MID_MAP -W1,white /Users/alistair/lib/bird_plates.xy >> $psfile
-gmt psxy $MID_MAP -W0.25,black /Users/alistair/lib/bird_plates.xy >> $psfile
+# gmt psxy $MID_MAP -W1,white /Users/alistair/lib/bird_plates.xy >> $psfile
+# gmt psxy $MID_MAP -W0.25,black /Users/alistair/lib/bird_plates.xy >> $psfile
 
 gmt pscoast $MID_MAP  -Dc -A10000 -W0.75 >> $psfile
 
@@ -156,8 +156,8 @@ if [[ $mask == "MASK" ]]; then
     # gmt psxy mask_abs.out $MID_MAP -Sc2p -W0.5,green -C$CPT_2  >> $psfile
 fi
 
-gmt psxy $MID_MAP -W1,white /Users/alistair/lib/bird_plates.xy >> $psfile
-gmt psxy $MID_MAP -W0.25,black /Users/alistair/lib/bird_plates.xy >> $psfile
+# gmt psxy $MID_MAP -W1,white /Users/alistair/lib/bird_plates.xy >> $psfile
+# gmt psxy $MID_MAP -W0.25,black /Users/alistair/lib/bird_plates.xy >> $psfile
 
 gmt pscoast $MID_MAP  -Dc -A10000 -W0.75 >> $psfile
 
