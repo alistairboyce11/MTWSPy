@@ -23,7 +23,7 @@ gmt set FONT_TITLE				= 10p
 gmt set FONT_LABEL				= 10p
 gmt set FONT_ANNOT_PRIMARY		= 10p
 gmt set FONT_ANNOT_SECONDARY	= 10p
-gmt set PS_MEDIA 				= 19.5cx16c
+gmt set PS_MEDIA 				= 26cx16c
 gmt set PS_PAGE_ORIENTATION 	= PORTRAIT
 gmt set PS_LINE_CAP 			= round
 gmt set FORMAT_DATE_IN 			= yyyymmdd
@@ -67,6 +67,11 @@ echo "B white" >> $CPT_2
 echo "F black" >> $CPT_2
 echo "N black" >> $CPT_2
 
+VEL_MIN_3=0
+VEL_MAX_3=999.9
+CPT_PAL_3="-Ccool -I"
+CPT_3=temp_3.cpt
+gmt makecpt $CPT_PAL_3 -T$VEL_MIN_3/$VEL_MAX_3/50 > $CPT_3
 
 ############# EQ and Station map ##################
 
@@ -80,7 +85,7 @@ BGN_MAP="$MAP_RANGE $MAP_PROJ -K"
 MID_MAP="$MAP_RANGE $MAP_PROJ -O -K"
 END_MAP="$MAP_RANGE $MAP_PROJ -O"
 
-gmt psbasemap $BGN_MAP -Bpx$PL -Bpy$PL -Bswne+t"Stations and Earthquakes for phase: "$phase"" -Xf1c -Yf9c  > $psfile
+gmt psbasemap $BGN_MAP -Bpx$PL -Bpy$PL -Bswne+t"Stations and Earthquakes for phase: "$phase"" -Xf0.2c -Yf9c  > $psfile
 
 # gmt psxy $MID_MAP -W1,white /Users/alistair/lib/bird_plates.xy >> $psfile
 # gmt psxy $MID_MAP -W0.25,black /Users/alistair/lib/bird_plates.xy >> $psfile
@@ -115,13 +120,13 @@ echo "a" | gmt pstext -R0/11.5/0/5.85 -J -O -K -N -W1 -C0.1 -D0.1/-0.1 -F+f10,He
 
 ############# Travel time map ##################
 
-gmt psbasemap $MID_MAP -Bpx$PL -Bpy$PL -Bswne+t"Delay time (s) for phase: "$phase"" -Xf1c -Yf1.6c  >> $psfile
+gmt psbasemap $MID_MAP -Bpx$PL -Bpy$PL -Bswne+t"Delay time (s) for phase: "$phase"" -Xf0.2c -Yf1.6c  >> $psfile
 
 # Add earthquake locations.
 proc_tdl_file_means=$base_path"/proc_tdl_station_means.out"
 
 if [[ $phase == "all" ]]; then
-    awk 'NR>1' ${proc_tdl_file_means} | awk -F',' '{print $3, $2, $7}' | gmt blockmean -R-180/180/-90/90 -I0.1 -C -Sn | gmt psxy $MID_MAP -Sc3p -W0.5 -C$CPT_1 >> $psfile
+    awk 'NR>1' ${proc_tdl_file_means} | awk -F',' '{ if ($7 <= 25 && $7 >= -25) print $3, $2, $7}' | sort -n -k1 -k2 -r | gmt psxy $MID_MAP -Sc3p -C$CPT_1 >> $psfile
 
 elif [[ $phase == "S" ]] || [[ $phase == "P" ]]; then
 
@@ -168,6 +173,16 @@ gmt psbasemap -R0/11.5/0/5.85 -JX11.5c/5.85c -O -K -B+n >> $psfile
 echo "b" | gmt pstext  -R -J -O -K -N -W1 -C0.1 -D0.1/-0.1 -F+f10,Helvetica,black+jLT+cLT >> $psfile
 
 
+################################################################################
+#---------------------------- Add Scale ---------------------------------------#
+################################################################################
+gmt set MAP_TITLE_OFFSET			= 6p
+gmt psscale -Dx3.25c/-0.6c+w5c/0.25c+h -R -J -O -K -C$CPT_1 -Ba5f2.5+l"Delay time (s) for phase: "$phase"" -N  >> $psfile
+# @~\266@~V@-P@- (\045) -F+c0.15+gwhite+p0.5,black -t5
+gmt set MAP_TITLE_OFFSET			= 3p
+
+
+
 xmin1=0
 xmax1=180
 ymin1=0
@@ -183,22 +198,35 @@ xmax3=45
 ymin3=0
 ymax3=30000
 
+xmin4=0
+xmax4=180
+ymin4=0
+if [[ $phase == "SS-S" ]] || [[ $phase == "ScS-S" ]] || [[ $phase == "PP-P" ]] || [[ $phase == "PcP-P" ]]; then
+    ymax4=500
+    f_yscale="a250f100"
+else
+    ymax4=3600
+    f_yscale="a1000f500"
+fi
 RANGE1="-R"$xmin1"/"$xmax1"/"$ymin1"/"$ymax1
 RANGE2="-R"$xmin2"/"$xmax2"/"$ymin2"/"$ymax2
 RANGE3="-R"$xmin3"/"$xmax3"/"$ymin3"/"$ymax3
+RANGE4="-R"$xmin4"/"$xmax4"/"$ymin4"/"$ymax4
 
-PROJ1="-JX4c/4c"
-PROJ2="-JX4c/4c"
-PROJ3="-JX4c/4c"
+PROJ1="-JX5c/6c"
+PROJ2="-JX5c/6c"
+PROJ3="-JX5c/6c"
+PROJ4="-JX5c/6c"
 
 BGN1="$RANGE1 $PROJ1 -K"
 MID1="$RANGE1 $PROJ1 -O -K"
 MID2="$RANGE2 $PROJ2 -O -K"
 MID3="$RANGE3 $PROJ3 -O -K"
-END3="$RANGE3 $PROJ3 -O"
+MID4="$RANGE4 $PROJ4 -O -K"
+END4="$RANGE4 $PROJ4 -O"
 
 ########## Epicentral distance plot ############
-gmt psbasemap $MID1 -Bxa45f15+l"Epi. Dist" -Bpya10000f5000+l"Counts (picks)" -BWSne -Xf15c -Yf11c >> $psfile 
+gmt psbasemap $MID1 -Bxa45f15+l"Epi. Dist." -Bpya10000f5000+l"Counts (picks)" -BWSne -Xf13.8c -Yf9c >> $psfile 
 
 # $21
 
@@ -215,7 +243,7 @@ gmt pshistogram plot_c.out -BWSne $MID1 -Bx -By -W10 -F -P -Glightgrey -L0.5,bla
 echo "c" | gmt pstext $MID1 -Gwhite -N -W1 -C0.1 -D0.2/-0.2 -F+f10,Helvetica,black+jLT+cLT >> $psfile
 
 # ########## Earthquake depth plot ############
-gmt psbasemap $MID2 -Bxa100f50+l"Eq. depth" -Bpya10000f5000+l"Counts (picks)" -BWSne -Xf15c -Yf6c >> $psfile 
+gmt psbasemap $MID2 -Bxa100f50+l"Eq. depth (km)" -Bpya10000f5000+l"Counts (picks)" -BWSne -Xf20.5c -Yf9c >> $psfile 
 
 # # $5
 
@@ -235,7 +263,7 @@ echo "Picks: "${picks} | gmt pstext $MID2 -Gwhite -N -W1 -C0.1 -D-0.2/-0.2 -F+f1
 echo "d" | gmt pstext $MID2 -Gwhite -N -W1 -C0.1 -D0.2/-0.2 -F+f10,Helvetica,black+jLT+cLT >> $psfile
 
 ########## Time delay plot ############
-gmt psbasemap $MID3 -Bxa20f10+l"Time delay (s)" -Bpya10000f5000+l"Counts (picks)" -BWSne -Xf15c -Yf1c >> $psfile 
+gmt psbasemap $MID3 -Bxa20f10+l"Time delay (s)" -Bpya10000f5000+l"Counts (picks)" -BWSne -Xf13.8c -Yf1.6c >> $psfile 
 
 # $13
 
@@ -255,21 +283,36 @@ echo "@~ \163 @~="$mean"s" | gmt pstext $MID3 -Gwhite -N -W1 -C0.1 -D-0.2/-0.2 -
 
 echo "e" | gmt pstext $MID3 -Gwhite -N -W1 -C0.1 -D0.2/-0.2 -F+f10,Helvetica,black+jLT+cLT >> $psfile
 
-################################################################################
-#---------------------------- Add Scale ---------------------------------------#
-################################################################################
-gmt set MAP_FRAME_PEN				= 2p
-gmt set MAP_ANNOT_OFFSET_PRIMARY	= 3p
-gmt set MAP_ANNOT_OFFSET_SECONDARY	= 3p
-gmt set MAP_TITLE_OFFSET			= 6p
-gmt set MAP_LABEL_OFFSET			= 3p
-gmt set FONT_TITLE				= 10p
-gmt set FONT_LABEL				= 10p
-gmt set FONT_ANNOT_PRIMARY		= 10p
-gmt set FONT_ANNOT_SECONDARY	= 10p
-gmt psscale -Dx-10.75c/0c+w5c/0.25c+h -R -J -O -C$CPT_1 -Ba5f2.5+l"Delay time (s) for phase: "$phase"" -N  >> $psfile
-# @~\266@~V@-P@- (\045) -F+c0.15+gwhite+p0.5,black -t5
 
+########## distance v.s. Time delay ############
+
+gmt psbasemap $MID4 -Bxa90f45+l"Distance (deg)" -Bpy$f_yscale+l"Time delay (s)" -BWSne -Xf20.5c -Yf1.6c >> $psfile 
+
+# $13
+
+if [[ $phase == "all" ]]; then
+    awk 'NR>1' ${proc_tdl_file} | awk -F',' '{print $21, $16+$13, $5}' |  sort -n -k1 -k2 > plot_f.out
+elif [[ $phase == "SS-S" ]] || [[ $phase == "ScS-S" ]] || [[ $phase == "PP-P" ]] || [[ $phase == "PcP-P" ]]; then
+    awk 'NR>1' ${proc_tdl_file_diff} | awk -v var=$phase -F',' '{ if ($12 == var) print $20, ($17+$16) - ($19+$18), $5}' |  sort -n -k1 -k2 > plot_f.out
+else
+    awk 'NR>1' ${proc_tdl_file} | awk -v var=$phase -F',' '{ if ($12 == var) print $21, $16+$13, $5}' |  sort -n -k1 -k2 > plot_f.out
+fi
+
+gmt psxy plot_f.out $MID4 -Sc3p -C$CPT_3 >> $psfile
+
+echo "f" | gmt pstext $MID4 -Gwhite -N -W1 -C0.1 -D0.2/-0.2 -F+f10,Helvetica,black+jLT+cLT >> $psfile
+
+
+# ################################################################################
+# #---------------------------- Add Scale ---------------------------------------#
+# ################################################################################
+gmt set MAP_TITLE_OFFSET			= 6p
+gmt set FONT_TITLE				= 7p
+gmt set FONT_LABEL				= 7p
+gmt set FONT_ANNOT_PRIMARY		= 7p
+gmt set FONT_ANNOT_SECONDARY	= 7p
+gmt psscale -Dx1.8c/0.2c+w3c/0.25c+h+m $END4 -C$CPT_3 -Ba200f100+l"Eq. depth (km)" -N  >> $psfile
+# @~\266@~V@-P@- (\045) -F+c0.15+gwhite+p0.5,black -t5
 
 
 gmt psconvert -Tf $psfile

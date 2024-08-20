@@ -248,8 +248,8 @@ class CompareTdlFiles(ProcessTdlFiles):
 
             # Correlation plot 
             ax0.set_title(f'tdelay df1 v.s. df2',fontsize = 14)
-            ax0.set_xlim([-1*(60), 60])
-            ax0.set_ylim([-1*(60), 60])
+            ax0.set_xlim([-1*(30), 30])
+            ax0.set_ylim([-1*(30), 30])
             ax0.xaxis.set_minor_locator(MultipleLocator(5))
             ax0.xaxis.set_major_locator(MultipleLocator(25))
             ax0.yaxis.set_minor_locator(MultipleLocator(5))
@@ -261,14 +261,14 @@ class CompareTdlFiles(ProcessTdlFiles):
             ax0.scatter(comp_df["tdelay_df1"], comp_df["tdelay_df2"], 
                         s = 2, color = 'k')
 
-            ax0.plot([-60,60], [-60,60], ls = '-', lw = 0.5, color = 'g')
+            ax0.plot([-30,30], [-30,30], ls = '-', lw = 0.5, color = 'g')
 
             # Histogram of differences 
             ax1.hist(comp_df["tdelay_diff"], bins=np.arange(-50, 50+1 , 2), 
                     color='blue', alpha=0.7)  # Adjust bins and color as needed
 
             # Add labels and title
-            ax1.set_xlabel('tdelay Difference',fontsize = 14)
+            ax1.set_xlabel('tdelay Difference [s]',fontsize = 14)
             ax1.set_ylabel('Frequency',fontsize = 14)
             ax1.set_title('Histogram of tdelay Difference',fontsize = 14)
             ax1.set_xlim([-1*(50), 50])
@@ -279,7 +279,6 @@ class CompareTdlFiles(ProcessTdlFiles):
             ax1.yaxis.set_major_locator(MultipleLocator(1000))
 
             # Dist tdelay plot:
-
             dist_t_df2 = ax2.scatter(comp_df["dist"], 
                                     comp_df["ttaup"] + comp_df["tdelay_df2"], 
                                     s = 2, color = 'b', label = f'df2')
@@ -288,8 +287,8 @@ class CompareTdlFiles(ProcessTdlFiles):
                                     s = 2, color = 'r', label = f'df1') # 
 
             # Add labels and title
-            ax2.set_xlabel('Epicentral Distance',fontsize = 14)
-            ax2.set_ylabel('tdelay',fontsize = 14)
+            ax2.set_xlabel('Epicentral Distance [°]',fontsize = 14)
+            ax2.set_ylabel('tdelay [s]',fontsize = 14)
             ax2.set_title('tdelay against dist',fontsize = 14)
             ax2.set_xlim([0, 180])
             ax2.set_ylim([0, 3600])
@@ -576,6 +575,154 @@ class CompareTdlFiles(ProcessTdlFiles):
         return input_filtered_df
 
 
+    def plot_eq_depths(self, df, output_directory):
+        """
+        Plot the variability in Earthquake depth
+        as a function of the distance and time delay
+        to understand the depth phases
+
+        :param df: dataframe to plot & save
+        :type df: pd.df
+        :param output_directory: directory to save plot
+        :type output_directory: str
+
+        """
+
+        # Ensure 'phase' column is of string type
+        df['phase'] = df['phase'].astype(str)
+
+        # Create the df_direct dataframe for rows where 'phase' starts with an uppercase 'S'
+        df_direct = df[df['phase'].str.startswith('S')]
+
+        # Create the df_depth dataframe for rows where 'phase' starts with a lowercase 's'
+        df_depth = df[df['phase'].str.startswith('s')]
+
+
+        # Initialise Figure and add axes with constraints
+        fig = plt.figure(figsize  = (14,6))
+
+        ax0 = fig.add_axes([0.08, 0.1, 0.22, 0.8], projection = None, 
+                        polar = False,facecolor = 'white',frame_on = True)
+        ax1 = fig.add_axes([0.4, 0.1, 0.22, 0.8], projection = None, 
+                        polar = False,facecolor = 'white',frame_on = True)
+        ax2 = fig.add_axes([0.73, 0.1, 0.22, 0.8], projection = None, 
+                        polar = False,facecolor = 'white',frame_on = True)
+
+        axes_list_all = [ax0, ax1, ax2]
+        for j, ax in enumerate(axes_list_all):
+            ax.set_xticks([])
+            ax.set_yticks([])
+
+            ax.spines["right"].set_linewidth(1.5)
+            ax.spines["left"].set_linewidth(1.5)
+            ax.spines["top"].set_linewidth(1.5)
+            ax.spines["bottom"].set_linewidth(1.5)
+            ax.tick_params(labelsize = 12)
+
+
+        # Dist tdelay plot - all-phases:
+
+        ax0.scatter(df["dist"], 
+            df["ttaup"] + df["tdelay"], 
+            s = 2, c = df["evt_dep"], cmap = 'viridis')
+
+        ax0.set_xlabel('Epicentral Distance [°]',fontsize = 14)
+        ax0.set_ylabel('tdelay [s]',fontsize = 14)
+        ax0.set_title('tdelay v.s. dist - All',fontsize = 14)
+        ax0.set_xlim([0, 180])
+        ax0.set_ylim([0, 3600])
+        ax0.xaxis.set_minor_locator(MultipleLocator(15))
+        ax0.xaxis.set_major_locator(MultipleLocator(45))
+        ax0.yaxis.set_minor_locator(MultipleLocator(250))
+        ax0.yaxis.set_major_locator(MultipleLocator(1000))
+
+        # Dist tdelay plot - direct-phases:
+        ax1.scatter(df_direct["dist"], 
+            df_direct["ttaup"] + df_direct["tdelay"], 
+            s = 2, c = df_direct["evt_dep"], cmap = 'viridis')
+
+        # Add labels and title
+        ax1.set_xlabel('Epicentral Distance [°]',fontsize = 14)
+        ax1.set_ylabel('tdelay [s]',fontsize = 14)
+        ax1.set_title('tdelay v.s. dist - direct',fontsize = 14)
+        ax1.set_xlim([0, 180])
+        ax1.set_ylim([0, 3600])
+        ax1.xaxis.set_minor_locator(MultipleLocator(15))
+        ax1.xaxis.set_major_locator(MultipleLocator(45))
+        ax1.yaxis.set_minor_locator(MultipleLocator(250))
+        ax1.yaxis.set_major_locator(MultipleLocator(1000))
+
+        # Dist tdelay plot - depth-phases:
+        sc = ax2.scatter(df_depth["dist"], 
+            df_depth["ttaup"] + df_depth["tdelay"], 
+            s = 2, c = df_depth["evt_dep"], cmap = 'viridis')
+
+        # Add a colorbar to the plot
+        cbar = plt.colorbar(sc, ax=ax2)
+
+        # Optionally, label the colorbar
+        cbar.set_label('Event Depth')
+
+        # Add labels and title
+        ax2.set_xlabel('Epicentral Distance [°]',fontsize = 14)
+        ax2.set_ylabel('tdelay [s]',fontsize = 14)
+        ax2.set_title('tdelay v.s. dist - depth-phases',fontsize = 14)
+        ax2.set_xlim([0, 180])
+        ax2.set_ylim([0, 3600])
+        ax2.xaxis.set_minor_locator(MultipleLocator(15))
+        ax2.xaxis.set_major_locator(MultipleLocator(45))
+        ax2.yaxis.set_minor_locator(MultipleLocator(250))
+        ax2.yaxis.set_major_locator(MultipleLocator(1000))
+
+        ax0.annotate('a',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
+                    fontsize = 12,textcoords = 'offset points', color = 'k',
+                    backgroundcolor = 'none',ha = 'left', va = 'top', 
+                    bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                    pad = 2.0))
+
+        num_picks = len(df)
+        ax0.annotate(f'Picks: {num_picks}',(1, 1),xytext = (-5,-5),xycoords = 'axes fraction',
+                    fontsize = 12,textcoords = 'offset points', color = 'k', 
+                    backgroundcolor = 'none',ha = 'right', va = 'top', 
+                    bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                    pad = 2.0))
+
+        ax1.annotate('b',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
+                    fontsize = 12,textcoords = 'offset points', color = 'k', 
+                    backgroundcolor = 'none',ha = 'left', va = 'top', 
+                    bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                    pad = 2.0))
+
+        num_picks = len(df_direct)
+        ax1.annotate(f'Picks: {num_picks}',(1, 1),xytext = (-5,-5),xycoords = 'axes fraction',
+                    fontsize = 12,textcoords = 'offset points', color = 'k', 
+                    backgroundcolor = 'none',ha = 'right', va = 'top', 
+                    bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                    pad = 2.0))
+
+        ax2.annotate('c',(0, 1),xytext = (5,-5),xycoords = 'axes fraction',
+                    fontsize = 12,textcoords = 'offset points', color = 'k', 
+                    backgroundcolor = 'none',ha = 'left', va = 'top', 
+                    bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                    pad = 2.0))
+
+        num_picks = len(df_depth)
+        ax2.annotate(f'Picks: {num_picks}',(1, 1),xytext = (-5,-5),xycoords = 'axes fraction',
+                    fontsize = 12,textcoords = 'offset points', color = 'k', 
+                    backgroundcolor = 'none',ha = 'right', va = 'top', 
+                    bbox = dict(facecolor = 'white',edgecolor = 'black', 
+                    pad = 2.0))
+
+        # Save plot:
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory, exist_ok=True)
+
+        filename_out = f'{output_directory}All_direct_depth_phases.png'
+        print(f'Sending output to: {str(filename_out)}')
+
+        plt.savefig(filename_out, format = 'png')
+        plt.close()
+
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ #
 def main():
     # Create instance of toolkit as tk
@@ -613,12 +760,12 @@ def main():
 
     ######################### AL JAN 2008 data - XC - T comp #########################
 
-    output_directory = f"{params['home']}/MTWSPy/data/output_df/"
+    output_directory_example = f"{params['home']}/MTWSPy/data/output_df/"
 
     al_python_filtered_XC_df = compare_tdl_files.load_dataframe(params, 
                                                                 filter_functions, 
-                                                                output_directory, 
-                                                                "Proc_tdl_AB_JAN_2008")
+                                                                output_directory_example, 
+                                                                "200801_IU_T_df")
     print(al_python_filtered_XC_df)
 
 
@@ -636,29 +783,30 @@ def main():
 
     #########################        PROCESSING            #########################
 
-
+    # Check differences in means of S phase
     al_python_filtered_XC_df_S = al_python_filtered_XC_df.query("phase == 'S'")
     user_python_filtered_XC_df_S = user_python_filtered_XC_df.query("phase == 'S'")
-
 
     print(f'Mean S TCOMP AL: {np.mean(al_python_filtered_XC_df_S["tdelay"])}')
     print(f'Mean S TCOMP USER: {np.mean(user_python_filtered_XC_df_S["tdelay"])}')
 
+    # Plot Earthquake depth analysis 
+    compare_tdl_files.plot_eq_depths(al_python_filtered_XC_df, output_directory_example)
+    compare_tdl_files.plot_eq_depths(user_python_filtered_XC_df, output_directory)
+
+    # Find common picks between example data set (al_python_filtered_XC_df)
+    # and that produced by the user (user_python_filtered_XC_df)
+    # This will only work for Jan 2008 
+
     comp_al_user_py_XC_TCOMP_df_all = compare_tdl_files.find_common_picks(al_python_filtered_XC_df, user_python_filtered_XC_df)
 
+    # Analyse differences between phases
     compare_tdl_files.plot_comparison(comp_al_user_py_XC_TCOMP_df_all, output_directory, 'comp_al_user_py_XC_TCOMP_df_all')
-    
+
+    # Analyse just S component
     comp_al_user_py_XC_TCOMP_df_all_S = comp_al_user_py_XC_TCOMP_df_all.query("phase == 'S'")
-    comp_al_user_py_XC_TCOMP_df_all_SS = comp_al_user_py_XC_TCOMP_df_all.query("phase == 'SS'")
-    comp_al_user_py_XC_TCOMP_df_all_ScS = comp_al_user_py_XC_TCOMP_df_all.query("phase == 'ScS'")
-    comp_al_user_py_XC_TCOMP_df_all_SKS = comp_al_user_py_XC_TCOMP_df_all.query("phase == 'SKS'")
-
-    print(comp_al_user_py_XC_TCOMP_df_all_S)
-
     compare_tdl_files.plot_comparison(comp_al_user_py_XC_TCOMP_df_all_S, output_directory, 'comp_al_user_py_XC_TCOMP_df_all_S')
-    compare_tdl_files.plot_comparison(comp_al_user_py_XC_TCOMP_df_all_SS, output_directory, 'comp_al_user_py_XC_TCOMP_df_all_SS')
-    compare_tdl_files.plot_comparison(comp_al_user_py_XC_TCOMP_df_all_ScS, output_directory, 'comp_al_user_py_XC_TCOMP_df_all_ScS')
-    compare_tdl_files.plot_comparison(comp_al_user_py_XC_TCOMP_df_all_SKS, output_directory, 'comp_al_user_py_XC_TCOMP_df_all_SKS')
+
 
 
 
