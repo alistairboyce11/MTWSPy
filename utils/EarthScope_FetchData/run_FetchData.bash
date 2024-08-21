@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=FetchD
-#SBATCH --partition=Cascade-flix
+#SBATCH --partition=Cascade
 #SBATCH --time=168:00:00
 ###########################################################
 # USER PARAMETERS
@@ -32,7 +32,7 @@ module load impi/2021.9.0-intel-compilers-2023.1.0
 
 HOME=`echo ~`
 CODE_HOME=`pwd`
-# source ${HOME}/.bash_profile
+conda init
 conda activate MTWSPy  
 export XDG_CACHE_HOME=${HOME}/tmp
 today=`date +%Y-%m-%d`
@@ -42,7 +42,18 @@ months="1" #" 2 3 4 5 6" # "7 8 9 10 11 12" #
 s_chan="LH"
 
 ###################################################################
-# Check path for download: Specified in dl script.
+# Check path for download: 
+FetchEvent_exists=`which FetchEvent | wc -w`
+FetchMetadata_exists=`which FetchMetadata | wc -w`
+FetchData_exists=`which FetchData | wc -w`
+
+if [[ $FetchEvent_exists -eq 0 ]] || [[ $FetchMetadata_exists -eq 0 ]] || [[ $FetchData_exists -eq 0 ]]; then
+    echo "Cannot find Earthscope_FetchData scripts on Path..."
+    echo "See README.md...."
+    echo "Need following on path: https://github.com/EarthScope/fetch-scripts?tab=readme-ov-file"
+    echo "Exiting...."
+    exit
+fi
 
 ###################################################################
 
