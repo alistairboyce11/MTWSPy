@@ -1714,7 +1714,8 @@ def main():
         print(f"Downloading {year}, {month:02d} for search data channel: {channel}")
 
     # Save Data to this location
-    data_loc = '/home/aboyce/d_data_obs/iris_FetchData'
+    # data_loc = '/home/aboyce/d_data_obs/iris_FetchData'
+    data_loc = '.'
     
     # output of processing, channel -> processing_channel 
     # Take all channels and normalise/filter to processing_channel
