@@ -76,7 +76,7 @@ class FetchData():
             else:
                 num_days = 31
                 
-            event_metadata = [f'{service} {event} /home/aboyce/bin/FetchEvent -s {year}-{month:02d}-01,00:00:00.000 -e {year}-{month:02d}-{num_days},23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -o {outfile_loc}']
+            event_metadata = [f'{service} {event} FetchEvent -s {year}-{month:02d}-01,00:00:00.000 -e {year}-{month:02d}-{num_days},23:59:59.999 --depth 0:700 --mag 5.5:7.5 --cat GCMT -o {outfile_loc}']
             out = subprocess.check_output(event_metadata, shell=True)
 
         try:
@@ -223,7 +223,7 @@ class FetchData():
             elif channel == 'HH':
                 channels = 'HH?'
 
-            # station_metadata = [f'{service} {meta} /home/aboyce/bin/FetchMetadata 
+            # station_metadata = [f'{service} {meta} FetchMetadata 
             #                       -C {channels} -s {year}-{month:02d}-01,00:00:00 
             #                       -e {year}-{month:02d}-{num_days:02d},23:59:59 
             #                       -o {data_loc}/e{year}/{dc_name}_{year}-{month:02d}_stations.out 
@@ -232,7 +232,7 @@ class FetchData():
             # out = subprocess.check_output(station_metadata, shell=True)
 
             # Necessary to download the metadata
-            station_metadata = [f'{service} {meta} /home/aboyce/bin/FetchMetadata -C {channels} -s {year}-01-01,00:00:00 -e {year}-12-31,23:59:59 -o {outfile_loc} -X {inv_loc} -resp']
+            station_metadata = [f'{service} {meta} FetchMetadata -C {channels} -s {year}-01-01,00:00:00 -e {year}-12-31,23:59:59 -o {outfile_loc} -X {inv_loc} -resp']
             out = subprocess.check_output(station_metadata, shell=True)
 
 
@@ -460,7 +460,7 @@ class FetchData():
             # Syntax:
             # FetchData -l myselection.txt -o mydata.mseed
             # Execute perl script using subprocess:
-            station_data = [f'{service} {time} {meta} /home/aboyce/bin/FetchData -l {chunk_f_name} -o {mseed_f_name}']
+            station_data = [f'{service} {time} {meta} FetchData -l {chunk_f_name} -o {mseed_f_name}']
             out = subprocess.check_output(station_data, shell=True)
 
         # Add inventory to the dict
