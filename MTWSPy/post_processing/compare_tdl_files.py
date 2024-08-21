@@ -367,7 +367,7 @@ class CompareTdlFiles(ProcessTdlFiles):
                        output_directory, filename):
         """
         Load csv file from filepath if it exists
-        Else use apply to make the dataframe:
+        Else use apply to make the dataframe (See process_tdl_files.py)
 
         :param params: loaded parameter file 
         :type params: dict
@@ -534,7 +534,7 @@ class CompareTdlFiles(ProcessTdlFiles):
                               output_directory, filename, file_outname):
         """
         Get csv file from filepath if it exists
-        Else load & save the dataframe:
+        Else load & save the dataframe
         Filter the dataframe according to params
 
         :param params: loaded parameter file 
@@ -768,8 +768,6 @@ def main():
                                                                 "200801_IU_T_df")
     print(al_python_filtered_XC_df)
 
-
-
     #########################        USER PICKS             #########################
 
     output_directory = f"{params['home']}/{params['proc_tdl_loc']}/"
@@ -779,7 +777,6 @@ def main():
                                                                 output_directory, 
                                                                 filename)
     print(user_python_filtered_XC_df)
-
 
     #########################        PROCESSING            #########################
 
