@@ -60,7 +60,7 @@ twin_outfmt: '{0:s},{1:.4f},{2:.4f},{3:.4f},{4:.2f},{5:.2f},{6:.2f},{7:.3e},{8:.
 component: 'T' # Z,R,T instrument component on which to pick phases
 twin_plot_pic: False # Plot pic, otherwise skip plotting.
 twin_save_pic: False # Force to save pictures to file, otherwise just show.
-phases_key: 'Master' # dict key in v01_phasenames
+phases_key: 'Master' # dict key in v01_phasenames (i.e. phases to pick)
 taup_model_name: 'iasp91' # taup_model to use in arrival time calcs.
 
 T1: 17.0 #  min period
@@ -203,6 +203,8 @@ correlate_outfmt: '{0:s},{1:.4f},{2:.4f},{3:.1f},{4:s},{5:.2f},{6:.2f},{7:.2f},{
 # ---                                                                             --- #
 
 # Processed dataset parameters
+# Any picks falling outside these constraints will be excluded from the 
+# processed dataset produced at 'proc_tdl_loc'
 
 proc_tdl_loc: 'proc_tdelay'               # Data out location
 tt_out_f_name: 'Proc_tdl'                 # Outfile name

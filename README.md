@@ -4,7 +4,7 @@
 # MTWSPy
 ***
 
-[MTWSPy](https://github.com/alistairboyce11/MTWSPy) is a Python implementation of the Morphological Time Window Selection (MTWS) method first published in _Geophysical Journal International_ by Lei Li et al., ([2023](https://doi.org/10.1093/gji/ggad338)), including preceeding data processing workflow.
+[MTWSPy](https://github.com/alistairboyce11/MTWSPy) is an improved Python implementation of the Morphological Time Window Selection (MTWS) method first published in _Geophysical Journal International_ by Lei Li et al., ([2023](https://doi.org/10.1093/gji/ggad338)), including preceeding data processing workflow.
 
 <!-- ######################################################################## -->
 
@@ -12,7 +12,7 @@
 ## Description
 ***
 
-This package includes codes to download and process seismic data, create corresponding synthetics and measure travel times using MTWSPy and cross correlation.
+This package includes codes to download and process seismic data, create corresponding synthetics and measure travel times using MTWSPy and to post-process the data.
 
 * We use [iris-fetch-scripts](https://github.com/EarthScope/fetch-scripts?tab=readme-ov-file) for download of seismic data.
 * We use [SPECFEM3D_GLOBE](https://specfem.org/) v8.0.0 available [here](https://github.com/SPECFEM/specfem3d_globe/releases/tag/v8.0.0) for calculation of global synthetic seismograms.
@@ -115,9 +115,11 @@ navigate to `home`
 
 #### Description:
 
-The overall philospy of the code is to have a setup where we can just hit `GO` i.e. `MTWSPY_main` anywhere that can see you conda path.
+The overall philospy of the code is to have a setup where we can just hit `GO` i.e. `MTWSPY_main` anywhere that can see your conda path can work on most machines. Post-processing can be called using `process_tdl_files`, as well as creation of inversion ready files `create_inv_files` (in SEISGLOB format).
 
-To do this we rely heavily on an input parameter file `params_in.yaml` which must be studied and adapted for purpose before using the code. All parameters are described/commented and are grouped with each relevant part of the code. This file is loaded before the execution of any part of the code. Please note the filenaming conventions for the "obs" and "syn" data paths in the parameter file.
+A full run of the code and post-processing can be run on an interactive node on a network cluster using `MTWSPy/run_MTWSPy.bash`. The full code and post-processing can be run using the SLURM Batch file (to be adapted) `MTWSPy/run_MTWSPy.batch` (RECOMMENDED).
+
+To do the above we rely heavily on an input parameter file `params_in.yaml` which must be studied and adapted for purpose before using the code. All parameters are described/commented and are grouped with each relevant part of the code. This file is loaded before the execution of any part of the code. Please note the filenaming conventions for the "obs" and "syn" data paths in the parameter file.
 
 -> open params_in.yaml
 -> Check home, data_loc, synth_loc, fmt_data_loc, cmt_infile, year, parallel, cores

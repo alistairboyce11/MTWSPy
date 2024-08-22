@@ -1714,7 +1714,8 @@ def main():
         print(f"Downloading {year}, {month:02d} for search data channel: {channel}")
 
     # Save Data to this location
-    data_loc = '/home/aboyce/d_data_obs/iris_FetchData'
+    # data_loc = '/home/aboyce/d_data_obs/iris_FetchData'
+    data_loc = '.'
     
     # output of processing, channel -> processing_channel 
     # Take all channels and normalise/filter to processing_channel
@@ -1725,7 +1726,7 @@ def main():
     packet_request_size = 100 
 
     # Number of independent/parallel requests executed 
-    # CAREFUL increasing too much - Datacenter can block thursty users
+    # CAREFUL increasing too much - Datacenter can block thirsty users
     # 24 has been tested with broad success.
     jobs = 24 
     if jobs > 1 and jobs <= 96:
