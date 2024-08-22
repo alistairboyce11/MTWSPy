@@ -1726,7 +1726,7 @@ def main():
     packet_request_size = 100 
 
     # Number of independent/parallel requests executed 
-    # CAREFUL increasing too much - Datacenter can block thursty users
+    # CAREFUL increasing too much - Datacenter can block thirsty users
     # 24 has been tested with broad success.
     jobs = 24 
     if jobs > 1 and jobs <= 96:
