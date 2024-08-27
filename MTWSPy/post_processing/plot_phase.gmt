@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ $# -ne 2 ];
 then
@@ -39,8 +39,6 @@ gmt set MAP_LABEL_OFFSET			= 3p
 # base_path="/Users/alistair/Google_Drive/GITHUB_AB/MTWSPy/proc_tdelay/FINAL"
 base_path="./proc_tdelay"
 
-
-
 psfile=$base_path"/tdl_phase_${phase}.ps"
 pdffile=$base_path"/tdl_phase_${phase}.pdf"
 
@@ -49,7 +47,7 @@ pdffile=$base_path"/tdl_phase_${phase}.pdf"
 CPT_1=temp.cpt
 CPT_PAL="-Cpolar"
 
-if [[ $phase == *"P"* ]]; then
+if [ "$phase" == "*P*" ]; then
     gmt makecpt $CPT_PAL -T-5/5/0.2 -N > $CPT_1
 else
     gmt makecpt $CPT_PAL -T-10/10/0.2 -N > $CPT_1
@@ -83,9 +81,9 @@ MAP_RANGE="-Rg"
 MAP_PROJ="-JN0/$MAP_SCALE"
 BGN_MAP="$MAP_RANGE $MAP_PROJ -K"
 MID_MAP="$MAP_RANGE $MAP_PROJ -O -K"
-END_MAP="$MAP_RANGE $MAP_PROJ -O"
+# END_MAP="$MAP_RANGE $MAP_PROJ -O"
 
-gmt psbasemap $BGN_MAP -Bpx$PL -Bpy$PL -Bswne+t"Stations and Earthquakes for phase: "$phase"" -Xf0.2c -Yf9c  > $psfile
+gmt psbasemap $BGN_MAP -Bpx$PL -Bpy$PL -Bswne+t"Stations and Earthquakes for phase: $phase" -Xf0.2c -Yf9c  > $psfile
 
 # gmt psxy $MID_MAP -W1,white /Users/alistair/lib/bird_plates.xy >> $psfile
 # gmt psxy $MID_MAP -W0.25,black /Users/alistair/lib/bird_plates.xy >> $psfile
@@ -93,20 +91,20 @@ gmt psbasemap $BGN_MAP -Bpx$PL -Bpy$PL -Bswne+t"Stations and Earthquakes for pha
 gmt pscoast $MID_MAP  -Dc -A10000 -W0.75 >> $psfile
 
 # Add earthquake locations.
-proc_tdl_file=$base_path"/proc_tdl.out"
-if [[ $phase == "all" ]]; then
+proc_tdl_file=$base_path"/Proc_tdl.out"
+if [ $phase == "all" ]; then
     awk 'NR>1' ${proc_tdl_file} | awk -F',' '{ print $4, $3}' | sort -u | gmt psxy $MID_MAP -Sc3p -W0.5 -Ggrey >> $psfile
-elif [[ $phase == "SS-S" ]] || [[ $phase == "ScS-S" ]] || [[ $phase == "PP-P" ]] || [[ $phase == "PcP-P" ]]; then
-    proc_tdl_file_diff=$base_path"/proc_tdl_"$phase".out"
+elif [ $phase == "SS-S" ] || [ $phase == "ScS-S" ] || [ $phase == "PP-P" ] || [ $phase == "PcP-P" ]; then
+    proc_tdl_file_diff=$base_path"/Proc_tdl_$phase.out"
     awk 'NR>1' ${proc_tdl_file_diff} | awk -F',' '{ print $4, $3}' | sort -u | gmt psxy $MID_MAP -Sc3p -W0.5 -Ggrey >> $psfile
 else
     awk 'NR>1' ${proc_tdl_file} | awk -v var=$phase -F',' '{ if ($12 == var) print $4, $3}' | sort -u | gmt psxy $MID_MAP -Sc3p -W0.5 -Ggrey >> $psfile
 fi
 # Add station locations
-if [[ $phase == "all" ]]; then
+if [ $phase == "all" ]; then
     awk 'NR>1' ${proc_tdl_file} | awk  -F',' '{ print $10, $9}' | sort -u | gmt psxy $MID_MAP -St3p -W0.5 -Gred >> $psfile
-elif [[ $phase == "SS-S" ]] || [[ $phase == "ScS-S" ]] || [[ $phase == "PP-P" ]] || [[ $phase == "PcP-P" ]]; then
-    proc_tdl_file_diff=$base_path"/proc_tdl_"$phase".out"
+elif [ $phase == "SS-S" ] || [ $phase == "ScS-S" ] || [ $phase == "PP-P" ] || [ $phase == "PcP-P" ]; then
+    proc_tdl_file_diff=$base_path"/Proc_tdl_$phase.out"
     awk 'NR>1' ${proc_tdl_file_diff} | awk  -F',' '{ print $10, $9}' | sort -u | gmt psxy $MID_MAP -St3p -W0.5 -Gred >> $psfile
 else
     awk 'NR>1' ${proc_tdl_file} | awk -v var=$phase -F',' '{ if ($12 == var) print $10, $9}' | sort -u | gmt psxy $MID_MAP -St3p -W0.5 -Gred >> $psfile
@@ -120,20 +118,20 @@ echo "a" | gmt pstext -R0/11.5/0/5.85 -J -O -K -N -W1 -C0.1 -D0.1/-0.1 -F+f10,He
 
 ############# Travel time map ##################
 
-gmt psbasemap $MID_MAP -Bpx$PL -Bpy$PL -Bswne+t"Delay time (s) for phase: "$phase"" -Xf0.2c -Yf1.6c  >> $psfile
+gmt psbasemap $MID_MAP -Bpx$PL -Bpy$PL -Bswne+t"Delay time (s) for phase: $phase" -Xf0.2c -Yf1.6c  >> $psfile
 
 # Add earthquake locations.
-proc_tdl_file_means=$base_path"/proc_tdl_station_means.out"
+proc_tdl_file_means=$base_path"/Proc_tdl_station_means.out"
 
-if [[ $phase == "all" ]]; then
+if [ $phase == "all" ]; then
     awk 'NR>1' ${proc_tdl_file_means} | awk -F',' '{ if ($7 <= 25 && $7 >= -25) print $3, $2, $7}' | sort -n -k1 -k2 -r | gmt psxy $MID_MAP -Sc3p -C$CPT_1 >> $psfile
 
-elif [[ $phase == "S" ]] || [[ $phase == "P" ]]; then
+elif [ $phase == "S" ] || [ $phase == "P" ]; then
 
     awk 'NR>1' ${proc_tdl_file_means} | awk -v var=$phase -F',' '{ if ($6 == var && $7 <= 25 && $7 >= -25) print $3, $2, $7}'  | sort -n  -k1 -k2 -r | gmt psxy $MID_MAP -Sc3p -C$CPT_1 >> $psfile
 
-elif [[ $phase == "SS-S" ]] || [[ $phase == "ScS-S" ]] || [[ $phase == "PP-P" ]] || [[ $phase == "PcP-P" ]]; then
-    proc_tdl_file_diff=$base_path"/proc_tdl_"$phase".out"
+elif [ $phase == "SS-S" ] || [ $phase == "ScS-S" ] || [ $phase == "PP-P" ] || [ $phase == "PcP-P" ]; then
+    proc_tdl_file_diff=$base_path"/Proc_tdl_$phase.out"
     awk 'NR>1' ${proc_tdl_file_diff} | awk -v var=$phase -F',' '{ if ($12 == var && $13 <= 25 && $13 >= -25) print $24, $23, $13}' > mid_points.out
     gmt blockmean mid_points.out -R-180/180/-90/90 -I$average -C > mid_points_mean.out
     # gmt psxy mid_points.out $MID_MAP -Sc3p -W0.5 -C$CPT_1 >> $psfile
@@ -152,7 +150,7 @@ else
 
 fi
 
-if [[ $mask == "MASK" ]]; then
+if [ $mask == "MASK" ]; then
     # Density plot of points or Mask.
     gmt blockmean mid_points.out -R-180/180/-90/90 -I5 -C -Sn > mask.out
     awk -v var=$limit  '{ if ($3 <= var) print $1, $2, 1; else print $1, $2, $3}' mask.out | awk -v var=$limit '{ if ($3 > var) print $1, $2, 0; else print $1, $2, $3}' > mask_abs.out
@@ -177,7 +175,7 @@ echo "b" | gmt pstext  -R -J -O -K -N -W1 -C0.1 -D0.1/-0.1 -F+f10,Helvetica,blac
 #---------------------------- Add Scale ---------------------------------------#
 ################################################################################
 gmt set MAP_TITLE_OFFSET			= 6p
-gmt psscale -Dx3.25c/-0.6c+w5c/0.25c+h -R -J -O -K -C$CPT_1 -Ba5f2.5+l"Delay time (s) for phase: "$phase"" -N  >> $psfile
+gmt psscale -Dx3.25c/-0.6c+w5c/0.25c+h -R -J -O -K -C$CPT_1 -Ba5f2.5+l"Delay time (s) for phase: $phase" -N  >> $psfile
 # @~\266@~V@-P@- (\045) -F+c0.15+gwhite+p0.5,black -t5
 gmt set MAP_TITLE_OFFSET			= 3p
 
@@ -201,24 +199,24 @@ ymax3=30000
 xmin4=0
 xmax4=180
 ymin4=0
-if [[ $phase == "SS-S" ]] || [[ $phase == "ScS-S" ]] || [[ $phase == "PP-P" ]] || [[ $phase == "PcP-P" ]]; then
+if [ $phase == "SS-S" ] || [ $phase == "ScS-S" ] || [ $phase == "PP-P" ] || [ $phase == "PcP-P" ]; then
     ymax4=500
     f_yscale="a250f100"
 else
     ymax4=3600
     f_yscale="a1000f500"
 fi
-RANGE1="-R"$xmin1"/"$xmax1"/"$ymin1"/"$ymax1
-RANGE2="-R"$xmin2"/"$xmax2"/"$ymin2"/"$ymax2
-RANGE3="-R"$xmin3"/"$xmax3"/"$ymin3"/"$ymax3
-RANGE4="-R"$xmin4"/"$xmax4"/"$ymin4"/"$ymax4
+RANGE1="-R$xmin1/$xmax1/$ymin1/$ymax1"
+RANGE2="-R$xmin2/$xmax2/$ymin2/$ymax2"
+RANGE3="-R$xmin3/$xmax3/$ymin3/$ymax3"
+RANGE4="-R$xmin4/$xmax4/$ymin4/$ymax4"
 
 PROJ1="-JX5c/6c"
 PROJ2="-JX5c/6c"
 PROJ3="-JX5c/6c"
 PROJ4="-JX5c/6c"
 
-BGN1="$RANGE1 $PROJ1 -K"
+# BGN1="$RANGE1 $PROJ1 -K"
 MID1="$RANGE1 $PROJ1 -O -K"
 MID2="$RANGE2 $PROJ2 -O -K"
 MID3="$RANGE3 $PROJ3 -O -K"
@@ -230,9 +228,9 @@ gmt psbasemap $MID1 -Bxa45f15+l"Epi. Dist." -Bpya10000f5000+l"Counts (picks)" -B
 
 # $21
 
-if [[ $phase == "all" ]]; then
+if [ $phase == "all" ]; then
     awk 'NR>1' ${proc_tdl_file} | awk -F',' '{print $21}' > plot_c.out
-elif [[ $phase == "SS-S" ]] || [[ $phase == "ScS-S" ]] || [[ $phase == "PP-P" ]] || [[ $phase == "PcP-P" ]]; then
+elif [ $phase == "SS-S" ] || [ $phase == "ScS-S" ] || [ $phase == "PP-P" ] || [ $phase == "PcP-P" ]; then
     awk 'NR>1' ${proc_tdl_file_diff} | awk -v var=$phase -F',' '{ if ($12 == var) print $20}' > plot_c.out
 else
     awk 'NR>1' ${proc_tdl_file} | awk -v var=$phase -F',' '{ if ($12 == var) print $21}' > plot_c.out
@@ -247,9 +245,9 @@ gmt psbasemap $MID2 -Bxa100f50+l"Eq. depth (km)" -Bpya10000f5000+l"Counts (picks
 
 # # $5
 
-if [[ $phase == "all" ]]; then
+if [ $phase == "all" ]; then
     awk 'NR>1' ${proc_tdl_file} | awk -F',' '{print $5}' > plot_d.out
-elif [[ $phase == "SS-S" ]] || [[ $phase == "ScS-S" ]] || [[ $phase == "PP-P" ]] || [[ $phase == "PcP-P" ]]; then
+elif [ $phase == "SS-S" ] || [ $phase == "ScS-S" ] || [ $phase == "PP-P" ] || [ $phase == "PcP-P" ]; then
     awk 'NR>1' ${proc_tdl_file_diff} | awk -v var=$phase -F',' '{ if ($12 == var) print $5}' > plot_d.out
 else
     awk 'NR>1' ${proc_tdl_file} | awk -v var=$phase -F',' '{ if ($12 == var) print $5}' > plot_d.out
@@ -267,9 +265,9 @@ gmt psbasemap $MID3 -Bxa20f10+l"Time delay (s)" -Bpya10000f5000+l"Counts (picks)
 
 # $13
 
-if [[ $phase == "all" ]]; then
+if [ $phase == "all" ]; then
     awk 'NR>1' ${proc_tdl_file} | awk -F',' '{print $13}' > plot_e.out
-elif [[ $phase == "SS-S" ]] || [[ $phase == "ScS-S" ]] || [[ $phase == "PP-P" ]] || [[ $phase == "PcP-P" ]]; then
+elif [ $phase == "SS-S" ] || [ $phase == "ScS-S" ] || [ $phase == "PP-P" ] || [ $phase == "PcP-P" ]; then
     awk 'NR>1' ${proc_tdl_file_diff} | awk -v var=$phase -F',' '{ if ($12 == var) print $13}' > plot_e.out
 else
     awk 'NR>1' ${proc_tdl_file} | awk -v var=$phase -F',' '{ if ($12 == var) print $13}' > plot_e.out
@@ -279,7 +277,7 @@ gmt pshistogram plot_e.out -BWSne $MID3 -Bx -By -W2 -F -P -Glightgrey -L0.5,blac
 
 mean=`gmt math plot_e.out MEAN -S = | awk '{printf "%.1f\n", $0}'`
 
-echo "@~ \163 @~="$mean"s" | gmt pstext $MID3 -Gwhite -N -W1 -C0.1 -D-0.2/-0.2 -F+f10,Helvetica,black+jRT+cRT >> $psfile
+echo "@~ \163 @~=${mean}s" | gmt pstext $MID3 -Gwhite -N -W1 -C0.1 -D-0.2/-0.2 -F+f10,Helvetica,black+jRT+cRT >> $psfile
 
 echo "e" | gmt pstext $MID3 -Gwhite -N -W1 -C0.1 -D0.2/-0.2 -F+f10,Helvetica,black+jLT+cLT >> $psfile
 
@@ -290,9 +288,9 @@ gmt psbasemap $MID4 -Bxa90f45+l"Distance (deg)" -Bpy$f_yscale+l"Time delay (s)" 
 
 # $13
 
-if [[ $phase == "all" ]]; then
+if [ $phase == "all" ]; then
     awk 'NR>1' ${proc_tdl_file} | awk -F',' '{print $21, $16+$13, $5}' |  sort -n -k1 -k2 > plot_f.out
-elif [[ $phase == "SS-S" ]] || [[ $phase == "ScS-S" ]] || [[ $phase == "PP-P" ]] || [[ $phase == "PcP-P" ]]; then
+elif [ $phase == "SS-S" ] || [ $phase == "ScS-S" ] || [ $phase == "PP-P" ] || [ $phase == "PcP-P" ]; then
     awk 'NR>1' ${proc_tdl_file_diff} | awk -v var=$phase -F',' '{ if ($12 == var) print $20, ($17+$16) - ($19+$18), $5}' |  sort -n -k1 -k2 > plot_f.out
 else
     awk 'NR>1' ${proc_tdl_file} | awk -v var=$phase -F',' '{ if ($12 == var) print $21, $16+$13, $5}' |  sort -n -k1 -k2 > plot_f.out
